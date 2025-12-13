@@ -564,6 +564,7 @@ export type GetProjectQuery = { __typename?: 'Query', getProject?: { __typename?
 export type ListProjectsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
+  scope?: InputMaybe<ListScope>;
 }>;
 
 

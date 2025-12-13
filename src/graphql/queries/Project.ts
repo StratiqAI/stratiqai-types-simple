@@ -66,8 +66,8 @@ export const Q_GET_PROJECT = gql`
 `;
 
 export const Q_LIST_PROJECTS = gql`
-  query ListProjects($limit: Int, $nextToken: String) {
-    listProjects(limit: $limit, nextToken: $nextToken) {
+  query ListProjects($limit: Int, $nextToken: String, $scope: ListScope) {
+    listProjects(limit: $limit, nextToken: $nextToken, scope: $scope) {
       items {
         id
         entityType

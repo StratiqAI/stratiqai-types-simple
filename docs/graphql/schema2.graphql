@@ -1,0 +1,734 @@
+
+
+
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+# ----------------------------------------------------------------------
+# 0. AWS SCALAR TYPES
+# ----------------------------------------------------------------------
+
+"""
+AWS AppSync scalar type for ISO8601 datetime strings.
+"""
+scalar AWSDateTime
+
+"""
+AWS AppSync scalar type for JSON objects.
+"""
+scalar AWSJSON
+
+# ----------------------------------------------------------------------
+# 0.1. AWS DIRECTIVES
+# ----------------------------------------------------------------------
+
+"""
+AWS AppSync directive for IAM authentication.
+"""
+directive @aws_iam on OBJECT | FIELD_DEFINITION
+
+"""
+AWS AppSync directive for Cognito User Pools authentication.
+"""
+directive @aws_cognito_user_pools(
+  cognito_groups: [String!]
+) on OBJECT | FIELD_DEFINITION
+
+"""
+AWS AppSync directive for authorization rules.
+"""
+directive @aws_auth(
+  cognito_groups: [String!]
+) on FIELD_DEFINITION
+
+"""
+AWS AppSync directive for real-time subscriptions.
+"""
+directive @aws_subscribe(
+  mutations: [String!]
+) on FIELD_DEFINITION
+
+# ----------------------------------------------------------------------
+# 1. CORE ENUMS
+# ----------------------------------------------------------------------
+
+enum EntityType {
+  PROJECT
+  DOCLINK
+  WORKFLOW
+  DASHBOARD
+  DATASOURCE
+  TOPIC
+  DATA_SCHEMA
+  PROMPT
+  PRODUCT_LISTING
+  PRODUCT_VERSION
+  SUBSCRIPTION
+  RESOURCE_SHARE
+  ASYNC_JOB
+  SYSTEM_CONFIG
+}
+
+enum PermissionScope {
+  PRIVATE
+  TENANT
+  SYSTEM
+}
+
+enum SharingMode {
+  PRIVATE         # Only Owner
+  SPECIFIC_USERS  # Owner + specific ResourceShare records
+  TENANT_VIEW     # All Tenant members can Read
+  TENANT_EDIT     # All Tenant members can Edit
+}
+
+enum SharePermission {
+  VIEW   # Read Only
+  EDIT   # Read & Write
+  ADMIN  # Read, Write, Delete, Share
+}
+
+enum PackagingStrategy {
+  CLONE      # Buyer gets a full independent copy
+  REFERENCE  # Buyer gets a gated link to the original
+}
+
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+enum DocLinkStatus {
+  notUploaded
+  uploaded
+  processing
+  ready
+  failed
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+enum JobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum PresenceAction {
+  VIEWING
+  TYPING
+  EDITING
+  IDLE
+}
+
+# ----------------------------------------------------------------------
+# 2. INTERFACES (The Contracts)
+# ----------------------------------------------------------------------
+
+"""
+The Standard Node. Every item in the DB has these fields.
+"""
+interface SystemNode {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime 
+  ttl: Int 
+  forkedFromId: ID 
+  forkedFromVersion: String
+}
+
+"""
+Items that can be shared via Adjacency Lists.
+"""
+interface Shareable {
+  sharingMode: SharingMode!
+  # The Adjacency List lookup
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+}
+
+"""
+Items that function as 'Apps' and enforce Subscription Logic.
+"""
+interface LicensedItem {
+  subscriptionId: ID
+  isLocked: Boolean! 
+}
+
+"""
+Items that can be bundled into a Marketplace Product.
+"""
+interface Packagable {
+  packagingStrategy: PackagingStrategy!
+}
+
+# ----------------------------------------------------------------------
+# 3. STANDARDIZED INPUTS
+# ----------------------------------------------------------------------
+
+"""
+Use for ROOT items (Project, Workflow).
+"""
+input PrimaryKeyInput {
+  id: ID!
+}
+
+"""
+Use for operations that act ON a parent to create or list children.
+"""
+input ParentKeyInput {
+  parentId: ID!
+}
+
+"""
+Use for CHILD items (DocLink) to identify a specific item.
+"""
+input CompositeKeyInput {
+  id: ID!
+  parentId: ID!
+}
+
+# ----------------------------------------------------------------------
+# 4. ENTITY: RESOURCE SHARE (The Permission Slip)
+# ----------------------------------------------------------------------
+
+type ResourceShare implements SystemNode 
+  @aws_iam @aws_cognito_user_pools {
+
+  id: ID! # PK: <ResourceID>, SK: SHARED#USER#<RecipientID>
+  entityType: EntityType! 
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID 
+  forkedFromVersion: String
+
+  # Relationship
+  resourceId: ID!
+  recipientUserId: ID!
+  permission: SharePermission!
+
+  # Denormalized Cache
+  resourceTitle: String!
+  resourceType: EntityType!
+}
+
+type ResourceShareConnection {
+  items: [ResourceShare!]!
+  nextToken: String
+}
+
+# ----------------------------------------------------------------------
+# 5. ENTITY: PROJECT (Root Container)
+# ----------------------------------------------------------------------
+
+type Project implements SystemNode & Shareable 
+  @aws_iam 
+  @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]) {
+  
+  # SystemNode
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID 
+  forkedFromVersion: String
+
+  # Shareable
+  sharingMode: SharingMode!
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+
+  # Project Specifics
+  name: String!
+  description: String
+  status: ProjectStatus!
+  
+  # Children
+  docLinks(limit: Int, nextToken: String): DocLinkConnection
+  topics(limit: Int, nextToken: String): TopicConnection
+}
+
+type ProjectConnection { items: [Project!]! nextToken: String }
+
+input CreateProjectInput {
+  name: String!
+  description: String
+  status: ProjectStatus = ACTIVE
+  sharingMode: SharingMode = PRIVATE
+}
+
+input UpdateProjectInput {
+  name: String
+  description: String
+  status: ProjectStatus
+  sharingMode: SharingMode
+}
+
+# ----------------------------------------------------------------------
+# 6. ENTITY: DOCLINK (Child Item)
+# ----------------------------------------------------------------------
+
+type DocLink implements SystemNode 
+  @aws_iam 
+  @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]) {
+  
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID 
+  forkedFromVersion: String
+
+  # Hierarchy
+  parentId: ID!       
+  documentId: ID! # Hash Reference to ContentStore
+  
+  # Metadata
+  filename: String!
+  status: DocLinkStatus!
+}
+
+type DocLinkConnection { items: [DocLink!]! nextToken: String }
+
+input CreateDocLinkInput {
+  # parentId REMOVED (Passed via ParentKeyInput)
+  documentId: ID! 
+  filename: String!
+  status: DocLinkStatus = notUploaded
+}
+
+input UpdateDocLinkInput {
+  filename: String
+  status: DocLinkStatus
+}
+
+# ----------------------------------------------------------------------
+# 7. WORKFLOW ENGINE (Graph, Topics, Schema)
+# ----------------------------------------------------------------------
+
+type DataSchema implements SystemNode 
+  @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID 
+  forkedFromVersion: String
+
+  name: String!
+  definition: AWSJSON! # JSON Schema
+  defaultVisualization: String
+}
+
+type Topic implements SystemNode 
+  @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID 
+  forkedFromVersion: String
+
+  projectId: ID!
+  name: String!
+  dataSchemaId: ID! 
+  latestInsight: Insight
+}
+
+type Insight {
+  generatedAt: AWSDateTime!
+  generatedByJobId: ID
+  generatedByWorkflowId: ID
+  content: AWSJSON! 
+}
+
+type TopicConnection { items: [Topic!]! nextToken: String }
+
+type Workflow implements SystemNode & Shareable & LicensedItem & Packagable
+  @aws_iam @aws_cognito_user_pools {
+  
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID 
+  forkedFromVersion: String
+  
+  sharingMode: SharingMode!
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+  subscriptionId: ID
+  isLocked: Boolean! 
+  packagingStrategy: PackagingStrategy!
+
+  name: String!
+  description: String
+  definitionYaml: String! 
+  # Derived from definitionYaml
+  ioConfig: AWSJSON 
+}
+
+type WorkflowConnection { items: [Workflow!]! nextToken: String }
+
+input CreateWorkflowInput {
+  name: String!
+  description: String
+  definitionYaml: String!
+  sharingMode: SharingMode = PRIVATE
+}
+
+input UpdateWorkflowInput {
+  name: String
+  description: String
+  definitionYaml: String
+  sharingMode: SharingMode
+}
+
+input CreateTopicInput {
+  # parentId removed, passed in ParentKeyInput
+  name: String!
+  dataSchemaId: ID!
+}
+
+# ----------------------------------------------------------------------
+# 8. DASHBOARD (Visualization)
+# ----------------------------------------------------------------------
+
+type Dashboard implements SystemNode & Shareable & LicensedItem & Packagable
+  @aws_iam @aws_cognito_user_pools {
+  
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID 
+  forkedFromVersion: String
+  
+  sharingMode: SharingMode!
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+  subscriptionId: ID
+  isLocked: Boolean! 
+  packagingStrategy: PackagingStrategy!
+
+  title: String!
+  layoutConfig: AWSJSON! 
+  widgets: [DashboardWidget!]
+}
+
+type DashboardWidget {
+  id: ID!
+  type: String!
+  title: String
+  topicId: ID!
+  expectedSchemaId: ID!
+  config: AWSJSON
+}
+
+type DashboardConnection { items: [Dashboard!]! nextToken: String }
+
+input CreateDashboardInput {
+  title: String!
+  layoutConfig: AWSJSON!
+  sharingMode: SharingMode = PRIVATE
+}
+
+input UpdateDashboardInput {
+  title: String
+  layoutConfig: AWSJSON
+  sharingMode: SharingMode
+}
+
+# ----------------------------------------------------------------------
+# 9. MARKETPLACE & BILLING
+# ----------------------------------------------------------------------
+
+type ProductListing implements SystemNode 
+  @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "MarketplaceSellers", "Users"]) {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID 
+  forkedFromVersion: String
+
+  title: String!
+  description: String
+  priceMonthly: Float
+  latestVersionId: ID! 
+}
+
+type ProductVersion implements SystemNode 
+  @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "MarketplaceSellers", "Users"]) {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID 
+  forkedFromVersion: String
+
+  productId: ID!
+  versionString: String!
+  assets: [PackageAsset!]!
+}
+
+type PackageAsset {
+  originalAssetId: ID!
+  type: EntityType!
+  name: String!
+  snapshotData: AWSJSON! 
+}
+
+type LicenseSubscription implements SystemNode 
+  @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]) {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID 
+  forkedFromVersion: String
+
+  listingId: ID!
+  installedVersionId: ID!
+  status: SubscriptionStatus!
+  validUntil: AWSDateTime!
+  stripeSubscriptionId: String 
+  stripeCustomerId: String
+}
+
+type ProductListingConnection { items: [ProductListing!]! nextToken: String }
+
+# ----------------------------------------------------------------------
+# 10. OPERATIONS & UTILITY
+# ----------------------------------------------------------------------
+
+type AsyncJob implements SystemNode 
+  @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID 
+  forkedFromVersion: String
+
+  jobType: String!
+  status: JobStatus!
+  percentage: Int
+  resultData: AWSJSON
+  outputMappings: AWSJSON
+}
+
+type UserPresence {
+  projectId: ID!
+  userId: ID!
+  username: String
+  action: PresenceAction!
+  cursorX: Float
+  cursorY: Float
+  timestamp: AWSDateTime!
+}
+
+# ----------------------------------------------------------------------
+# 11. ROOT OPERATIONS
+# ----------------------------------------------------------------------
+
+# Inputs for Sharing Operations
+input ShareResourceInput {
+  resourceId: ID!
+  recipientUserId: ID!
+  permission: SharePermission!
+}
+
+input UnshareResourceInput {
+  resourceId: ID!
+  recipientUserId: ID!
+}
+
+type Query {
+  # --- Project Operations ---
+  getProject(key: PrimaryKeyInput!): Project
+  listProjects(limit: Int, nextToken: String): ProjectConnection
+
+  # --- Sharing Operations ---
+  listSharedWithMe(limit: Int, nextToken: String): ResourceShareConnection
+    @aws_auth(cognito_groups: ["Users", "TenantAdmins"])
+
+  # --- Child Items (Using ParentKeyInput) ---
+  listDocLinks(key: ParentKeyInput!, limit: Int, nextToken: String): DocLinkConnection
+  listTopics(key: ParentKeyInput!, limit: Int, nextToken: String): TopicConnection
+
+  # --- Child Identity Lookup ---
+  getDocLink(key: CompositeKeyInput!): DocLink
+  
+  # --- Root Assets ---
+  getWorkflow(key: PrimaryKeyInput!): Workflow
+  listWorkflows(limit: Int, nextToken: String): WorkflowConnection
+  
+  getDashboard(key: PrimaryKeyInput!): Dashboard
+  listDashboards(limit: Int, nextToken: String): DashboardConnection
+
+  # --- Marketplace ---
+  getProductListing(key: PrimaryKeyInput!): ProductListing
+  listProductListings(limit: Int, nextToken: String): ProductListingConnection
+}
+
+type Mutation {
+  # --- Sharing Mutations ---
+  shareResource(input: ShareResourceInput!): ResourceShare
+    @aws_auth(cognito_groups: ["Users", "TenantAdmins"])
+
+  unshareResource(input: UnshareResourceInput!): Boolean
+    @aws_auth(cognito_groups: ["Users", "TenantAdmins"])
+
+  # --- Project Mutations ---
+  createProject(input: CreateProjectInput!): Project
+  updateProject(key: PrimaryKeyInput!, input: UpdateProjectInput!): Project
+  deleteProject(key: PrimaryKeyInput!): Project
+
+  # --- Child Mutations (Using ParentKeyInput) ---
+  # Note: input does NOT contain parentId
+  createDocLink(key: ParentKeyInput!, input: CreateDocLinkInput!): DocLink
+  
+  createTopic(key: ParentKeyInput!, input: CreateTopicInput!): Topic
+
+  # --- Child Identity Mutations ---
+  updateDocLink(key: CompositeKeyInput!, input: UpdateDocLinkInput!): DocLink
+  deleteDocLink(key: CompositeKeyInput!): DocLink
+
+  # --- Root Asset Mutations ---
+  createWorkflow(input: CreateWorkflowInput!): Workflow
+  updateWorkflow(key: PrimaryKeyInput!, input: UpdateWorkflowInput!): Workflow
+  deleteWorkflow(key: PrimaryKeyInput!): Workflow
+  
+  createDashboard(input: CreateDashboardInput!): Dashboard
+  updateDashboard(key: PrimaryKeyInput!, input: UpdateDashboardInput!): Dashboard
+  deleteDashboard(key: PrimaryKeyInput!): Dashboard
+
+  # --- SPECIAL OPS ---
+  
+  # Copy-on-Write / Forking
+  forkSystemItem(
+    sourceKey: CompositeKeyInput!
+    targetScope: PermissionScope!
+    name: String
+    overrides: AWSJSON
+  ): SystemNode
+
+  # Backend Trigger for Insight Pipeline
+  publishInsight(
+    topicId: ID!,
+    generatedByJobId: ID,
+    content: AWSJSON!
+  ): Insight
+  @aws_auth(cognito_groups: ["SystemAdmins", "SystemSupport"]) 
+
+  # Marketplace Publishing
+  createProductListing(
+    title: String!
+    priceMonthly: Float
+    includedItemIds: [ID!]!
+  ): ProductListing
+    @aws_auth(cognito_groups: ["SystemAdmins", "MarketplaceSellers"])
+
+  # Mock Billing
+  grantSubscription(
+    targetUserId: ID!
+    listingId: ID!
+    durationDays: Int!
+  ): LicenseSubscription
+    @aws_auth(cognito_groups: ["SystemAdmins"])
+    
+  # Real-Time
+  broadcastPresence(
+    projectId: ID!
+    action: PresenceAction!
+    cursorX: Float
+    cursorY: Float
+  ): UserPresence
+}
+
+type Subscription {
+  # --- CRUD Subscriptions ---
+  onCreateProject(ownerId: ID!): Project
+    @aws_subscribe(mutations: ["createProject"])
+  onUpdateProject(id: ID!): Project
+    @aws_subscribe(mutations: ["updateProject"])
+  onDeleteProject(id: ID!): Project
+    @aws_subscribe(mutations: ["deleteProject"])
+
+  # Child Subscriptions (Scoped to Parent)
+  onCreateDocLink(parentId: ID!): DocLink
+    @aws_subscribe(mutations: ["createDocLink"])
+  onUpdateDocLink(parentId: ID!): DocLink
+    @aws_subscribe(mutations: ["updateDocLink"])
+  onDeleteDocLink(parentId: ID!): DocLink
+    @aws_subscribe(mutations: ["deleteDocLink"])
+
+  # --- Sharing ---
+  onResourceShared(recipientUserId: ID!): ResourceShare
+    @aws_subscribe(mutations: ["shareResource"])
+  onResourceUnshared(recipientUserId: ID!): Boolean
+    @aws_subscribe(mutations: ["unshareResource"])
+
+  # --- Insights ---
+  onInsightPublished(topicId: ID!): Insight
+    @aws_subscribe(mutations: ["publishInsight"])
+
+  # --- Presence ---
+  onPresenceChange(projectId: ID!): UserPresence
+    @aws_subscribe(mutations: ["broadcastPresence"])
+}

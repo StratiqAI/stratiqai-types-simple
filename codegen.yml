@@ -1,0 +1,32 @@
+overwrite: true
+schema: './src/graphql/schema.graphql'
+documents: 
+  - './src/operations.ts'
+  - './src/graphql/**/*.ts'
+config:
+  pluckConfig:
+    modules:
+      - name: graphql-tag
+        identifier: gql
+    globalIdentifier: gql
+  # Fail on schema validation errors (ensures operations match schema)
+  failOnError: true
+generates:
+  ./src/generated/types.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+    config:
+      skipTypename: false
+      enumsAsTypes: true
+      scalars:
+        AWSDateTime: string
+        AWSJSON: any
+      useTypeImports: true
+      maybeValue: T | null | undefined
+      avoidOptionals: false
+      dedupeFragments: true
+      # Generate hooks for better type safety
+      addOperationExport: true
+      # Export all types for easy importing
+      exportFragmentSpreadSubTypes: true

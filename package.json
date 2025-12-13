@@ -1,0 +1,49 @@
+{
+  "name": "stratiqai-types-simple",
+  "version": "1.0.0",
+  "description": "TypeScript types, GraphQL schema, and operations for StratiqAI",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "import": "./dist/schema.js"
+    },
+    "./operations": {
+      "types": "./dist/operations.d.ts",
+      "import": "./dist/operations.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src/schema.graphql"
+  ],
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "npm run clean && npm run build:js && npm run build:types && npm run generate:types",
+    "build:js": "node esbuild.config.js",
+    "build:types": "tsc --emitDeclarationOnly --project tsconfig.json",
+    "generate:types": "graphql-codegen --config codegen.yml",
+    "validate": "npm run generate:types",
+    "prepublishOnly": "npm run build",
+    "publish:local": "npm run build && npm version patch && npm publish --registry http://localhost:4873"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^6.0.2",
+    "@graphql-codegen/typescript": "^5.0.4",
+    "@graphql-codegen/typescript-operations": "^5.0.4",
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.27.0",
+    "graphql": "^16.8.1",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {}
+}

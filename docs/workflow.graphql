@@ -1,0 +1,190 @@
+# ===================================================================
+# 1. WORKFLOW – Now a real AI orchestration engine
+# ===================================================================
+
+type Workflow implements SystemNode & Shareable & LicensedItem {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+
+  sharingMode: SharingMode!
+  accessList(paginate: PaginateInput): ResourceShareConnection!
+  subscriptionId: ID
+  isLocked: Boolean!
+
+  """Human-readable name"""
+  name: String!
+
+  """Current execution status (for running workflows)"""
+  status: WorkflowStatus!
+
+  """List of nodes (steps) in this workflow"""
+  nodes(paginate: PaginateInput): WorkflowNodeConnection!
+
+  """Directed edges defining execution order"""
+  edges(paginate: PaginateInput): WorkflowEdgeConnection!
+
+  """Latest execution run (if any)"""
+  latestRun: WorkflowRun
+
+  """All past and current runs"""
+  runs(paginate: PaginateInput): WorkflowRunConnection!
+}
+
+enum WorkflowStatus {
+  DRAFT
+  PUBLISHED
+  RUNNING
+  PAUSED
+  FAILED
+  COMPLETED
+}
+
+# ===================================================================
+# 2. WORKFLOW NODE – A single AI job step
+# ===================================================================
+
+type WorkflowNode implements SystemNode {
+  id: ID!
+  entityType: EntityType!        # WORKFLOW_NODE
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  permissions: ResourcePermissions!
+
+  workflowId: ID!
+  nodeType: WorkflowNodeType!
+  name: String!
+  description: String
+
+  """The PromptTemplate this step uses"""
+  promptTemplateId: ID!
+  promptTemplate: PromptTemplate
+
+  """Static inputs or references to previous node outputs"""
+  inputMapping: AWSJSON!
+
+  """How to map this node's output to downstream inputs"""
+  outputMapping: AWSJSON
+}
+
+enum WorkflowNodeType {
+  AI_JOB
+  CONDITIONAL_BRANCH
+  PARALLEL_GATEWAY
+  HUMAN_TASK
+  END
+}
+
+type WorkflowNodeEdge { cursor: String! node: WorkflowNode! }
+type WorkflowNodeConnection { edges: [WorkflowNodeEdge!]! pageInfo: PageInfo! }
+
+# ===================================================================
+# 3. WORKFLOW EDGE – Defines execution flow
+# ===================================================================
+
+type WorkflowEdge implements SystemNode {
+  id: ID!
+  entityType: EntityType!        # WORKFLOW_EDGE
+  workflowId: ID!
+  sourceNodeId: ID!
+  targetNodeId: ID!
+  condition: String               # Optional JS-like expression for branching
+}
+
+type WorkflowEdgeEdge { cursor: String! node: WorkflowEdge! }
+type WorkflowEdgeConnection { edges: [WorkflowEdgeEdge!]! pageInfo: PageInfo! }
+
+# ===================================================================
+# 4. WORKFLOW RUN – A single execution of a workflow
+# ===================================================================
+
+type WorkflowRun implements SystemNode {
+  id: ID!
+  entityType: EntityType!        # WORKFLOW_RUN
+  workflowId: ID!
+  workflow: Workflow!
+  status: WorkflowRunStatus!
+  startedAt: AWSDateTime!
+  completedAt: AWSDateTime
+  trigger: WorkflowTrigger!
+
+  """All AI jobs created by this run"""
+  jobs(paginate: PaginateInput): AIJobConnection!
+}
+
+enum WorkflowRunStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum WorkflowTrigger {
+  MANUAL
+  SCHEDULE
+  WEBHOOK
+  AI_JOB_COMPLETED
+}
+
+type WorkflowRunEdge { cursor: String! node: WorkflowRun! }
+type WorkflowRunConnection { edges: [WorkflowRunEdge!]! pageInfo: PageInfo! }
+
+type Mutation {
+  # Create or update a workflow graph
+  createWorkflow(input: CreateWorkflowInput!, clientMutationId: ID): WorkflowPayload
+  updateWorkflow(key: PrimaryKeyInput!, input: UpdateWorkflowInput!, clientMutationId: ID): WorkflowPayload
+
+  # Start a workflow execution
+  startWorkflowRun(
+    workflowId: ID!
+    inputVariables: AWSJSON
+    clientMutationId: ID
+  ): WorkflowRunPayload
+
+  # Cancel a running workflow
+  cancelWorkflowRun(runId: ID!, clientMutationId: ID): WorkflowRunPayload
+}
+
+type WorkflowPayload { workflow: Workflow userErrors: [UserError!]! clientMutationId: ID }
+type WorkflowRunPayload { run: WorkflowRun userErrors: [UserError!]! clientMutationId: ID }
+
+input CreateWorkflowInput {
+  name: String!
+  nodes: [CreateWorkflowNodeInput!]!
+  edges: [CreateWorkflowEdgeInput!]!
+}
+
+input CreateWorkflowNodeInput {
+  name: String!
+  promptTemplateId: ID!
+  inputMapping: AWSJSON!
+  outputMapping: AWSJSON
+}
+
+input CreateWorkflowEdgeInput {
+  sourceNodeId: ID!
+  targetNodeId: ID!
+  condition: String
+}
+
+type Subscription {
+  onWorkflowRunStarted(workflowId: ID!): WorkflowRunPayload
+    @aws_subscribe(mutations: ["startWorkflowRun"])
+
+  onWorkflowRunUpdated(runId: ID!): WorkflowRunPayload
+    @aws_subscribe(mutations: ["startWorkflowRun", "updateAIJobState"])
+
+  onWorkflowNodeCompleted(runId: ID!, nodeId: ID!): WorkflowNodePayload
+    @aws_subscribe(mutations: ["updateAIJobState"])
+}

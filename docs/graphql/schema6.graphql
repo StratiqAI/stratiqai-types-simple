@@ -1,0 +1,1660 @@
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+# ----------------------------------------------------------------------
+# 1. SCALARS
+# ----------------------------------------------------------------------
+# AppSync native scalars (definitions required for linting/codegen, 
+# but AppSync provides the logic internally)
+scalar AWSDateTime
+scalar AWSJSON
+scalar AWSURL
+scalar AWSEmail
+scalar AWSIPAddress
+
+# ----------------------------------------------------------------------
+# 2. ENUMS
+# ----------------------------------------------------------------------
+
+enum EntityType {
+  PROJECT
+  DOCLINK
+  TOPIC
+  TOPIC_ENTRY
+  WORKFLOW
+  DASHBOARD
+  DASHBOARD_WIDGET
+  PROMPT_TEMPLATE
+  RESOURCE_SHARE
+  SUBSCRIPTION
+  USER_PROFILE
+  MARKETPLACE_PRODUCT
+  MARKETPLACE_PRODUCT_VERSION
+  PRODUCT_INSTALLATION
+  PRODUCT_REVIEW
+  USAGE_RECORD
+  BILLING_INVOICE
+  DOCUMENT
+  PAGE
+  IMAGE
+  TABLE
+  CHART
+  TEXT
+  INSIGHT
+  INSIGHT_REACTION
+  INSIGHT_VERSION
+  AI_JOB
+  MESSAGE
+}
+
+enum PermissionScope {
+  PRIVATE
+  TENANT
+  SYSTEM
+}
+
+enum ListScope {
+  OWNED_BY_ME
+  SHARED_WITH_ME
+  ALL_TENANT
+}
+
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+enum DocLinkStatus {
+  NOT_UPLOADED
+  UPLOADED
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+enum AIJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum PresenceAction {
+  VIEWING
+  TYPING
+  EDITING
+  IDLE
+}
+
+enum DashboardWidgetType {
+  INSIGHT_FEED
+  CHART
+  TABLE
+  KPI_CARD
+  RICH_TEXT
+  TOPIC_SUBSCRIBER
+}
+
+enum SharingMode {
+  PRIVATE
+  SPECIFIC_USERS
+  TENANT_VIEW
+  TENANT_EDIT
+}
+
+enum SharePermission {
+  VIEW
+  EDIT
+  ADMIN
+}
+
+enum InsightVisibility {
+  PROJECT_PRIVATE
+  DOCUMENT_PUBLIC
+}
+
+enum InsightReactionType {
+  THUMBS_UP
+  THUMBS_DOWN
+  STAR
+  BOOKMARK
+  FLAG
+}
+
+enum UsageUnit {
+  TOKENS
+  DURATION_SECONDS
+  API_CALLS
+}
+
+enum BillingPeriod {
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+}
+
+enum InvoiceStatus {
+  DRAFT
+  OPEN
+  PAID
+  VOID
+  UNCOLLECTIBLE
+}
+
+enum ProductVisibility {
+  PRIVATE
+  TENANT
+  PUBLIC
+}
+
+enum ProductRevenueModel {
+  FREE
+  ONE_TIME
+  SUBSCRIPTION
+  PAY_PER_USE
+}
+
+enum MarketplaceSortField {
+  INSTALLS
+  RATING
+  CREATED_AT
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
+enum ProjectSortField {
+  NAME
+  UPDATED_AT
+  CREATED_AT
+}
+
+enum WorkflowSortField {
+  NAME
+  UPDATED_AT
+}
+
+enum DashboardSortField {
+  TITLE
+  UPDATED_AT
+}
+
+# ----------------------------------------------------------------------
+# 3. INTERFACES
+# ----------------------------------------------------------------------
+
+interface SystemNode {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+}
+
+interface Paginate {
+  id: ID!
+  updatedAt: AWSDateTime!
+}
+
+interface Shareable {
+  sharingMode: SharingMode!
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+}
+
+interface LicensedItem {
+  subscriptionId: ID
+  isLocked: Boolean!
+}
+
+interface Storable {
+  s3Bucket: String!
+  s3Key: String!
+  mimeType: String!
+  sizeBytes: Int
+}
+
+interface DocumentElement {
+  pageNumber: Int!
+  boundingBox: [Float]
+  confidence: Float
+}
+
+# ----------------------------------------------------------------------
+# 4. COMMON OBJECTS
+# ----------------------------------------------------------------------
+
+type UserError {
+  message: String!
+  code: String!
+  field: [String]
+}
+
+type ResourcePermissions {
+  canEdit: Boolean!
+  canDelete: Boolean!
+  canShare: Boolean!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type UserProfile {
+  id: ID!
+  tenantId: ID!
+  username: String
+  groups: [String]
+  email: AWSEmail
+  isStripeConnected: Boolean
+}
+
+# ----------------------------------------------------------------------
+# 5. INPUTS
+# ----------------------------------------------------------------------
+
+input PrimaryKeyInput {
+  id: ID!
+}
+
+input ParentKeyInput {
+  parentId: ID!
+}
+
+input CompositeKeyInput {
+  id: ID!
+  parentId: ID!
+}
+
+input PaginateInput {
+  first: Int
+  after: String
+  last: Int
+  before: String
+}
+
+input ForkEntityInput {
+  sourceKey: CompositeKeyInput!
+  targetScope: PermissionScope!
+  name: String
+  description: String
+}
+
+input ShareResourceInput {
+  resourceId: ID!
+  recipientUserId: ID!
+  permission: SharePermission!
+}
+
+input UnshareResourceInput {
+  resourceId: ID!
+  recipientUserId: ID!
+}
+
+input ProjectSortInput {
+  field: ProjectSortField = UPDATED_AT
+  direction: SortDirection = DESC
+}
+
+input ProjectFilterInput {
+  status: ProjectStatus
+  nameContains: String
+}
+
+input WorkflowFilterInput {
+  nameContains: String
+}
+
+input WorkflowSortInput {
+  field: WorkflowSortField = UPDATED_AT
+  direction: SortDirection = DESC
+}
+
+input DashboardSortInput {
+  field: DashboardSortField = UPDATED_AT
+  direction: SortDirection = DESC
+}
+
+input MarketplaceSortInput {
+  field: MarketplaceSortField = INSTALLS
+  direction: SortDirection = DESC
+}
+
+# ----------------------------------------------------------------------
+# 6. ENTITY: BILLING & USAGE
+# ----------------------------------------------------------------------
+
+type UsageRecord implements SystemNode @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  reportableObjectId: ID!
+  subscriptionId: ID!
+  quantity: Int!
+  unit: UsageUnit!
+  metadata: AWSJSON
+  timestamp: AWSDateTime!
+  stripeMeterEventId: String
+}
+
+type BillingInvoice implements SystemNode @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  subscriptionId: ID!
+  stripeInvoiceId: String!
+  period: BillingPeriod!
+  amountDue: Float!
+  amountPaid: Float!
+  status: InvoiceStatus!
+  pdfUrl: AWSURL
+  summary: BillingSummary!
+  lineItems(paginate: PaginateInput): InvoiceLineItemConnection!
+}
+
+type BillingSummary {
+  periodStart: AWSDateTime!
+  periodEnd: AWSDateTime!
+  totalQuantity: Int!
+  totalUnit: UsageUnit!
+  baseAmount: Float!
+  usageAmount: Float!
+  adjustments: Float!
+  totalAmount: Float!
+  projectedNextPeriod: Float
+}
+
+type InvoiceLineItem {
+  description: String!
+  quantity: Int!
+  unitAmount: Float!
+  total: Float!
+}
+
+type UsageRecordEdge {
+  cursor: String!
+  node: UsageRecord!
+}
+type UsageRecordConnection {
+  edges: [UsageRecordEdge!]!
+  pageInfo: PageInfo!
+}
+
+type BillingInvoiceEdge {
+  cursor: String!
+  node: BillingInvoice!
+}
+type BillingInvoiceConnection {
+  edges: [BillingInvoiceEdge!]!
+  pageInfo: PageInfo!
+}
+
+type InvoiceLineItemEdge {
+  cursor: String!
+  node: InvoiceLineItem!
+}
+type InvoiceLineItemConnection {
+  edges: [InvoiceLineItemEdge!]!
+  pageInfo: PageInfo!
+}
+
+type UsageRecordPayload {
+  usageRecord: UsageRecord
+  userErrors: [UserError!]!
+}
+type PaymentIntentPayload {
+  clientSecret: String
+  userErrors: [UserError!]!
+}
+type StripeConnectPayload {
+  redirectUrl: AWSURL
+  userErrors: [UserError!]!
+}
+type UsageAlertPayload {
+  message: String!
+  subscriptionId: ID!
+  level: String!
+  triggerRecordId: ID
+}
+
+input CreateUsageRecordInput {
+  reportableObjectId: ID!
+  subscriptionId: ID!
+  quantity: Int!
+  unit: UsageUnit!
+  metadata: AWSJSON
+}
+
+# ----------------------------------------------------------------------
+# 7. ENTITY: MARKETPLACE
+# ----------------------------------------------------------------------
+
+type MarketplaceProduct implements SystemNode & Shareable & Paginate
+  @aws_iam
+  @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  sharingMode: SharingMode!
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+  visibility: ProductVisibility!
+  title: String!
+  description: String!
+  shortDescription: String!
+  tags: [String!]!
+  category: String!
+  revenueModel: ProductRevenueModel!
+  priceMonthlyUsd: Float
+  priceOneTimeUsd: Float
+  installCount: Int!
+  ratingAverage: Float
+  reviewCount: Int!
+  stripeProductId: String
+  stripePriceIdMonthly: String
+  stripePriceIdOneTime: String
+  latestVersion: MarketplaceProductVersion
+  versions(paginate: PaginateInput): MarketplaceProductVersionConnection!
+  reviews(paginate: PaginateInput): ProductReviewConnection!
+}
+
+type MarketplaceProductVersion implements SystemNode @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  productId: ID!
+  product: MarketplaceProduct!
+  version: String!
+  changelog: String
+  includedAssets: [ProductAsset!]!
+  previewProjectId: ID
+}
+
+type ProductInstallation implements SystemNode & Paginate @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  productVersionId: ID!
+  productVersion: MarketplaceProductVersion!
+  installedAt: AWSDateTime!
+  lastUpdatedAt: AWSDateTime!
+  autoUpdate: Boolean!
+  installedAssets: [InstalledAsset!]!
+}
+
+type InstalledAsset {
+  originalAssetId: ID!
+  installedEntityId: ID!
+  entityType: EntityType!
+}
+
+type ProductReview implements SystemNode & Paginate @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  productId: ID!
+  authorId: ID!
+  rating: Int!
+  title: String
+  body: String!
+}
+
+type ProductAsset {
+  assetType: EntityType!
+  assetId: ID!
+  assetName: String!
+  snapshotData: AWSJSON!
+}
+
+type MarketplaceProductEdge {
+  cursor: String!
+  node: MarketplaceProduct!
+}
+type MarketplaceProductConnection {
+  edges: [MarketplaceProductEdge!]!
+  pageInfo: PageInfo!
+}
+
+type MarketplaceProductVersionEdge {
+  cursor: String!
+  node: MarketplaceProductVersion!
+}
+type MarketplaceProductVersionConnection {
+  edges: [MarketplaceProductVersionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ProductInstallationEdge {
+  cursor: String!
+  node: ProductInstallation!
+}
+type ProductInstallationConnection {
+  edges: [ProductInstallationEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ProductReviewEdge {
+  cursor: String!
+  node: ProductReview!
+}
+type ProductReviewConnection {
+  edges: [ProductReviewEdge!]!
+  pageInfo: PageInfo!
+}
+
+type MarketplaceProductPayload {
+  product: MarketplaceProduct
+  userErrors: [UserError!]!
+}
+type MarketplaceProductVersionPayload {
+  version: MarketplaceProductVersion
+  userErrors: [UserError!]!
+}
+type InstallProductPayload {
+  installation: ProductInstallation
+  userErrors: [UserError!]!
+}
+type PreviewSandboxPayload {
+  temporaryProjectId: ID!
+  userErrors: [UserError!]!
+}
+
+input CreateProductInput {
+  title: String!
+  shortDescription: String!
+  description: String!
+  tags: [String!]!
+  category: String!
+  visibility: ProductVisibility = PRIVATE
+  revenueModel: ProductRevenueModel = FREE
+}
+
+# ----------------------------------------------------------------------
+# 8. ENTITY: TOPIC & LIVE STREAM
+# ----------------------------------------------------------------------
+
+# Renamed from TopicEntryPayload to avoid collision with Mutation Response
+union TopicEntryContent = AIInsight | AIJob | Workflow | Message
+
+type Topic implements SystemNode & Shareable
+  @aws_iam
+  @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]) {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  sharingMode: SharingMode!
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+  parentId: ID!
+  name: String!
+  schemaTemplate: PromptTemplate
+  schemaTemplateId: ID
+  entryCount: Int!
+  entries(
+    since: AWSDateTime
+    filter: TopicEntryFilterInput
+    paginate: PaginateInput
+  ): TopicEntryConnection!
+}
+
+type TopicEntry implements SystemNode @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  topicId: ID!
+  topic: Topic!
+  projectId: ID # Added to support subscription filtering
+  publishedAt: AWSDateTime!
+  content: TopicEntryContent
+  structuredData: AWSJSON!
+  tags: [String!]
+}
+
+type Message implements SystemNode @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  content: String!
+}
+
+type TopicConnection {
+  items: [Topic!]!
+  nextToken: String
+}
+type TopicPayload {
+  topic: Topic
+  userErrors: [UserError!]!
+}
+type TopicEntryEdge {
+  cursor: String!
+  node: TopicEntry!
+}
+type TopicEntryConnection {
+  edges: [TopicEntryEdge!]!
+  pageInfo: PageInfo!
+}
+type TopicEntryPayload {
+  topicEntry: TopicEntry
+  userErrors: [UserError!]!
+}
+
+input CreateTopicInput {
+  name: String!
+  schemaTemplateId: ID
+}
+input UpdateTopicInput {
+  name: String
+  schemaTemplateId: ID
+}
+input TopicEntryFilterInput {
+  tags: [String!]
+  minConfidence: Float
+}
+
+# ----------------------------------------------------------------------
+# 9. ENTITY: PROMPT TEMPLATE
+# ----------------------------------------------------------------------
+
+type PromptTemplate implements SystemNode & Shareable @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  sharingMode: SharingMode!
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+  name: String!
+  description: String
+  jsonSchema: AWSJSON!
+  templateText: String
+}
+
+input CreatePromptTemplateInput {
+  name: String!
+  jsonSchema: AWSJSON
+  templateText: String
+}
+
+# ----------------------------------------------------------------------
+# 10. ENTITY: DASHBOARD
+# ----------------------------------------------------------------------
+
+type Dashboard implements SystemNode & Shareable & LicensedItem @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  sharingMode: SharingMode!
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+  subscriptionId: ID
+  isLocked: Boolean!
+  title: String!
+  widgets(limit: Int, nextToken: String): DashboardWidgetConnection
+}
+
+type DashboardWidget implements SystemNode @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  parentId: ID!
+  type: DashboardWidgetType!
+  config: AWSJSON!
+  subscribedTopicId: ID
+  subscribedTopic: Topic
+}
+
+type DashboardConnection {
+  items: [Dashboard!]!
+  nextToken: String
+}
+type DashboardPayload {
+  dashboard: Dashboard
+  userErrors: [UserError!]!
+}
+type DashboardWidgetConnection {
+  items: [DashboardWidget!]!
+  nextToken: String
+}
+type DashboardWidgetPayload {
+  widget: DashboardWidget
+  userErrors: [UserError!]!
+}
+
+input CreateDashboardInput {
+  title: String!
+  sharingMode: SharingMode = PRIVATE
+}
+input UpdateDashboardInput {
+  title: String
+  sharingMode: SharingMode
+}
+input CreateDashboardWidgetInput {
+  type: DashboardWidgetType!
+  config: AWSJSON!
+  subscribedTopicId: ID
+}
+input UpdateDashboardWidgetInput {
+  config: AWSJSON
+  subscribedTopicId: ID
+}
+
+# ----------------------------------------------------------------------
+# 11. ENTITY: WORKFLOW
+# ----------------------------------------------------------------------
+
+type Workflow implements SystemNode & Shareable & LicensedItem @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  sharingMode: SharingMode!
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+  subscriptionId: ID
+  isLocked: Boolean!
+  name: String!
+  definitionYaml: String!
+}
+
+type WorkflowConnection {
+  items: [Workflow!]!
+  nextToken: String
+}
+type WorkflowPayload {
+  workflow: Workflow
+  userErrors: [UserError!]!
+}
+input CreateWorkflowInput {
+  name: String!
+  definitionYaml: String!
+}
+input UpdateWorkflowInput {
+  name: String
+  definitionYaml: String
+  sharingMode: SharingMode
+}
+
+# ----------------------------------------------------------------------
+# 12. CONTENT STORE
+# ----------------------------------------------------------------------
+
+type Document implements SystemNode & Storable @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  s3Bucket: String!
+  s3Key: String!
+  mimeType: String!
+  sizeBytes: Int
+  docHash: String!
+  pageCount: Int!
+  language: String
+  pages(limit: Int, nextToken: String): DocumentPageConnection
+  images(limit: Int, nextToken: String): DocumentImageConnection
+  tables(limit: Int, nextToken: String): DocumentTableConnection
+  charts(limit: Int, nextToken: String): DocumentChartConnection
+}
+
+type DocumentPage implements SystemNode & Storable @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  s3Bucket: String!
+  s3Key: String!
+  mimeType: String!
+  sizeBytes: Int
+  pageNumber: Int!
+  width: Float!
+  height: Float!
+  rawText: String
+}
+
+type DocumentImage implements SystemNode & Storable & DocumentElement @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  s3Bucket: String!
+  s3Key: String!
+  mimeType: String!
+  sizeBytes: Int
+  pageNumber: Int!
+  boundingBox: [Float]
+  confidence: Float
+  caption: String
+  embeddingId: String
+}
+
+type DocumentTable implements SystemNode & Storable & DocumentElement @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  s3Bucket: String!
+  s3Key: String!
+  mimeType: String!
+  sizeBytes: Int
+  pageNumber: Int!
+  boundingBox: [Float]
+  confidence: Float
+  summary: String
+  dataPreview: AWSJSON
+}
+
+type DocumentChart implements SystemNode & Storable & DocumentElement @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  s3Bucket: String!
+  s3Key: String!
+  mimeType: String!
+  sizeBytes: Int
+  pageNumber: Int!
+  boundingBox: [Float]
+  confidence: Float
+  chartType: String
+  summary: String
+}
+
+type DocumentPageConnection {
+  items: [DocumentPage!]!
+  nextToken: String
+}
+type DocumentImageConnection {
+  items: [DocumentImage!]!
+  nextToken: String
+}
+type DocumentTableConnection {
+  items: [DocumentTable!]!
+  nextToken: String
+}
+type DocumentChartConnection {
+  items: [DocumentChart!]!
+  nextToken: String
+}
+
+# ----------------------------------------------------------------------
+# 13. RESOURCE SHARE
+# ----------------------------------------------------------------------
+
+type ResourceShare implements SystemNode @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  resourceId: ID!
+  recipientUserId: ID!
+  permission: SharePermission!
+  resourceTitle: String!
+  resourceType: EntityType!
+}
+type ResourceShareConnection {
+  items: [ResourceShare!]!
+  nextToken: String
+}
+
+# ----------------------------------------------------------------------
+# 14. PROJECT
+# ----------------------------------------------------------------------
+
+type Project implements SystemNode & Shareable & Paginate
+  @aws_iam
+  @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]) {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  sharingMode: SharingMode!
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+  name: String!
+  description: String
+  status: ProjectStatus!
+  docLinks(limit: Int, nextToken: String): DocLinkConnection
+  topics(limit: Int, nextToken: String): TopicConnection
+}
+
+type ProjectEdge {
+  cursor: String!
+  node: Project!
+}
+type ProjectConnection {
+  edges: [ProjectEdge!]!
+  pageInfo: PageInfo!
+}
+type ProjectPayload {
+  project: Project
+  userErrors: [UserError!]!
+}
+
+input CreateProjectInput {
+  name: String!
+  description: String
+  status: ProjectStatus = ACTIVE
+  sharingMode: SharingMode = PRIVATE
+}
+input UpdateProjectInput {
+  name: String
+  description: String
+  status: ProjectStatus
+  sharingMode: SharingMode
+}
+
+# ----------------------------------------------------------------------
+# 15. DOCLINK
+# ----------------------------------------------------------------------
+
+type DocLink implements SystemNode
+  @aws_iam
+  @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]) {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  parentId: ID!
+  filename: String!
+  status: DocLinkStatus!
+  documentId: ID!
+  document: Document
+}
+type DocLinkConnection {
+  items: [DocLink!]!
+  nextToken: String
+}
+type DocLinkPayload {
+  docLink: DocLink
+  userErrors: [UserError!]!
+}
+input CreateDocLinkInput {
+  documentId: ID!
+  filename: String!
+  status: DocLinkStatus = NOT_UPLOADED
+}
+input UpdateDocLinkInput {
+  filename: String
+  status: DocLinkStatus
+}
+
+# ----------------------------------------------------------------------
+# 16. AI INSIGHTS
+# ----------------------------------------------------------------------
+
+type AIInsight implements SystemNode & Shareable & Paginate @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  sharingMode: SharingMode!
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+  visibility: InsightVisibility!
+  title: String!
+  contentMarkdown: String!
+  contentStructured: AWSJSON
+  confidence: Float
+  sourceTemplateId: ID
+  sourceWorkflowId: ID
+  sourceRunId: ID
+  generatedByJobId: ID!
+  project: Project!
+  projectId: ID!
+  sourceDocument: Document
+  sourceDocumentId: ID
+  pageNumbers: [Int!]
+  tags: [String!]!
+  reactions(paginate: PaginateInput): InsightReactionConnection!
+  versions(paginate: PaginateInput): InsightVersionConnection!
+}
+
+type InsightReaction implements SystemNode @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  insightId: ID!
+  reaction: InsightReactionType!
+  comment: String
+}
+
+type InsightVersion implements SystemNode @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  insightId: ID!
+  versionNumber: Int!
+  title: String!
+  contentMarkdown: String!
+  contentStructured: AWSJSON
+  changedBy: ID!
+}
+
+type AIJob implements SystemNode @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  status: AIJobStatus!
+  targetDocumentId: ID
+  targetProjectId: ID
+  modelUsed: String
+  tokenUsage: Int
+}
+
+type AIInsightEdge {
+  cursor: String!
+  node: AIInsight!
+}
+type AIInsightConnection {
+  edges: [AIInsightEdge!]!
+  pageInfo: PageInfo!
+}
+type AIInsightPayload {
+  insight: AIInsight
+  userErrors: [UserError!]!
+}
+type InsightReactionEdge {
+  cursor: String!
+  node: InsightReaction!
+}
+type InsightReactionConnection {
+  edges: [InsightReactionEdge!]!
+  pageInfo: PageInfo!
+}
+type InsightReactionPayload {
+  reaction: InsightReaction
+  userErrors: [UserError!]!
+}
+type InsightVersionEdge {
+  cursor: String!
+  node: InsightVersion!
+}
+type InsightVersionConnection {
+  edges: [InsightVersionEdge!]!
+  pageInfo: PageInfo!
+}
+
+input InsightFilterInput {
+  visibility: InsightVisibility
+  sourceTemplateId: ID
+  sourceWorkflowId: ID
+  tag: [String!]
+  minConfidence: Float
+  createdAfter: AWSDateTime
+  pageNumber: Int
+}
+input CreateUserInsightInput {
+  projectId: ID!
+  sourceDocumentId: ID
+  title: String!
+  contentMarkdown: String!
+  contentStructured: AWSJSON
+  pageNumbers: [Int!]
+  tags: [String!]
+}
+input CreateSystemInsightInput {
+  jobId: ID!
+  projectId: ID
+  sourceDocumentId: ID!
+  title: String!
+  contentMarkdown: String!
+  contentStructured: AWSJSON
+  visibility: InsightVisibility!
+  pageNumbers: [Int!]
+  tags: [String!]
+}
+
+# ----------------------------------------------------------------------
+# 17. TENANT SUBSCRIPTIONS
+# ----------------------------------------------------------------------
+
+type TenantSubscription implements SystemNode
+  @aws_iam
+  @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]) {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  ttl: Int
+  forkedFromId: ID
+  forkedFromVersion: String
+  permissions: ResourcePermissions!
+  listingId: ID!
+  installedVersionId: ID!
+  status: SubscriptionStatus!
+  validUntil: AWSDateTime!
+  stripeSubscriptionId: String
+  stripeCustomerId: String
+}
+type TenantSubscriptionPayload {
+  subscription: TenantSubscription
+  userErrors: [UserError!]!
+}
+
+# ----------------------------------------------------------------------
+# 18. REAL-TIME PRESENCE
+# ----------------------------------------------------------------------
+
+type UserPresence {
+  projectId: ID!
+  userId: ID!
+  username: String
+  action: PresenceAction!
+  cursorX: Float
+  cursorY: Float
+  timestamp: AWSDateTime!
+}
+
+# ----------------------------------------------------------------------
+# 19. QUERY ROOT
+# ----------------------------------------------------------------------
+
+type Query {
+  me: UserProfile
+  node(id: ID!): SystemNode
+
+  # --- Projects ---
+  getProject(key: PrimaryKeyInput!): Project
+  listProjects(
+    scope: ListScope = OWNED_BY_ME
+    filter: ProjectFilterInput
+    sort: ProjectSortInput
+    paginate: PaginateInput
+  ): ProjectConnection!
+
+  # --- Sharing ---
+  listSharedWithMe(limit: Int, nextToken: String): ResourceShareConnection
+    @aws_auth(cognito_groups: ["Users", "TenantAdmins"])
+
+  # --- Child Items ---
+  getDocLink(key: CompositeKeyInput!): DocLink
+  listDocLinks(
+    key: ParentKeyInput!
+    limit: Int
+    nextToken: String
+  ): DocLinkConnection
+  listTopics(
+    key: ParentKeyInput!
+    limit: Int
+    nextToken: String
+  ): TopicConnection
+
+  # --- AI ---
+  getInsight(key: PrimaryKeyInput!): AIInsight
+  listProjectInsights(
+    projectId: ID!
+    filter: InsightFilterInput
+    paginate: PaginateInput
+  ): AIInsightConnection!
+  listDocumentInsights(
+    documentId: ID!
+    paginate: PaginateInput
+  ): AIInsightConnection!
+
+  # --- Assets ---
+  getWorkflow(key: PrimaryKeyInput!): Workflow
+  listWorkflows(
+    scope: ListScope = OWNED_BY_ME
+    filter: WorkflowFilterInput
+    sort: WorkflowSortInput
+    paginate: PaginateInput
+  ): WorkflowConnection!
+
+  getDashboard(key: PrimaryKeyInput!): Dashboard
+  listDashboards(
+    scope: ListScope = OWNED_BY_ME
+    sort: DashboardSortInput
+    paginate: PaginateInput
+  ): DashboardConnection!
+
+  # --- Marketplace & Billing ---
+  listMarketplaceProducts(
+    search: String
+    category: String
+    tag: [String!]
+    sort: MarketplaceSortInput
+    paginate: PaginateInput
+  ): MarketplaceProductConnection!
+
+  listMyProductInstallations(
+    paginate: PaginateInput
+  ): ProductInstallationConnection!
+  previewProductVersion(versionId: ID!): PreviewSandboxPayload
+
+  myBillingSummary: BillingSummary!
+  listUsageRecords(
+    subscriptionId: ID!
+    paginate: PaginateInput
+  ): UsageRecordConnection!
+  listBillingInvoices(
+    subscriptionId: ID!
+    status: [InvoiceStatus!]
+    paginate: PaginateInput
+  ): BillingInvoiceConnection!
+
+  # --- Admins ---
+  getDocument(id: ID!): Document @aws_auth(cognito_groups: ["SystemAdmins"])
+}
+
+# ----------------------------------------------------------------------
+# 20. MUTATION ROOT
+# ----------------------------------------------------------------------
+
+type ForkEntityPayload {
+  node: SystemNode
+  userErrors: [UserError!]!
+}
+
+type Mutation {
+  # --- Projects ---
+  createProject(input: CreateProjectInput!): ProjectPayload
+  updateProject(
+    key: PrimaryKeyInput!
+    input: UpdateProjectInput!
+  ): ProjectPayload
+  deleteProject(key: PrimaryKeyInput!): ProjectPayload
+  restoreProject(key: PrimaryKeyInput!): ProjectPayload
+
+  # --- Sharing ---
+  shareResource(input: ShareResourceInput!): ResourceShare
+    @aws_auth(cognito_groups: ["Users", "TenantAdmins"])
+  unshareResource(input: UnshareResourceInput!): Boolean
+    @aws_auth(cognito_groups: ["Users", "TenantAdmins"])
+
+  # --- DocLinks ---
+  createDocLink(
+    parentKey: ParentKeyInput!
+    input: CreateDocLinkInput!
+  ): DocLinkPayload
+  updateDocLink(
+    key: CompositeKeyInput!
+    input: UpdateDocLinkInput!
+  ): DocLinkPayload
+  deleteDocLink(key: CompositeKeyInput!): DocLinkPayload
+
+  # --- Topics & Live Feed ---
+  createTopic(key: ParentKeyInput!, input: CreateTopicInput!): TopicPayload
+  updateTopic(key: CompositeKeyInput!, input: UpdateTopicInput!): TopicPayload
+  deleteTopic(key: CompositeKeyInput!): TopicPayload
+
+  publishInsightToTopic(
+    insightId: ID!
+    topicId: ID!
+    structuredData: AWSJSON!
+    clientMutationId: ID
+  ): TopicEntryPayload @aws_iam
+  publishToTopic(
+    topicId: ID!
+    structuredData: AWSJSON!
+    tags: [String!]
+    clientMutationId: ID
+  ): TopicEntryPayload
+
+  # --- AI ---
+  createSystemInsight(input: CreateSystemInsightInput!): AIInsightPayload
+    @aws_iam
+  createUserInsight(input: CreateUserInsightInput!): AIInsightPayload
+  reactToInsight(
+    insightId: ID!
+    reaction: InsightReactionType!
+    comment: String
+  ): InsightReactionPayload
+
+  # --- Assets ---
+  createWorkflow(input: CreateWorkflowInput!): WorkflowPayload
+  updateWorkflow(
+    key: PrimaryKeyInput!
+    input: UpdateWorkflowInput!
+  ): WorkflowPayload
+  deleteWorkflow(key: PrimaryKeyInput!): WorkflowPayload
+
+  createDashboard(input: CreateDashboardInput!): DashboardPayload
+  updateDashboard(
+    key: PrimaryKeyInput!
+    input: UpdateDashboardInput!
+  ): DashboardPayload
+  deleteDashboard(key: PrimaryKeyInput!): DashboardPayload
+
+  createDashboardWidget(
+    key: ParentKeyInput!
+    input: CreateDashboardWidgetInput!
+  ): DashboardWidgetPayload
+  updateDashboardWidget(
+    key: CompositeKeyInput!
+    input: UpdateDashboardWidgetInput!
+  ): DashboardWidgetPayload
+  deleteDashboardWidget(key: CompositeKeyInput!): DashboardWidgetPayload
+
+  # --- Special ---
+  forkEntity(input: ForkEntityInput!): ForkEntityPayload
+
+  # --- Marketplace ---
+  createMarketplaceProduct(
+    input: CreateProductInput!
+    clientMutationId: ID
+  ): MarketplaceProductPayload
+  publishProductVersion(
+    productId: ID!
+    version: String!
+    changelog: String
+    includedAssetIds: [ID!]!
+    priceMonthlyUsd: Float
+    priceOneTimeUsd: Float
+    clientMutationId: ID
+  ): MarketplaceProductVersionPayload
+
+  installProductVersion(
+    versionId: ID!
+    autoUpdate: Boolean = true
+    clientMutationId: ID
+  ): InstallProductPayload
+  upgradeProductInstallation(
+    installationId: ID!
+    clientMutationId: ID
+  ): InstallProductPayload
+
+  # --- Billing & Stripe ---
+  connectStripeAccount(code: String!): StripeConnectPayload
+  
+  createUsageRecord(
+    input: CreateUsageRecordInput!
+    clientMutationId: ID
+  ): UsageRecordPayload @aws_iam
+  
+  # Triggered by system when limits are hit, allows subscription hook
+  publishUsageAlert(
+    subscriptionId: ID!
+    level: String!
+    message: String!
+    triggerRecordId: ID
+  ): UsageAlertPayload @aws_iam
+
+  createPaymentIntent(
+    invoiceId: ID!
+    clientMutationId: ID
+  ): PaymentIntentPayload
+
+  # Legacy/Admin Billing
+  grantSubscription(
+    targetUserId: ID!
+    listingId: ID!
+    durationDays: Int!
+  ): TenantSubscriptionPayload @aws_auth(cognito_groups: ["SystemAdmins"])
+
+  # --- Presence ---
+  broadcastPresence(
+    projectId: ID!
+    action: PresenceAction!
+    cursorX: Float
+    cursorY: Float
+  ): UserPresence
+}
+
+# ----------------------------------------------------------------------
+# 21. SUBSCRIPTION ROOT
+# ----------------------------------------------------------------------
+
+type Subscription {
+  # --- Standard CRUD ---
+  onCreateProject(ownerId: ID, tenantId: ID): ProjectPayload
+    @aws_subscribe(mutations: ["createProject"])
+  onUpdateProject(id: ID!): ProjectPayload
+    @aws_subscribe(mutations: ["updateProject", "restoreProject"])
+  onDeleteProject(id: ID!): ProjectPayload
+    @aws_subscribe(mutations: ["deleteProject"])
+
+  onCreateDocLink(parentId: ID!): DocLinkPayload
+    @aws_subscribe(mutations: ["createDocLink"])
+  onUpdateDocLink(parentId: ID!): DocLinkPayload
+    @aws_subscribe(mutations: ["updateDocLink"])
+  onDeleteDocLink(parentId: ID!): DocLinkPayload
+    @aws_subscribe(mutations: ["deleteDocLink"])
+
+  onCreateWorkflow(ownerId: ID, tenantId: ID): WorkflowPayload
+    @aws_subscribe(mutations: ["createWorkflow"])
+  onUpdateWorkflow(id: ID!): WorkflowPayload
+    @aws_subscribe(mutations: ["updateWorkflow"])
+  onDeleteWorkflow(id: ID!): WorkflowPayload
+    @aws_subscribe(mutations: ["deleteWorkflow"])
+
+  onCreateDashboard(ownerId: ID, tenantId: ID): DashboardPayload
+    @aws_subscribe(mutations: ["createDashboard"])
+  onUpdateDashboard(id: ID!): DashboardPayload
+    @aws_subscribe(mutations: ["updateDashboard"])
+  onDeleteDashboard(id: ID!): DashboardPayload
+    @aws_subscribe(mutations: ["deleteDashboard"])
+
+  # --- AI / Topics ---
+  onInsightCreatedInProject(projectId: ID!): AIInsightPayload
+    @aws_subscribe(mutations: ["createSystemInsight", "createUserInsight"])
+  onInsightCreatedForDocument(sourceDocumentId: ID!): AIInsightPayload
+    @aws_subscribe(mutations: ["createSystemInsight"])
+
+  onTopicEntryAdded(topicId: ID!): TopicEntryPayload
+    @aws_subscribe(mutations: ["publishInsightToTopic", "publishToTopic"])
+  
+  # Note: publish* mutations must return a payload containing projectId for this to work
+  onProjectTopicEntry(projectId: ID!): TopicEntryPayload
+    @aws_subscribe(mutations: ["publishInsightToTopic", "publishToTopic"])
+
+  # --- Ops ---
+  onGrantSubscription(targetUserId: ID!): TenantSubscriptionPayload
+    @aws_subscribe(mutations: ["grantSubscription"])
+  onResourceShared(recipientUserId: ID!): ResourceShare
+    @aws_subscribe(mutations: ["shareResource"])
+  onResourceUnshared(recipientUserId: ID!): Boolean
+    @aws_subscribe(mutations: ["unshareResource"])
+  onPresenceChange(projectId: ID!): UserPresence
+    @aws_subscribe(mutations: ["broadcastPresence"])
+
+  # --- Billing Alerts ---
+  # Corrected to subscribe to the specific alert publishing mutation
+  onUsageThresholdExceeded(subscriptionId: ID!): UsageAlertPayload
+    @aws_subscribe(mutations: ["publishUsageAlert"])
+}

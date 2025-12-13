@@ -1,0 +1,341 @@
+# GraphQL Schema for TOPIC_ENTRY
+# Extracted from schema7.graphql
+
+# Scalars
+scalar AWSDateTime
+scalar AWSEmail
+scalar AWSIPAddress
+scalar AWSJSON
+scalar AWSURL
+
+# Directives
+directive @aws_auth
+directive @aws_cognito_user_pools
+directive @aws_iam
+directive @aws_subscribe
+directive @oneOf
+
+# Enums
+enum EntityType {
+  PROJECT
+  DOCLINK
+  TOPIC
+  TOPIC_ENTRY
+  WORKFLOW
+  DASHBOARD
+  DASHBOARD_WIDGET
+  PROMPT_TEMPLATE
+  RESOURCE_SHARE
+  SUBSCRIPTION
+  USER_PROFILE
+  MARKETPLACE_PRODUCT
+  MARKETPLACE_PRODUCT_VERSION
+  PRODUCT_INSTALLATION
+  PRODUCT_REVIEW
+  USAGE_RECORD
+  BILLING_INVOICE
+  DOCUMENT
+  INSIGHT
+  INSIGHT_REACTION
+  AI_JOB
+  MESSAGE
+}
+
+enum ListScope {
+  OWNED_BY_ME
+  SHARED_WITH_ME
+  ALL_TENANT
+}
+
+enum PermissionScope {
+  PRIVATE
+  TENANT
+  SYSTEM
+}
+
+enum PropertyType {
+  STRING
+  NUMBER
+  BOOLEAN
+  DATE
+  ENUM_SELECT
+}
+
+enum SharePermission {
+  VIEW
+  EDIT
+  ADMIN
+}
+
+enum SharingMode {
+  PRIVATE
+  SPECIFIC_USERS
+  TENANT_VIEW
+  TENANT_EDIT
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
+# Interfaces
+interface DocumentElement {
+  pageNumber: Int!
+  boundingBox: [Float]
+  confidence: Float
+}
+
+interface LicensedItem {
+  subscriptionId: ID
+  isLocked: Boolean!
+}
+
+interface Node {
+  id: ID!
+}
+
+interface Shareable {
+  sharingMode: SharingMode!
+  """
+  Returns a paginated list of users who have access to this resource.
+  """
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+}
+
+interface Storable {
+  s3Bucket: String!
+  s3Key: String!
+  mimeType: String!
+  sizeBytes: Int
+}
+
+interface SystemMetadata {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+}
+
+# Types
+type Message implements Node & SystemMetadata @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  content: String!
+}
+
+type PromptTemplate implements Node & SystemMetadata & Shareable 
+  @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  sharingMode: SharingMode!
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+  
+  name: String!
+  description: String
+  
+  """
+  The raw text of the prompt with {{variable}} placeholders.
+  """
+  templateText: String
+  
+  """
+  Defines the schema of the structured data that the LLM is expected to output.
+  Replaces the opaque 'jsonSchema' AWSJSON blob.
+  """
+  outputSchema: [PropertyDefinition!]!
+}
+
+type PropertyDefinition {
+  """
+  The unique key/variable name for this property (e.g., "customer_sentiment").
+  """
+  key: String!
+  """
+  The human-readable label (e.g., "Customer Sentiment Score").
+  """
+  label: String!
+  """
+  The data type expected for this property.
+  """
+  dataType: PropertyType!
+  """
+  If true, this field must be present in the data payload.
+  """
+  isRequired: Boolean!
+  """
+  Description for the UI or AI agent.
+  """
+  description: String
+}
+
+type PropertyValue {
+  """
+  Must match a 'key' in the corresponding PropertyDefinition.
+  """
+  key: String!
+  """
+  Populated if dataType is STRING, DATE, or ENUM_SELECT.
+  """
+  valueString: String
+  """
+  Populated if dataType is NUMBER.
+  """
+  valueNumber: Float
+  """
+  Populated if dataType is BOOLEAN.
+  """
+  valueBoolean: Boolean
+}
+
+type ResourceShare implements Node & SystemMetadata @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  
+  recipientUserId: ID!
+  permission: SharePermission!
+  resourceTitle: String!
+  resourceType: EntityType!
+}
+
+type ResourceShareConnection {
+  items: [ResourceShare!]!
+  nextToken: String
+}
+
+type Topic implements Node & SystemMetadata & Shareable
+  @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  sharingMode: SharingMode!
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+  
+  parentId: ID!
+  name: String!
+  
+  """
+  If set, all entries in this topic should adhere to this template's outputSchema.
+  """
+  schemaTemplate: PromptTemplate
+  
+  entryCount: Int!
+  entries(
+    since: AWSDateTime
+    filter: TopicEntryFilterInput
+    limit: Int
+    nextToken: String
+  ): TopicEntryConnection!
+}
+
+type TopicEntry implements Node & SystemMetadata @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  
+  topic: Topic!
+  projectId: ID
+  publishedAt: AWSDateTime!
+  
+  """
+  The primary content entity (Insight, Message, etc).
+  """
+  content: TopicEntryContent
+  
+  """
+  Structured data adhering to the Topic's schemaTemplate.
+  Replaces opaque 'structuredData' JSON.
+  """
+  dataProperties: [PropertyValue!]!
+  
+  tags: [String!]
+}
+
+type TopicEntryConnection {
+  items: [TopicEntry!]!
+  nextToken: String
+}
+
+type TopicEntryPayload {
+  topicEntry: TopicEntry
+  userErrors: [UserError!]!
+}
+
+type UserError {
+  message: String!
+  code: String!
+  field: [String]
+}
+
+type UserProfile {
+  id: ID!
+  tenantId: ID!
+  username: String
+  groups: [String]
+  email: AWSEmail
+  isStripeConnected: Boolean
+}
+
+# Inputs
+input PropertyDefinitionInput {
+  key: String!
+  label: String!
+  dataType: PropertyType!
+  isRequired: Boolean!
+  description: String
+}
+
+input PropertyValueInput {
+  key: String!
+  valueString: String
+  valueNumber: Float
+  valueBoolean: Boolean
+}
+
+input TopicEntryFilterInput {
+  tags: [String!]
+  minConfidence: Float
+}
+
+# Mutations
+type Mutation {
+publishToTopic(
+    topicId: ID!
+    dataProperties: [PropertyValueInput!]
+    tags: [String!]
+    clientMutationId: ID
+  ): TopicEntryPayload
+createSystemInsight(input: CreateSystemInsightInput!): AIInsightPayload
+}
+
+# Subscriptions
+type Subscription {
+onProjectTopicEntry(projectId: ID!): TopicEntryPayload
+onGrantSubscription(targetUserId: ID!): TenantSubscriptionPayload
+}

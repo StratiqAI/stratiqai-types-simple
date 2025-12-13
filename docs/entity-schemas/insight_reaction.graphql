@@ -1,0 +1,226 @@
+# GraphQL Schema for INSIGHT_REACTION
+# Extracted from schema7.graphql
+
+# Scalars
+scalar AWSDateTime
+scalar AWSEmail
+scalar AWSIPAddress
+scalar AWSJSON
+scalar AWSURL
+
+# Directives
+directive @aws_auth
+directive @aws_cognito_user_pools
+directive @aws_iam
+directive @aws_subscribe
+directive @oneOf
+
+# Enums
+enum EntityType {
+  PROJECT
+  DOCLINK
+  TOPIC
+  TOPIC_ENTRY
+  WORKFLOW
+  DASHBOARD
+  DASHBOARD_WIDGET
+  PROMPT_TEMPLATE
+  RESOURCE_SHARE
+  SUBSCRIPTION
+  USER_PROFILE
+  MARKETPLACE_PRODUCT
+  MARKETPLACE_PRODUCT_VERSION
+  PRODUCT_INSTALLATION
+  PRODUCT_REVIEW
+  USAGE_RECORD
+  BILLING_INVOICE
+  DOCUMENT
+  INSIGHT
+  INSIGHT_REACTION
+  AI_JOB
+  MESSAGE
+}
+
+enum InsightReactionType {
+  THUMBS_UP
+  THUMBS_DOWN
+  STAR
+  BOOKMARK
+  FLAG
+}
+
+enum ListScope {
+  OWNED_BY_ME
+  SHARED_WITH_ME
+  ALL_TENANT
+}
+
+enum PermissionScope {
+  PRIVATE
+  TENANT
+  SYSTEM
+}
+
+enum PropertyType {
+  STRING
+  NUMBER
+  BOOLEAN
+  DATE
+  ENUM_SELECT
+}
+
+enum SharePermission {
+  VIEW
+  EDIT
+  ADMIN
+}
+
+enum SharingMode {
+  PRIVATE
+  SPECIFIC_USERS
+  TENANT_VIEW
+  TENANT_EDIT
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
+# Interfaces
+interface DocumentElement {
+  pageNumber: Int!
+  boundingBox: [Float]
+  confidence: Float
+}
+
+interface LicensedItem {
+  subscriptionId: ID
+  isLocked: Boolean!
+}
+
+interface Node {
+  id: ID!
+}
+
+interface Shareable {
+  sharingMode: SharingMode!
+  """
+  Returns a paginated list of users who have access to this resource.
+  """
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+}
+
+interface Storable {
+  s3Bucket: String!
+  s3Key: String!
+  mimeType: String!
+  sizeBytes: Int
+}
+
+interface SystemMetadata {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+}
+
+# Types
+type InsightReaction implements Node & SystemMetadata @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  insightId: ID!
+  reaction: InsightReactionType!
+  comment: String
+}
+
+type InsightReactionConnection {
+  items: [InsightReaction!]!
+  nextToken: String
+}
+
+type InsightReactionPayload {
+  reaction: InsightReaction
+  userErrors: [UserError!]!
+}
+
+type PropertyDefinition {
+  """
+  The unique key/variable name for this property (e.g., "customer_sentiment").
+  """
+  key: String!
+  """
+  The human-readable label (e.g., "Customer Sentiment Score").
+  """
+  label: String!
+  """
+  The data type expected for this property.
+  """
+  dataType: PropertyType!
+  """
+  If true, this field must be present in the data payload.
+  """
+  isRequired: Boolean!
+  """
+  Description for the UI or AI agent.
+  """
+  description: String
+}
+
+type PropertyValue {
+  """
+  Must match a 'key' in the corresponding PropertyDefinition.
+  """
+  key: String!
+  """
+  Populated if dataType is STRING, DATE, or ENUM_SELECT.
+  """
+  valueString: String
+  """
+  Populated if dataType is NUMBER.
+  """
+  valueNumber: Float
+  """
+  Populated if dataType is BOOLEAN.
+  """
+  valueBoolean: Boolean
+}
+
+type UserError {
+  message: String!
+  code: String!
+  field: [String]
+}
+
+type UserProfile {
+  id: ID!
+  tenantId: ID!
+  username: String
+  groups: [String]
+  email: AWSEmail
+  isStripeConnected: Boolean
+}
+
+# Inputs
+input PropertyDefinitionInput {
+  key: String!
+  label: String!
+  dataType: PropertyType!
+  isRequired: Boolean!
+  description: String
+}
+
+input PropertyValueInput {
+  key: String!
+  valueString: String
+  valueNumber: Float
+  valueBoolean: Boolean
+}

@@ -1,0 +1,355 @@
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+# ----------------------------------------------------------------------
+# 1. SCALARS & DIRECTIVES
+# ----------------------------------------------------------------------
+
+scalar AWSDateTime
+
+directive @aws_iam on OBJECT | FIELD_DEFINITION
+directive @aws_cognito_user_pools(
+  cognito_groups: [String!]
+) on OBJECT | FIELD_DEFINITION
+directive @aws_auth(cognito_groups: [String!]) on FIELD_DEFINITION
+directive @aws_subscribe(mutations: [String!]) on FIELD_DEFINITION
+directive @oneOf on INPUT_OBJECT
+
+# ----------------------------------------------------------------------
+# 2. ENUMS
+# ----------------------------------------------------------------------
+
+enum EntityType {
+  PROJECT
+  DOCLINK
+  TOPIC
+  RESOURCE_SHARE
+}
+
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+enum DoclinkStatus {
+  NOT_UPLOADED
+  UPLOADED
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum SharingMode {
+  PRIVATE
+  SPECIFIC_USERS
+  TENANT_VIEW
+  TENANT_EDIT
+}
+
+enum SharePermission {
+  VIEW
+  EDIT
+  ADMIN
+}
+
+enum ListScope {
+  OWNED_BY_ME
+  SHARED_WITH_ME
+  ALL_TENANT
+}
+
+# ----------------------------------------------------------------------
+# 3. INTERFACES
+# ----------------------------------------------------------------------
+
+interface Node {
+  id: ID!
+}
+
+interface Metadata {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+}
+
+interface Shareable {
+  sharingMode: SharingMode!
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+}
+
+interface Storable {
+  s3Bucket: String!
+  s3Key: String!
+  mimeType: String!
+  sizeBytes: Int
+}
+
+# ----------------------------------------------------------------------
+# 4. BASE ENTITY TYPES
+# ----------------------------------------------------------------------
+
+"""
+Composite Key for accessing Child Entities (Doclink, Topic).
+Required because we do not have a Global Lookup GSI for children;
+we must know the parentId to locate the item in the Main Table.
+"""
+input CompositeKeyInput {
+  id: ID!
+  parentId: ID!
+}
+
+type ResourceShare implements Node & Metadata @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  recipientUserId: ID!
+  permission: SharePermission!
+  resourceTitle: String!
+  resourceType: EntityType!
+}
+
+type ResourceShareConnection {
+  items: [ResourceShare!]!
+  nextToken: String
+}
+
+# ----------------------------------------------------------------------
+# 5. CHILD ENTITIES (Doclink & Topic)
+# ----------------------------------------------------------------------
+
+type Topic implements Node & Metadata & Shareable
+  @aws_iam
+  @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  sharingMode: SharingMode!
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+
+  parentId: ID!
+  name: String!
+}
+
+type TopicConnection {
+  items: [Topic!]!
+  nextToken: String
+}
+
+type Doclink implements Node & Metadata @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  parentId: ID!
+  filename: String!
+  status: DoclinkStatus!
+  documentId: ID!
+}
+
+type DoclinkConnection {
+  items: [Doclink!]!
+  nextToken: String
+}
+
+# ----------------------------------------------------------------------
+# 6. ENTITIES
+# ----------------------------------------------------------------------
+
+type Document implements Node & Metadata & Storable
+  @aws_iam
+  @aws_cognito_user_pools {
+
+  # Metadata Fields
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  # Mutable Fields
+  docHash: String!
+}
+
+type DocumentConnection {
+  items: [Document!]!
+  nextToken: String
+}
+
+type Project implements Node & Metadata & Shareable
+  @aws_iam
+  @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  sharingMode: SharingMode!
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+
+  name: String!
+  description: String
+  status: ProjectStatus!
+
+  # ---------------------------------------------------------
+  # Access Pattern: GSI 1 (The View)
+  # Queries SK begins_with "DOCLINK#" under "PROJECT#<id>" PK
+  # ---------------------------------------------------------
+  doclinks(limit: Int, nextToken: String): DoclinkConnection
+  topics(limit: Int, nextToken: String): TopicConnection
+}
+
+type ProjectConnection {
+  items: [Project!]!
+  nextToken: String
+}
+
+# ----------------------------------------------------------------------
+# 7. INPUTS
+# ----------------------------------------------------------------------
+
+# PROJECT INPUTS
+input CreateProjectInput {
+  name: String
+  description: String
+  status: ProjectStatus = ACTIVE
+  sharingMode: SharingMode = PRIVATE
+}
+
+input UpdateProjectInput {
+  name: String
+  description: String
+  status: ProjectStatus
+  sharingMode: SharingMode
+}
+
+# DOCLINK INPUTS
+input CreateDoclinkInput {
+  # REQUIRED: To perform the Strongly Consistent Write to Main Table
+  parentId: ID!
+
+  documentId: ID!
+  filename: String!
+  status: DoclinkStatus = NOT_UPLOADED
+}
+
+input UpdateDoclinkInput {
+  filename: String
+  status: DoclinkStatus
+}
+
+# ----------------------------------------------------------------------
+# 8. QUERIES
+# ----------------------------------------------------------------------
+
+type Query {
+  """
+  Get a single project by ID.
+  """
+  getProject(id: ID!): Project
+
+  """
+  List projects.
+  - OWNED_BY_ME: Queries GSI2 with USER#<sub_id>
+  - ALL_TENANT: Queries GSI2 with TEAM#<tenant_id>
+  """
+  listProjects(
+    scope: ListScope = OWNED_BY_ME
+    limit: Int
+    nextToken: String
+  ): ProjectConnection!
+
+  """
+  Get a single Doclink. Requires composite key (ID + ParentID) for access.
+  """
+  getDoclink(key: CompositeKeyInput!): Doclink
+
+  """
+  List Doclinks for a specific Project. Uses GSI1 (The View).
+  """
+  listDoclinks(
+    parentId: ID! # Required: Cannot list "all docs in tenant" efficiently
+    limit: Int
+    nextToken: String
+  ): DoclinkConnection!
+}
+
+# ----------------------------------------------------------------------
+# 9. MUTATIONS
+# ----------------------------------------------------------------------
+
+type Mutation {
+  # PROJECT OPERATIONS
+  createProject(input: CreateProjectInput!): Project
+  updateProject(id: ID!, input: UpdateProjectInput!): Project
+  deleteProject(id: ID!): Project
+  restoreProject(id: ID!): Project
+
+  # DOCLINK OPERATIONS
+  # Create: Uses parentId from input to write to Main Table
+  createDoclink(input: CreateDoclinkInput!): Doclink
+
+  # Update: Uses Composite Key to access Main Table
+  updateDoclink(key: CompositeKeyInput!, input: UpdateDoclinkInput!): Doclink
+
+  # Delete: Uses Composite Key to access Main Table
+  deleteDoclink(key: CompositeKeyInput!): Doclink
+}
+
+# ----------------------------------------------------------------------
+# 10. SUBSCRIPTIONS
+# ----------------------------------------------------------------------
+
+type Subscription {
+  # PROJECT SUBSCRIPTIONS
+
+  onCreateProject(ownerId: ID, tenantId: ID): Project
+    @aws_subscribe(mutations: ["createProject"])
+
+  # Triggered when a specific project is updated (Real-time Details)
+  onUpdateProject(id: ID!): Project
+    @aws_subscribe(mutations: ["updateProject", "restoreProject"])
+
+  # Triggered when a specific project is deleted (Cleanup)
+  onDeleteProject(id: ID!): Project @aws_subscribe(mutations: ["deleteProject"])
+
+  onRestoreProject(id: ID!): Project
+    @aws_subscribe(mutations: ["restoreProject"])
+
+  # DOCLINK SUBSCRIPTIONS
+
+  # Triggered when a Doclink is added to a specific Project (Folder View).
+  # Client subscribes to the PARENT PROJECT ID.
+  onCreateDoclink(parentId: ID): Doclink
+    @aws_subscribe(mutations: ["createDoclink"])
+
+  # Triggered when a specific Doclink is updated (e.g. status change)
+  onUpdateDoclink(id: ID!): Doclink @aws_subscribe(mutations: ["updateDoclink"])
+
+  # Triggered when a specific Doclink is deleted
+  onDeleteDoclink(id: ID!): Doclink @aws_subscribe(mutations: ["deleteDoclink"])
+}

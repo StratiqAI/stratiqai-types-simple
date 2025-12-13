@@ -472,6 +472,28 @@ export type DeleteDoclinkMutationVariables = Exact<{
 
 export type DeleteDoclinkMutation = { __typename?: 'Mutation', deleteDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, parentId: string, filename: string, status: DoclinkStatus, documentId: string } | null | undefined };
 
+export type CreateDocumentMutationVariables = Exact<{
+  input: CreateDocumentInput;
+}>;
+
+
+export type CreateDocumentMutation = { __typename?: 'Mutation', createDocument?: { __typename?: 'Document', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined } | null | undefined };
+
+export type UpdateDocumentMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: UpdateDocumentInput;
+}>;
+
+
+export type UpdateDocumentMutation = { __typename?: 'Mutation', updateDocument?: { __typename?: 'Document', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined } | null | undefined };
+
+export type DeleteDocumentMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeleteDocumentMutation = { __typename?: 'Mutation', deleteDocument?: { __typename?: 'Document', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined } | null | undefined };
+
 export type CreateProjectMutationVariables = Exact<{
   input: CreateProjectInput;
 }>;
@@ -517,6 +539,21 @@ export type ListDoclinksQueryVariables = Exact<{
 
 export type ListDoclinksQuery = { __typename?: 'Query', listDoclinks: { __typename?: 'DoclinkConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, parentId: string, filename: string, status: DoclinkStatus, documentId: string }> } };
 
+export type GetDocumentQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetDocumentQuery = { __typename?: 'Query', getDocument?: { __typename?: 'Document', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined } | null | undefined };
+
+export type ListDocumentsQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ListDocumentsQuery = { __typename?: 'Query', listDocuments: { __typename?: 'DocumentConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Document', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined }> } };
+
 export type GetProjectQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
@@ -553,6 +590,28 @@ export type OnDeleteDoclinkSubscriptionVariables = Exact<{
 
 export type OnDeleteDoclinkSubscription = { __typename?: 'Subscription', onDeleteDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, parentId: string, filename: string, status: DoclinkStatus, documentId: string } | null | undefined };
 
+export type OnCreateDocumentSubscriptionVariables = Exact<{
+  ownerId?: InputMaybe<Scalars['ID']['input']>;
+  tenantId?: InputMaybe<Scalars['ID']['input']>;
+}>;
+
+
+export type OnCreateDocumentSubscription = { __typename?: 'Subscription', onCreateDocument?: { __typename?: 'Document', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined } | null | undefined };
+
+export type OnUpdateDocumentSubscriptionVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnUpdateDocumentSubscription = { __typename?: 'Subscription', onUpdateDocument?: { __typename?: 'Document', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined } | null | undefined };
+
+export type OnDeleteDocumentSubscriptionVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnDeleteDocumentSubscription = { __typename?: 'Subscription', onDeleteDocument?: { __typename?: 'Document', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined } | null | undefined };
+
 export type OnCreateProjectSubscriptionVariables = Exact<{
   tenantId?: InputMaybe<Scalars['ID']['input']>;
 }>;
@@ -577,17 +636,25 @@ export type OnDeleteProjectSubscription = { __typename?: 'Subscription', onDelet
 export declare const CreateDoclink: import("graphql").DocumentNode;
 export declare const UpdateDoclink: import("graphql").DocumentNode;
 export declare const DeleteDoclink: import("graphql").DocumentNode;
+export declare const CreateDocument: import("graphql").DocumentNode;
+export declare const UpdateDocument: import("graphql").DocumentNode;
+export declare const DeleteDocument: import("graphql").DocumentNode;
 export declare const CreateProject: import("graphql").DocumentNode;
 export declare const UpdateProject: import("graphql").DocumentNode;
 export declare const DeleteProject: import("graphql").DocumentNode;
 export declare const RestoreProject: import("graphql").DocumentNode;
 export declare const GetDoclink: import("graphql").DocumentNode;
 export declare const ListDoclinks: import("graphql").DocumentNode;
+export declare const GetDocument: import("graphql").DocumentNode;
+export declare const ListDocuments: import("graphql").DocumentNode;
 export declare const GetProject: import("graphql").DocumentNode;
 export declare const ListProjects: import("graphql").DocumentNode;
 export declare const OnCreateDoclink: import("graphql").DocumentNode;
 export declare const OnUpdateDoclink: import("graphql").DocumentNode;
 export declare const OnDeleteDoclink: import("graphql").DocumentNode;
+export declare const OnCreateDocument: import("graphql").DocumentNode;
+export declare const OnUpdateDocument: import("graphql").DocumentNode;
+export declare const OnDeleteDocument: import("graphql").DocumentNode;
 export declare const OnCreateProject: import("graphql").DocumentNode;
 export declare const OnUpdateProject: import("graphql").DocumentNode;
 export declare const OnDeleteProject: import("graphql").DocumentNode;

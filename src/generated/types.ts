@@ -32,11 +32,22 @@ export type CreateDoclinkInput = {
   status?: InputMaybe<DoclinkStatus>;
 };
 
+export type CreateDocumentInput = {
+  mimeType?: InputMaybe<Scalars['String']['input']>;
+  s3Bucket: Scalars['String']['input'];
+  s3Key: Scalars['String']['input'];
+  sizeBytes?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type CreateProjectInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   sharingMode?: InputMaybe<SharingMode>;
   status?: InputMaybe<ProjectStatus>;
+};
+
+export type DeleteDocumentInput = {
+  id: Scalars['ID']['input'];
 };
 
 export type Doclink = Metadata & Node & {
@@ -67,6 +78,27 @@ export type DoclinkStatus =
   | 'READY'
   | 'UPLOADED';
 
+export type Document = Metadata & Node & Storable & {
+  __typename?: 'Document';
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  mimeType: Scalars['String']['output'];
+  ownerId: Scalars['ID']['output'];
+  s3Bucket: Scalars['String']['output'];
+  s3Key: Scalars['String']['output'];
+  sizeBytes?: Maybe<Scalars['Int']['output']>;
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+};
+
+export type DocumentConnection = {
+  __typename?: 'DocumentConnection';
+  items: Array<Document>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
 export type EntityType =
   | 'DOCLINK'
   | 'PROJECT'
@@ -91,17 +123,25 @@ export type Metadata = {
 export type Mutation = {
   __typename?: 'Mutation';
   createDoclink?: Maybe<Doclink>;
+  createDocument?: Maybe<Document>;
   createProject?: Maybe<Project>;
   deleteDoclink?: Maybe<Doclink>;
+  deleteDocument?: Maybe<Document>;
   deleteProject?: Maybe<Project>;
   restoreProject?: Maybe<Project>;
   updateDoclink?: Maybe<Doclink>;
+  updateDocument?: Maybe<Document>;
   updateProject?: Maybe<Project>;
 };
 
 
 export type MutationCreateDoclinkArgs = {
   input: CreateDoclinkInput;
+};
+
+
+export type MutationCreateDocumentArgs = {
+  input: CreateDocumentInput;
 };
 
 
@@ -112,6 +152,11 @@ export type MutationCreateProjectArgs = {
 
 export type MutationDeleteDoclinkArgs = {
   key: CompositeKeyInput;
+};
+
+
+export type MutationDeleteDocumentArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -128,6 +173,12 @@ export type MutationRestoreProjectArgs = {
 export type MutationUpdateDoclinkArgs = {
   input: UpdateDoclinkInput;
   key: CompositeKeyInput;
+};
+
+
+export type MutationUpdateDocumentArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateDocumentInput;
 };
 
 
@@ -191,21 +242,22 @@ export type Query = {
   __typename?: 'Query';
   /** Get a single Doclink. Requires composite key (ID + ParentID) for access. */
   getDoclink?: Maybe<Doclink>;
-  /** Get a single project by ID. */
+  getDocument?: Maybe<Document>;
   getProject?: Maybe<Project>;
   /** List Doclinks for a specific Project. Uses GSI1 (The View). */
   listDoclinks: DoclinkConnection;
-  /**
-   * List projects.
-   * - OWNED_BY_ME: Queries GSI2 with USER#<sub_id>
-   * - ALL_TENANT: Queries GSI2 with TEAM#<tenant_id>
-   */
+  listDocuments: DocumentConnection;
   listProjects: ProjectConnection;
 };
 
 
 export type QueryGetDoclinkArgs = {
   key: CompositeKeyInput;
+};
+
+
+export type QueryGetDocumentArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -218,6 +270,12 @@ export type QueryListDoclinksArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
   parentId: Scalars['ID']['input'];
+};
+
+
+export type QueryListDocumentsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -270,20 +328,39 @@ export type SharingMode =
   | 'TENANT_EDIT'
   | 'TENANT_VIEW';
 
+export type Storable = {
+  mimeType: Scalars['String']['output'];
+  s3Bucket: Scalars['String']['output'];
+  s3Key: Scalars['String']['output'];
+  sizeBytes?: Maybe<Scalars['Int']['output']>;
+};
+
 export type Subscription = {
   __typename?: 'Subscription';
+  /** DOCLINK SUBSCRIPTIONS */
   onCreateDoclink?: Maybe<Doclink>;
+  /** DOCUMENT SUBSCRIPTIONS */
+  onCreateDocument?: Maybe<Document>;
+  /** PROJECT SUBSCRIPTIONS */
   onCreateProject?: Maybe<Project>;
   onDeleteDoclink?: Maybe<Doclink>;
+  onDeleteDocument?: Maybe<Document>;
   onDeleteProject?: Maybe<Project>;
   onRestoreProject?: Maybe<Project>;
   onUpdateDoclink?: Maybe<Doclink>;
+  onUpdateDocument?: Maybe<Document>;
   onUpdateProject?: Maybe<Project>;
 };
 
 
 export type SubscriptionOnCreateDoclinkArgs = {
   parentId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type SubscriptionOnCreateDocumentArgs = {
+  ownerId?: InputMaybe<Scalars['ID']['input']>;
+  tenantId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -294,6 +371,11 @@ export type SubscriptionOnCreateProjectArgs = {
 
 
 export type SubscriptionOnDeleteDoclinkArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnDeleteDocumentArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -309,6 +391,11 @@ export type SubscriptionOnRestoreProjectArgs = {
 
 
 export type SubscriptionOnUpdateDoclinkArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnUpdateDocumentArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -347,6 +434,13 @@ export type TopicConnection = {
 export type UpdateDoclinkInput = {
   filename?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<DoclinkStatus>;
+};
+
+export type UpdateDocumentInput = {
+  mimeType?: InputMaybe<Scalars['String']['input']>;
+  s3Bucket?: InputMaybe<Scalars['String']['input']>;
+  s3Key?: InputMaybe<Scalars['String']['input']>;
+  sizeBytes?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type UpdateProjectInput = {

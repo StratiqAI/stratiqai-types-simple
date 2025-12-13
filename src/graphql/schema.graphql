@@ -179,9 +179,8 @@ type DoclinkConnection {
 type Document implements Node & Metadata & Storable
   @aws_iam
   @aws_cognito_user_pools {
-
   # Metadata Fields
-  id: ID!
+  id: ID! # The ID of the document is a SHA256 hash of the document content
   entityType: EntityType!
   tenantId: ID!
   ownerId: ID!
@@ -189,8 +188,11 @@ type Document implements Node & Metadata & Storable
   updatedAt: AWSDateTime!
   deletedAt: AWSDateTime
 
-  # Mutable Fields
-  docHash: String!
+  # Storable Fields
+  s3Bucket: String!
+  s3Key: String!
+  mimeType: String!
+  sizeBytes: Int
 }
 
 type DocumentConnection {
@@ -232,6 +234,25 @@ type ProjectConnection {
 # 7. INPUTS
 # ----------------------------------------------------------------------
 
+# DOCUMENT INPUTS
+input CreateDocumentInput {
+  s3Bucket: String!
+  s3Key: String!
+  mimeType: String
+  sizeBytes: Int
+}
+
+input UpdateDocumentInput {
+  s3Bucket: String
+  s3Key: String
+  mimeType: String
+  sizeBytes: Int
+}
+
+input DeleteDocumentInput {
+  id: ID!
+}
+
 # PROJECT INPUTS
 input CreateProjectInput {
   name: String
@@ -267,16 +288,12 @@ input UpdateDoclinkInput {
 # ----------------------------------------------------------------------
 
 type Query {
-  """
-  Get a single project by ID.
-  """
-  getProject(id: ID!): Project
+  # DOCUMENT QUERIES
+  getDocument(id: ID!): Document
+  listDocuments(limit: Int, nextToken: String): DocumentConnection!
 
-  """
-  List projects.
-  - OWNED_BY_ME: Queries GSI2 with USER#<sub_id>
-  - ALL_TENANT: Queries GSI2 with TEAM#<tenant_id>
-  """
+  # PROJECT QUERIES
+  getProject(id: ID!): Project
   listProjects(
     scope: ListScope = OWNED_BY_ME
     limit: Int
@@ -303,6 +320,11 @@ type Query {
 # ----------------------------------------------------------------------
 
 type Mutation {
+  # DOCUMENT OPERATIONS
+  createDocument(input: CreateDocumentInput!): Document
+  updateDocument(id: ID!, input: UpdateDocumentInput!): Document
+  deleteDocument(id: ID!): Document
+
   # PROJECT OPERATIONS
   createProject(input: CreateProjectInput!): Project
   updateProject(id: ID!, input: UpdateProjectInput!): Project
@@ -325,8 +347,21 @@ type Mutation {
 # ----------------------------------------------------------------------
 
 type Subscription {
-  # PROJECT SUBSCRIPTIONS
+  """
+  DOCUMENT SUBSCRIPTIONS
+  """
+  onCreateDocument(ownerId: ID, tenantId: ID): Document
+    @aws_subscribe(mutations: ["createDocument"])
 
+  onUpdateDocument(id: ID!): Document
+    @aws_subscribe(mutations: ["updateDocument"])
+
+  onDeleteDocument(id: ID!): Document
+    @aws_subscribe(mutations: ["deleteDocument"])
+
+  """
+  PROJECT SUBSCRIPTIONS
+  """
   onCreateProject(ownerId: ID, tenantId: ID): Project
     @aws_subscribe(mutations: ["createProject"])
 
@@ -340,10 +375,9 @@ type Subscription {
   onRestoreProject(id: ID!): Project
     @aws_subscribe(mutations: ["restoreProject"])
 
-  # DOCLINK SUBSCRIPTIONS
-
-  # Triggered when a Doclink is added to a specific Project (Folder View).
-  # Client subscribes to the PARENT PROJECT ID.
+  """
+  DOCLINK SUBSCRIPTIONS
+  """
   onCreateDoclink(parentId: ID): Doclink
     @aws_subscribe(mutations: ["createDoclink"])
 

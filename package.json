@@ -19,11 +19,16 @@
     "./operations": {
       "types": "./dist/operations.d.ts",
       "import": "./dist/operations.js"
+    },
+    "./generated/types": {
+      "types": "./src/generated/types.ts",
+      "import": "./src/generated/types.ts"
     }
   },
   "files": [
     "dist",
-    "src/schema.graphql"
+    "src/schema.graphql",
+    "src/generated/types.ts"
   ],
   "scripts": {
     "clean": "rimraf dist",
@@ -37,6 +42,7 @@
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^6.0.2",
+    "@graphql-codegen/near-operation-file-preset": "^4.0.0",
     "@graphql-codegen/typescript": "^5.0.4",
     "@graphql-codegen/typescript-operations": "^5.0.4",
     "@types/node": "^20.0.0",
@@ -44,6 +50,5 @@
     "graphql": "^16.8.1",
     "rimraf": "^6.0.1",
     "typescript": "^5.9.3"
-  },
-  "dependencies": {}
+  }
 }

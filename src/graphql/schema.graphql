@@ -191,7 +191,7 @@ type Document implements Node & Metadata & Storable
   # Storable Fields
   s3Bucket: String!
   s3Key: String!
-  mimeType: String!
+  mimeType: String! @default(value: "application/pdf")
   sizeBytes: Int
 }
 

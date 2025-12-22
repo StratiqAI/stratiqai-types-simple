@@ -13,6 +13,7 @@ export type Scalars = {
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
   AWSDateTime: { input: string; output: string; }
+  AWSJSON: { input: any; output: any; }
 };
 
 /**
@@ -37,6 +38,14 @@ export type CreateDocumentInput = {
   s3Bucket: Scalars['String']['input'];
   s3Key: Scalars['String']['input'];
   sizeBytes?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type CreateNotificationInput = {
+  message: Scalars['String']['input'];
+  parentId: Scalars['ID']['input'];
+  projectId: Scalars['ID']['input'];
+  properties?: InputMaybe<Scalars['AWSJSON']['input']>;
+  timestamp: Scalars['AWSDateTime']['input'];
 };
 
 export type CreateProjectInput = {
@@ -101,6 +110,7 @@ export type DocumentConnection = {
 
 export type EntityType =
   | 'DOCLINK'
+  | 'NOTIFICATION'
   | 'PROJECT'
   | 'RESOURCE_SHARE'
   | 'TOPIC';
@@ -124,13 +134,16 @@ export type Mutation = {
   __typename?: 'Mutation';
   createDoclink?: Maybe<Doclink>;
   createDocument?: Maybe<Document>;
+  createNotification?: Maybe<Notification>;
   createProject?: Maybe<Project>;
   deleteDoclink?: Maybe<Doclink>;
   deleteDocument?: Maybe<Document>;
+  deleteNotification?: Maybe<Notification>;
   deleteProject?: Maybe<Project>;
   restoreProject?: Maybe<Project>;
   updateDoclink?: Maybe<Doclink>;
   updateDocument?: Maybe<Document>;
+  updateNotification?: Maybe<Notification>;
   updateProject?: Maybe<Project>;
 };
 
@@ -142,6 +155,11 @@ export type MutationCreateDoclinkArgs = {
 
 export type MutationCreateDocumentArgs = {
   input: CreateDocumentInput;
+};
+
+
+export type MutationCreateNotificationArgs = {
+  input: CreateNotificationInput;
 };
 
 
@@ -157,6 +175,11 @@ export type MutationDeleteDoclinkArgs = {
 
 export type MutationDeleteDocumentArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteNotificationArgs = {
+  key: CompositeKeyInput;
 };
 
 
@@ -182,6 +205,12 @@ export type MutationUpdateDocumentArgs = {
 };
 
 
+export type MutationUpdateNotificationArgs = {
+  input: UpdateNotificationInput;
+  key: CompositeKeyInput;
+};
+
+
 export type MutationUpdateProjectArgs = {
   id: Scalars['ID']['input'];
   input: UpdateProjectInput;
@@ -189,6 +218,28 @@ export type MutationUpdateProjectArgs = {
 
 export type Node = {
   id: Scalars['ID']['output'];
+};
+
+export type Notification = Metadata & Node & {
+  __typename?: 'Notification';
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  message: Scalars['String']['output'];
+  ownerId: Scalars['ID']['output'];
+  parentId: Scalars['ID']['output'];
+  projectId: Scalars['ID']['output'];
+  properties?: Maybe<Scalars['AWSJSON']['output']>;
+  tenantId: Scalars['ID']['output'];
+  timestamp: Scalars['AWSDateTime']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+};
+
+export type NotificationConnection = {
+  __typename?: 'NotificationConnection';
+  items: Array<Notification>;
+  nextToken?: Maybe<Scalars['String']['output']>;
 };
 
 export type Project = Metadata & Node & Shareable & {
@@ -201,6 +252,7 @@ export type Project = Metadata & Node & Shareable & {
   entityType: EntityType;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  notifications?: Maybe<NotificationConnection>;
   ownerId: Scalars['ID']['output'];
   sharingMode: SharingMode;
   status: ProjectStatus;
@@ -217,6 +269,12 @@ export type ProjectAccessListArgs = {
 
 
 export type ProjectDoclinksArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type ProjectNotificationsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
 };
@@ -243,10 +301,14 @@ export type Query = {
   /** Get a single Doclink. Requires composite key (ID + ParentID) for access. */
   getDoclink?: Maybe<Doclink>;
   getDocument?: Maybe<Document>;
+  /** Get a single Notification. Requires composite key (ID + ParentID) for access. */
+  getNotification?: Maybe<Notification>;
   getProject?: Maybe<Project>;
   /** List Doclinks for a specific Project. Uses GSI1 (The View). */
   listDoclinks: DoclinkConnection;
   listDocuments: DocumentConnection;
+  /** List Notifications for a specific Project. Uses GSI1 (The View). */
+  listNotifications: NotificationConnection;
   listProjects: ProjectConnection;
 };
 
@@ -258,6 +320,11 @@ export type QueryGetDoclinkArgs = {
 
 export type QueryGetDocumentArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryGetNotificationArgs = {
+  key: CompositeKeyInput;
 };
 
 
@@ -276,6 +343,13 @@ export type QueryListDoclinksArgs = {
 export type QueryListDocumentsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryListNotificationsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  parentId: Scalars['ID']['input'];
 };
 
 
@@ -341,14 +415,18 @@ export type Subscription = {
   onCreateDoclink?: Maybe<Doclink>;
   /** DOCUMENT SUBSCRIPTIONS */
   onCreateDocument?: Maybe<Document>;
+  /** NOTIFICATION SUBSCRIPTIONS */
+  onCreateNotification?: Maybe<Notification>;
   /** PROJECT SUBSCRIPTIONS */
   onCreateProject?: Maybe<Project>;
   onDeleteDoclink?: Maybe<Doclink>;
   onDeleteDocument?: Maybe<Document>;
+  onDeleteNotification?: Maybe<Notification>;
   onDeleteProject?: Maybe<Project>;
   onRestoreProject?: Maybe<Project>;
   onUpdateDoclink?: Maybe<Doclink>;
   onUpdateDocument?: Maybe<Document>;
+  onUpdateNotification?: Maybe<Notification>;
   onUpdateProject?: Maybe<Project>;
 };
 
@@ -364,6 +442,11 @@ export type SubscriptionOnCreateDocumentArgs = {
 };
 
 
+export type SubscriptionOnCreateNotificationArgs = {
+  parentId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
 export type SubscriptionOnCreateProjectArgs = {
   ownerId?: InputMaybe<Scalars['ID']['input']>;
   tenantId?: InputMaybe<Scalars['ID']['input']>;
@@ -376,6 +459,11 @@ export type SubscriptionOnDeleteDoclinkArgs = {
 
 
 export type SubscriptionOnDeleteDocumentArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnDeleteNotificationArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -396,6 +484,11 @@ export type SubscriptionOnUpdateDoclinkArgs = {
 
 
 export type SubscriptionOnUpdateDocumentArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnUpdateNotificationArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -441,6 +534,12 @@ export type UpdateDocumentInput = {
   s3Bucket?: InputMaybe<Scalars['String']['input']>;
   s3Key?: InputMaybe<Scalars['String']['input']>;
   sizeBytes?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type UpdateNotificationInput = {
+  message?: InputMaybe<Scalars['String']['input']>;
+  properties?: InputMaybe<Scalars['AWSJSON']['input']>;
+  timestamp?: InputMaybe<Scalars['AWSDateTime']['input']>;
 };
 
 export type UpdateProjectInput = {
@@ -493,6 +592,28 @@ export type DeleteDocumentMutationVariables = Exact<{
 
 
 export type DeleteDocumentMutation = { __typename?: 'Mutation', deleteDocument?: { __typename?: 'Document', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined } | null | undefined };
+
+export type CreateNotificationMutationVariables = Exact<{
+  input: CreateNotificationInput;
+}>;
+
+
+export type CreateNotificationMutation = { __typename?: 'Mutation', createNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, projectId: string, message: string, timestamp: string, properties?: any | null | undefined } | null | undefined };
+
+export type UpdateNotificationMutationVariables = Exact<{
+  key: CompositeKeyInput;
+  input: UpdateNotificationInput;
+}>;
+
+
+export type UpdateNotificationMutation = { __typename?: 'Mutation', updateNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, projectId: string, message: string, timestamp: string, properties?: any | null | undefined } | null | undefined };
+
+export type DeleteNotificationMutationVariables = Exact<{
+  key: CompositeKeyInput;
+}>;
+
+
+export type DeleteNotificationMutation = { __typename?: 'Mutation', deleteNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, projectId: string, message: string, timestamp: string, properties?: any | null | undefined } | null | undefined };
 
 export type CreateProjectMutationVariables = Exact<{
   input: CreateProjectInput;
@@ -554,6 +675,22 @@ export type ListDocumentsQueryVariables = Exact<{
 
 export type ListDocumentsQuery = { __typename?: 'Query', listDocuments: { __typename?: 'DocumentConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Document', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined }> } };
 
+export type GetNotificationQueryVariables = Exact<{
+  key: CompositeKeyInput;
+}>;
+
+
+export type GetNotificationQuery = { __typename?: 'Query', getNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, projectId: string, message: string, timestamp: string, properties?: any | null | undefined } | null | undefined };
+
+export type ListNotificationsQueryVariables = Exact<{
+  parentId: Scalars['ID']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ListNotificationsQuery = { __typename?: 'Query', listNotifications: { __typename?: 'NotificationConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, projectId: string, message: string, timestamp: string, properties?: any | null | undefined }> } };
+
 export type GetProjectQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
@@ -613,6 +750,27 @@ export type OnDeleteDocumentSubscriptionVariables = Exact<{
 
 export type OnDeleteDocumentSubscription = { __typename?: 'Subscription', onDeleteDocument?: { __typename?: 'Document', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined } | null | undefined };
 
+export type OnCreateNotificationSubscriptionVariables = Exact<{
+  parentId?: InputMaybe<Scalars['ID']['input']>;
+}>;
+
+
+export type OnCreateNotificationSubscription = { __typename?: 'Subscription', onCreateNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, projectId: string, message: string, timestamp: string, properties?: any | null | undefined } | null | undefined };
+
+export type OnUpdateNotificationSubscriptionVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnUpdateNotificationSubscription = { __typename?: 'Subscription', onUpdateNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, projectId: string, message: string, timestamp: string, properties?: any | null | undefined } | null | undefined };
+
+export type OnDeleteNotificationSubscriptionVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnDeleteNotificationSubscription = { __typename?: 'Subscription', onDeleteNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, projectId: string, message: string, timestamp: string, properties?: any | null | undefined } | null | undefined };
+
 export type OnCreateProjectSubscriptionVariables = Exact<{
   tenantId?: InputMaybe<Scalars['ID']['input']>;
 }>;
@@ -640,6 +798,9 @@ export declare const DeleteDoclink: import("graphql").DocumentNode;
 export declare const CreateDocument: import("graphql").DocumentNode;
 export declare const UpdateDocument: import("graphql").DocumentNode;
 export declare const DeleteDocument: import("graphql").DocumentNode;
+export declare const CreateNotification: import("graphql").DocumentNode;
+export declare const UpdateNotification: import("graphql").DocumentNode;
+export declare const DeleteNotification: import("graphql").DocumentNode;
 export declare const CreateProject: import("graphql").DocumentNode;
 export declare const UpdateProject: import("graphql").DocumentNode;
 export declare const DeleteProject: import("graphql").DocumentNode;
@@ -648,6 +809,8 @@ export declare const GetDoclink: import("graphql").DocumentNode;
 export declare const ListDoclinks: import("graphql").DocumentNode;
 export declare const GetDocument: import("graphql").DocumentNode;
 export declare const ListDocuments: import("graphql").DocumentNode;
+export declare const GetNotification: import("graphql").DocumentNode;
+export declare const ListNotifications: import("graphql").DocumentNode;
 export declare const GetProject: import("graphql").DocumentNode;
 export declare const ListProjects: import("graphql").DocumentNode;
 export declare const OnCreateDoclink: import("graphql").DocumentNode;
@@ -656,6 +819,9 @@ export declare const OnDeleteDoclink: import("graphql").DocumentNode;
 export declare const OnCreateDocument: import("graphql").DocumentNode;
 export declare const OnUpdateDocument: import("graphql").DocumentNode;
 export declare const OnDeleteDocument: import("graphql").DocumentNode;
+export declare const OnCreateNotification: import("graphql").DocumentNode;
+export declare const OnUpdateNotification: import("graphql").DocumentNode;
+export declare const OnDeleteNotification: import("graphql").DocumentNode;
 export declare const OnCreateProject: import("graphql").DocumentNode;
 export declare const OnUpdateProject: import("graphql").DocumentNode;
 export declare const OnDeleteProject: import("graphql").DocumentNode;

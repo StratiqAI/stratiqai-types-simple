@@ -9,6 +9,7 @@ schema {
 # ----------------------------------------------------------------------
 
 scalar AWSDateTime
+scalar AWSJSON
 
 directive @aws_iam on OBJECT | FIELD_DEFINITION
 directive @aws_cognito_user_pools(
@@ -27,6 +28,7 @@ enum EntityType {
   DOCLINK
   TOPIC
   RESOURCE_SHARE
+  NOTIFICATION
 }
 
 enum ProjectStatus {
@@ -172,6 +174,26 @@ type DoclinkConnection {
   nextToken: String
 }
 
+type Notification implements Node & Metadata @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  parentId: ID!
+  message: String!
+  timestamp: AWSDateTime!
+  properties: AWSJSON
+}
+
+type NotificationConnection {
+  items: [Notification!]!
+  nextToken: String
+}
+
 # ----------------------------------------------------------------------
 # 6. ENTITIES
 # ----------------------------------------------------------------------
@@ -223,6 +245,7 @@ type Project implements Node & Metadata & Shareable
   # ---------------------------------------------------------
   doclinks(limit: Int, nextToken: String): DoclinkConnection
   topics(limit: Int, nextToken: String): TopicConnection
+  notifications(limit: Int, nextToken: String): NotificationConnection
 }
 
 type ProjectConnection {
@@ -283,6 +306,22 @@ input UpdateDoclinkInput {
   status: DoclinkStatus
 }
 
+# NOTIFICATION INPUTS
+input CreateNotificationInput {
+  # REQUIRED: To perform the Strongly Consistent Write to Main Table
+  parentId: ID!
+
+  message: String!
+  timestamp: AWSDateTime!
+  properties: AWSJSON
+}
+
+input UpdateNotificationInput {
+  message: String
+  timestamp: AWSDateTime
+  properties: AWSJSON
+}
+
 # ----------------------------------------------------------------------
 # 8. QUERIES
 # ----------------------------------------------------------------------
@@ -313,6 +352,20 @@ type Query {
     limit: Int
     nextToken: String
   ): DoclinkConnection!
+
+  """
+  Get a single Notification. Requires composite key (ID + ParentID) for access.
+  """
+  getNotification(key: CompositeKeyInput!): Notification
+
+  """
+  List Notifications for a specific Project. Uses GSI1 (The View).
+  """
+  listNotifications(
+    parentId: ID! # Required: Cannot list "all notifications in tenant" efficiently
+    limit: Int
+    nextToken: String
+  ): NotificationConnection!
 }
 
 # ----------------------------------------------------------------------
@@ -340,6 +393,16 @@ type Mutation {
 
   # Delete: Uses Composite Key to access Main Table
   deleteDoclink(key: CompositeKeyInput!): Doclink
+
+  # NOTIFICATION OPERATIONS
+  # Create: Uses parentId from input to write to Main Table
+  createNotification(input: CreateNotificationInput!): Notification
+
+  # Update: Uses Composite Key to access Main Table
+  updateNotification(key: CompositeKeyInput!, input: UpdateNotificationInput!): Notification
+
+  # Delete: Uses Composite Key to access Main Table
+  deleteNotification(key: CompositeKeyInput!): Notification
 }
 
 # ----------------------------------------------------------------------
@@ -386,4 +449,18 @@ type Subscription {
 
   # Triggered when a specific Doclink is deleted
   onDeleteDoclink(id: ID!): Doclink @aws_subscribe(mutations: ["deleteDoclink"])
+
+  """
+  NOTIFICATION SUBSCRIPTIONS
+  """
+  onCreateNotification(parentId: ID): Notification
+    @aws_subscribe(mutations: ["createNotification"])
+
+  # Triggered when a specific Notification is updated
+  onUpdateNotification(id: ID!): Notification
+    @aws_subscribe(mutations: ["updateNotification"])
+
+  # Triggered when a specific Notification is deleted
+  onDeleteNotification(id: ID!): Notification
+    @aws_subscribe(mutations: ["deleteNotification"])
 }

@@ -15,9 +15,7 @@ export const S_ON_CREATE_NOTIFICATION = gql`
       updatedAt
       deletedAt
       parentId
-      projectId
       message
-      timestamp
       properties
     }
   }
@@ -34,9 +32,7 @@ export const S_ON_UPDATE_NOTIFICATION = gql`
       updatedAt
       deletedAt
       parentId
-      projectId
       message
-      timestamp
       properties
     }
   }
@@ -53,9 +49,7 @@ export const S_ON_DELETE_NOTIFICATION = gql`
       updatedAt
       deletedAt
       parentId
-      projectId
       message
-      timestamp
       properties
     }
   }

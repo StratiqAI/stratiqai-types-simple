@@ -1,12 +1,12 @@
 import { gql } from 'graphql-tag';
 
 /**
- * GraphQL Queries for Notification
+ * GraphQL Queries for Text
  */
 
-export const Q_GET_NOTIFICATION = gql`
-  query GetNotification($key: CompositeKeyInput!) {
-    getNotification(key: $key) {
+export const Q_GET_TEXT = gql`
+  query GetText($key: CompositeKeyInput!) {
+    getText(key: $key) {
       id
       entityType
       tenantId
@@ -15,19 +15,19 @@ export const Q_GET_NOTIFICATION = gql`
       updatedAt
       deletedAt
       parentId
-      message
-      properties
+      pageNum
+      text
     }
   }
 `;
 
-export const Q_LIST_NOTIFICATIONS = gql`
-  query ListNotifications(
+export const Q_LIST_TEXTS = gql`
+  query ListTexts(
     $parentId: ID!
     $limit: Int
     $nextToken: String
   ) {
-    listNotifications(parentId: $parentId, limit: $limit, nextToken: $nextToken) {
+    listTexts(parentId: $parentId, limit: $limit, nextToken: $nextToken) {
       items {
         id
         entityType
@@ -37,8 +37,8 @@ export const Q_LIST_NOTIFICATIONS = gql`
         updatedAt
         deletedAt
         parentId
-        message
-        properties
+        pageNum
+        text
       }
       nextToken
     }

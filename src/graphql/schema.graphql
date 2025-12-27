@@ -29,6 +29,9 @@ enum EntityType {
   TOPIC
   RESOURCE_SHARE
   NOTIFICATION
+  IMAGE
+  TABLE
+  TEXT
 }
 
 enum ProjectStatus {
@@ -99,7 +102,7 @@ interface Storable {
 # ----------------------------------------------------------------------
 
 """
-Composite Key for accessing Child Entities (Doclink, Topic).
+Composite Key for accessing Child Entities (Doclink, Topic, Image, Table, Text).
 Required because we do not have a Global Lookup GSI for children;
 we must know the parentId to locate the item in the Main Table.
 """
@@ -185,12 +188,95 @@ type Notification implements Node & Metadata @aws_iam @aws_cognito_user_pools {
 
   parentId: ID!
   message: String!
-  timestamp: AWSDateTime!
   properties: AWSJSON
 }
 
 type NotificationConnection {
   items: [Notification!]!
+  nextToken: String
+}
+
+# ----------------------------------------------------------------------
+# 5B. DOCUMENT CHILD ENTITIES (Image, Table, Text)
+# ----------------------------------------------------------------------
+
+type Image implements Node & Metadata & Storable
+  @aws_iam
+  @aws_cognito_user_pools {
+  # Metadata Fields
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  # Storable Fields
+  s3Bucket: String!
+  s3Key: String!
+  mimeType: String!
+  sizeBytes: Int
+
+  # Image-specific Fields
+  parentId: ID! # Document ID
+  pageNum: Int!
+  imageId: String! # Original image identifier (e.g., "img-20.jpeg")
+  topLeftX: Int!
+  topLeftY: Int!
+  bottomRightX: Int!
+  bottomRightY: Int!
+  imageAnnotation: AWSJSON # Annotation data (can be null)
+}
+
+type ImageConnection {
+  items: [Image!]!
+  nextToken: String
+}
+
+type Table implements Node & Metadata
+  @aws_iam
+  @aws_cognito_user_pools {
+  # Metadata Fields
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  # Table-specific Fields
+  parentId: ID! # Document ID
+  pageNum: Int!
+  description: String!
+}
+
+type TableConnection {
+  items: [Table!]!
+  nextToken: String
+}
+
+type Text implements Node & Metadata
+  @aws_iam
+  @aws_cognito_user_pools {
+  # Metadata Fields
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  # Text-specific Fields
+  parentId: ID! # Document ID
+  pageNum: Int!
+  text: String!
+}
+
+type TextConnection {
+  items: [Text!]!
   nextToken: String
 }
 
@@ -215,6 +301,14 @@ type Document implements Node & Metadata & Storable
   s3Key: String!
   mimeType: String! @default(value: "application/pdf")
   sizeBytes: Int
+
+  # ---------------------------------------------------------
+  # Access Pattern: GSI 1 (The View)
+  # Queries SK begins_with "IMAGE#", "TABLE#", or "TEXT#" under "DOCUMENT#<id>" PK
+  # ---------------------------------------------------------
+  images(limit: Int, nextToken: String): ImageConnection
+  tables(limit: Int, nextToken: String): TableConnection
+  texts(limit: Int, nextToken: String): TextConnection
 }
 
 type DocumentConnection {
@@ -312,14 +406,82 @@ input CreateNotificationInput {
   parentId: ID!
 
   message: String!
-  timestamp: AWSDateTime!
   properties: AWSJSON
 }
 
 input UpdateNotificationInput {
   message: String
-  timestamp: AWSDateTime
   properties: AWSJSON
+}
+
+# IMAGE INPUTS
+input CreateImageInput {
+  # REQUIRED: To perform the Strongly Consistent Write to Main Table
+  parentId: ID!
+
+  # Storable Fields
+  s3Bucket: String!
+  s3Key: String!
+  mimeType: String
+  sizeBytes: Int
+
+  # Image-specific Fields
+  pageNum: Int!
+  imageId: String!
+  topLeftX: Int!
+  topLeftY: Int!
+  bottomRightX: Int!
+  bottomRightY: Int!
+  imageAnnotation: AWSJSON
+}
+
+input UpdateImageInput {
+  # Storable Fields
+  s3Bucket: String
+  s3Key: String
+  mimeType: String
+  sizeBytes: Int
+
+  # Image-specific Fields
+  pageNum: Int
+  imageId: String
+  topLeftX: Int
+  topLeftY: Int
+  bottomRightX: Int
+  bottomRightY: Int
+  imageAnnotation: AWSJSON
+}
+
+# TABLE INPUTS
+input CreateTableInput {
+  # REQUIRED: To perform the Strongly Consistent Write to Main Table
+  parentId: ID!
+
+  # Table-specific Fields
+  pageNum: Int!
+  description: String!
+}
+
+input UpdateTableInput {
+  # Table-specific Fields
+  pageNum: Int
+  description: String
+}
+
+# TEXT INPUTS
+input CreateTextInput {
+  # REQUIRED: To perform the Strongly Consistent Write to Main Table
+  parentId: ID!
+
+  # Text-specific Fields
+  pageNum: Int!
+  text: String!
+}
+
+input UpdateTextInput {
+  # Text-specific Fields
+  pageNum: Int
+  text: String
 }
 
 # ----------------------------------------------------------------------
@@ -366,6 +528,48 @@ type Query {
     limit: Int
     nextToken: String
   ): NotificationConnection!
+
+  """
+  Get a single Image. Requires composite key (ID + ParentID) for access.
+  """
+  getImage(key: CompositeKeyInput!): Image
+
+  """
+  List Images for a specific Document. Uses GSI1 (The View).
+  """
+  listImages(
+    parentId: ID! # Required: Cannot list "all images in tenant" efficiently
+    limit: Int
+    nextToken: String
+  ): ImageConnection!
+
+  """
+  Get a single Table. Requires composite key (ID + ParentID) for access.
+  """
+  getTable(key: CompositeKeyInput!): Table
+
+  """
+  List Tables for a specific Document. Uses GSI1 (The View).
+  """
+  listTables(
+    parentId: ID! # Required: Cannot list "all tables in tenant" efficiently
+    limit: Int
+    nextToken: String
+  ): TableConnection!
+
+  """
+  Get a single Text. Requires composite key (ID + ParentID) for access.
+  """
+  getText(key: CompositeKeyInput!): Text
+
+  """
+  List Texts for a specific Document. Uses GSI1 (The View).
+  """
+  listTexts(
+    parentId: ID! # Required: Cannot list "all texts in tenant" efficiently
+    limit: Int
+    nextToken: String
+  ): TextConnection!
 }
 
 # ----------------------------------------------------------------------
@@ -396,13 +600,43 @@ type Mutation {
 
   # NOTIFICATION OPERATIONS
   # Create: Uses parentId from input to write to Main Table
-  createNotification(input: CreateNotificationInput!): Notification
+  createNotification(input: CreateNotificationInput!): Notification @aws_iam
 
   # Update: Uses Composite Key to access Main Table
-  updateNotification(key: CompositeKeyInput!, input: UpdateNotificationInput!): Notification
+  updateNotification(key: CompositeKeyInput!, input: UpdateNotificationInput!): Notification @aws_iam
 
   # Delete: Uses Composite Key to access Main Table
-  deleteNotification(key: CompositeKeyInput!): Notification
+  deleteNotification(key: CompositeKeyInput!): Notification @aws_iam
+
+  # IMAGE OPERATIONS
+  # Create: Uses parentId from input to write to Main Table
+  createImage(input: CreateImageInput!): Image
+
+  # Update: Uses Composite Key to access Main Table
+  updateImage(key: CompositeKeyInput!, input: UpdateImageInput!): Image
+
+  # Delete: Uses Composite Key to access Main Table
+  deleteImage(key: CompositeKeyInput!): Image
+
+  # TABLE OPERATIONS
+  # Create: Uses parentId from input to write to Main Table
+  createTable(input: CreateTableInput!): Table
+
+  # Update: Uses Composite Key to access Main Table
+  updateTable(key: CompositeKeyInput!, input: UpdateTableInput!): Table
+
+  # Delete: Uses Composite Key to access Main Table
+  deleteTable(key: CompositeKeyInput!): Table
+
+  # TEXT OPERATIONS
+  # Create: Uses parentId from input to write to Main Table
+  createText(input: CreateTextInput!): Text
+
+  # Update: Uses Composite Key to access Main Table
+  updateText(key: CompositeKeyInput!, input: UpdateTextInput!): Text
+
+  # Delete: Uses Composite Key to access Main Table
+  deleteText(key: CompositeKeyInput!): Text
 }
 
 # ----------------------------------------------------------------------
@@ -463,4 +697,40 @@ type Subscription {
   # Triggered when a specific Notification is deleted
   onDeleteNotification(id: ID!): Notification
     @aws_subscribe(mutations: ["deleteNotification"])
+
+  """
+  IMAGE SUBSCRIPTIONS
+  """
+  onCreateImage(parentId: ID): Image
+    @aws_subscribe(mutations: ["createImage"])
+
+  # Triggered when a specific Image is updated
+  onUpdateImage(id: ID!): Image @aws_subscribe(mutations: ["updateImage"])
+
+  # Triggered when a specific Image is deleted
+  onDeleteImage(id: ID!): Image @aws_subscribe(mutations: ["deleteImage"])
+
+  """
+  TABLE SUBSCRIPTIONS
+  """
+  onCreateTable(parentId: ID): Table
+    @aws_subscribe(mutations: ["createTable"])
+
+  # Triggered when a specific Table is updated
+  onUpdateTable(id: ID!): Table @aws_subscribe(mutations: ["updateTable"])
+
+  # Triggered when a specific Table is deleted
+  onDeleteTable(id: ID!): Table @aws_subscribe(mutations: ["deleteTable"])
+
+  """
+  TEXT SUBSCRIPTIONS
+  """
+  onCreateText(parentId: ID): Text
+    @aws_subscribe(mutations: ["createText"])
+
+  # Triggered when a specific Text is updated
+  onUpdateText(id: ID!): Text @aws_subscribe(mutations: ["updateText"])
+
+  # Triggered when a specific Text is deleted
+  onDeleteText(id: ID!): Text @aws_subscribe(mutations: ["deleteText"])
 }

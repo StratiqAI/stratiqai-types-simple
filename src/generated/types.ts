@@ -17,7 +17,7 @@ export type Scalars = {
 };
 
 /**
- * Composite Key for accessing Child Entities (Doclink, Topic).
+ * Composite Key for accessing Child Entities (Doclink, Topic, Image, Table, Text).
  * Required because we do not have a Global Lookup GSI for children;
  * we must know the parentId to locate the item in the Main Table.
  */
@@ -40,12 +40,25 @@ export type CreateDocumentInput = {
   sizeBytes?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type CreateImageInput = {
+  bottomRightX: Scalars['Int']['input'];
+  bottomRightY: Scalars['Int']['input'];
+  imageAnnotation?: InputMaybe<Scalars['AWSJSON']['input']>;
+  imageId: Scalars['String']['input'];
+  mimeType?: InputMaybe<Scalars['String']['input']>;
+  pageNum: Scalars['Int']['input'];
+  parentId: Scalars['ID']['input'];
+  s3Bucket: Scalars['String']['input'];
+  s3Key: Scalars['String']['input'];
+  sizeBytes?: InputMaybe<Scalars['Int']['input']>;
+  topLeftX: Scalars['Int']['input'];
+  topLeftY: Scalars['Int']['input'];
+};
+
 export type CreateNotificationInput = {
   message: Scalars['String']['input'];
   parentId: Scalars['ID']['input'];
-  projectId: Scalars['ID']['input'];
   properties?: InputMaybe<Scalars['AWSJSON']['input']>;
-  timestamp: Scalars['AWSDateTime']['input'];
 };
 
 export type CreateProjectInput = {
@@ -53,6 +66,18 @@ export type CreateProjectInput = {
   name?: InputMaybe<Scalars['String']['input']>;
   sharingMode?: InputMaybe<SharingMode>;
   status?: InputMaybe<ProjectStatus>;
+};
+
+export type CreateTableInput = {
+  description: Scalars['String']['input'];
+  pageNum: Scalars['Int']['input'];
+  parentId: Scalars['ID']['input'];
+};
+
+export type CreateTextInput = {
+  pageNum: Scalars['Int']['input'];
+  parentId: Scalars['ID']['input'];
+  text: Scalars['String']['input'];
 };
 
 export type DeleteDocumentInput = {
@@ -93,13 +118,34 @@ export type Document = Metadata & Node & Storable & {
   deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
   entityType: EntityType;
   id: Scalars['ID']['output'];
+  images?: Maybe<ImageConnection>;
   mimeType: Scalars['String']['output'];
   ownerId: Scalars['ID']['output'];
   s3Bucket: Scalars['String']['output'];
   s3Key: Scalars['String']['output'];
   sizeBytes?: Maybe<Scalars['Int']['output']>;
+  tables?: Maybe<TableConnection>;
   tenantId: Scalars['ID']['output'];
+  texts?: Maybe<TextConnection>;
   updatedAt: Scalars['AWSDateTime']['output'];
+};
+
+
+export type DocumentImagesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type DocumentTablesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type DocumentTextsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type DocumentConnection = {
@@ -110,10 +156,42 @@ export type DocumentConnection = {
 
 export type EntityType =
   | 'DOCLINK'
+  | 'IMAGE'
   | 'NOTIFICATION'
   | 'PROJECT'
   | 'RESOURCE_SHARE'
+  | 'TABLE'
+  | 'TEXT'
   | 'TOPIC';
+
+export type Image = Metadata & Node & Storable & {
+  __typename?: 'Image';
+  bottomRightX: Scalars['Int']['output'];
+  bottomRightY: Scalars['Int']['output'];
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  imageAnnotation?: Maybe<Scalars['AWSJSON']['output']>;
+  imageId: Scalars['String']['output'];
+  mimeType: Scalars['String']['output'];
+  ownerId: Scalars['ID']['output'];
+  pageNum: Scalars['Int']['output'];
+  parentId: Scalars['ID']['output'];
+  s3Bucket: Scalars['String']['output'];
+  s3Key: Scalars['String']['output'];
+  sizeBytes?: Maybe<Scalars['Int']['output']>;
+  tenantId: Scalars['ID']['output'];
+  topLeftX: Scalars['Int']['output'];
+  topLeftY: Scalars['Int']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+};
+
+export type ImageConnection = {
+  __typename?: 'ImageConnection';
+  items: Array<Image>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
 
 export type ListScope =
   | 'ALL_TENANT'
@@ -134,17 +212,26 @@ export type Mutation = {
   __typename?: 'Mutation';
   createDoclink?: Maybe<Doclink>;
   createDocument?: Maybe<Document>;
+  createImage?: Maybe<Image>;
   createNotification?: Maybe<Notification>;
   createProject?: Maybe<Project>;
+  createTable?: Maybe<Table>;
+  createText?: Maybe<Text>;
   deleteDoclink?: Maybe<Doclink>;
   deleteDocument?: Maybe<Document>;
+  deleteImage?: Maybe<Image>;
   deleteNotification?: Maybe<Notification>;
   deleteProject?: Maybe<Project>;
+  deleteTable?: Maybe<Table>;
+  deleteText?: Maybe<Text>;
   restoreProject?: Maybe<Project>;
   updateDoclink?: Maybe<Doclink>;
   updateDocument?: Maybe<Document>;
+  updateImage?: Maybe<Image>;
   updateNotification?: Maybe<Notification>;
   updateProject?: Maybe<Project>;
+  updateTable?: Maybe<Table>;
+  updateText?: Maybe<Text>;
 };
 
 
@@ -158,6 +245,11 @@ export type MutationCreateDocumentArgs = {
 };
 
 
+export type MutationCreateImageArgs = {
+  input: CreateImageInput;
+};
+
+
 export type MutationCreateNotificationArgs = {
   input: CreateNotificationInput;
 };
@@ -165,6 +257,16 @@ export type MutationCreateNotificationArgs = {
 
 export type MutationCreateProjectArgs = {
   input: CreateProjectInput;
+};
+
+
+export type MutationCreateTableArgs = {
+  input: CreateTableInput;
+};
+
+
+export type MutationCreateTextArgs = {
+  input: CreateTextInput;
 };
 
 
@@ -178,6 +280,11 @@ export type MutationDeleteDocumentArgs = {
 };
 
 
+export type MutationDeleteImageArgs = {
+  key: CompositeKeyInput;
+};
+
+
 export type MutationDeleteNotificationArgs = {
   key: CompositeKeyInput;
 };
@@ -185,6 +292,16 @@ export type MutationDeleteNotificationArgs = {
 
 export type MutationDeleteProjectArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteTableArgs = {
+  key: CompositeKeyInput;
+};
+
+
+export type MutationDeleteTextArgs = {
+  key: CompositeKeyInput;
 };
 
 
@@ -205,6 +322,12 @@ export type MutationUpdateDocumentArgs = {
 };
 
 
+export type MutationUpdateImageArgs = {
+  input: UpdateImageInput;
+  key: CompositeKeyInput;
+};
+
+
 export type MutationUpdateNotificationArgs = {
   input: UpdateNotificationInput;
   key: CompositeKeyInput;
@@ -214,6 +337,18 @@ export type MutationUpdateNotificationArgs = {
 export type MutationUpdateProjectArgs = {
   id: Scalars['ID']['input'];
   input: UpdateProjectInput;
+};
+
+
+export type MutationUpdateTableArgs = {
+  input: UpdateTableInput;
+  key: CompositeKeyInput;
+};
+
+
+export type MutationUpdateTextArgs = {
+  input: UpdateTextInput;
+  key: CompositeKeyInput;
 };
 
 export type Node = {
@@ -229,10 +364,8 @@ export type Notification = Metadata & Node & {
   message: Scalars['String']['output'];
   ownerId: Scalars['ID']['output'];
   parentId: Scalars['ID']['output'];
-  projectId: Scalars['ID']['output'];
   properties?: Maybe<Scalars['AWSJSON']['output']>;
   tenantId: Scalars['ID']['output'];
-  timestamp: Scalars['AWSDateTime']['output'];
   updatedAt: Scalars['AWSDateTime']['output'];
 };
 
@@ -301,15 +434,27 @@ export type Query = {
   /** Get a single Doclink. Requires composite key (ID + ParentID) for access. */
   getDoclink?: Maybe<Doclink>;
   getDocument?: Maybe<Document>;
+  /** Get a single Image. Requires composite key (ID + ParentID) for access. */
+  getImage?: Maybe<Image>;
   /** Get a single Notification. Requires composite key (ID + ParentID) for access. */
   getNotification?: Maybe<Notification>;
   getProject?: Maybe<Project>;
+  /** Get a single Table. Requires composite key (ID + ParentID) for access. */
+  getTable?: Maybe<Table>;
+  /** Get a single Text. Requires composite key (ID + ParentID) for access. */
+  getText?: Maybe<Text>;
   /** List Doclinks for a specific Project. Uses GSI1 (The View). */
   listDoclinks: DoclinkConnection;
   listDocuments: DocumentConnection;
+  /** List Images for a specific Document. Uses GSI1 (The View). */
+  listImages: ImageConnection;
   /** List Notifications for a specific Project. Uses GSI1 (The View). */
   listNotifications: NotificationConnection;
   listProjects: ProjectConnection;
+  /** List Tables for a specific Document. Uses GSI1 (The View). */
+  listTables: TableConnection;
+  /** List Texts for a specific Document. Uses GSI1 (The View). */
+  listTexts: TextConnection;
 };
 
 
@@ -323,6 +468,11 @@ export type QueryGetDocumentArgs = {
 };
 
 
+export type QueryGetImageArgs = {
+  key: CompositeKeyInput;
+};
+
+
 export type QueryGetNotificationArgs = {
   key: CompositeKeyInput;
 };
@@ -330,6 +480,16 @@ export type QueryGetNotificationArgs = {
 
 export type QueryGetProjectArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryGetTableArgs = {
+  key: CompositeKeyInput;
+};
+
+
+export type QueryGetTextArgs = {
+  key: CompositeKeyInput;
 };
 
 
@@ -346,6 +506,13 @@ export type QueryListDocumentsArgs = {
 };
 
 
+export type QueryListImagesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  parentId: Scalars['ID']['input'];
+};
+
+
 export type QueryListNotificationsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
@@ -357,6 +524,20 @@ export type QueryListProjectsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
   scope?: InputMaybe<ListScope>;
+};
+
+
+export type QueryListTablesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  parentId: Scalars['ID']['input'];
+};
+
+
+export type QueryListTextsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  parentId: Scalars['ID']['input'];
 };
 
 export type ResourceShare = Metadata & Node & {
@@ -415,19 +596,31 @@ export type Subscription = {
   onCreateDoclink?: Maybe<Doclink>;
   /** DOCUMENT SUBSCRIPTIONS */
   onCreateDocument?: Maybe<Document>;
+  /** IMAGE SUBSCRIPTIONS */
+  onCreateImage?: Maybe<Image>;
   /** NOTIFICATION SUBSCRIPTIONS */
   onCreateNotification?: Maybe<Notification>;
   /** PROJECT SUBSCRIPTIONS */
   onCreateProject?: Maybe<Project>;
+  /** TABLE SUBSCRIPTIONS */
+  onCreateTable?: Maybe<Table>;
+  /** TEXT SUBSCRIPTIONS */
+  onCreateText?: Maybe<Text>;
   onDeleteDoclink?: Maybe<Doclink>;
   onDeleteDocument?: Maybe<Document>;
+  onDeleteImage?: Maybe<Image>;
   onDeleteNotification?: Maybe<Notification>;
   onDeleteProject?: Maybe<Project>;
+  onDeleteTable?: Maybe<Table>;
+  onDeleteText?: Maybe<Text>;
   onRestoreProject?: Maybe<Project>;
   onUpdateDoclink?: Maybe<Doclink>;
   onUpdateDocument?: Maybe<Document>;
+  onUpdateImage?: Maybe<Image>;
   onUpdateNotification?: Maybe<Notification>;
   onUpdateProject?: Maybe<Project>;
+  onUpdateTable?: Maybe<Table>;
+  onUpdateText?: Maybe<Text>;
 };
 
 
@@ -442,6 +635,11 @@ export type SubscriptionOnCreateDocumentArgs = {
 };
 
 
+export type SubscriptionOnCreateImageArgs = {
+  parentId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
 export type SubscriptionOnCreateNotificationArgs = {
   parentId?: InputMaybe<Scalars['ID']['input']>;
 };
@@ -450,6 +648,16 @@ export type SubscriptionOnCreateNotificationArgs = {
 export type SubscriptionOnCreateProjectArgs = {
   ownerId?: InputMaybe<Scalars['ID']['input']>;
   tenantId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type SubscriptionOnCreateTableArgs = {
+  parentId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type SubscriptionOnCreateTextArgs = {
+  parentId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -463,12 +671,27 @@ export type SubscriptionOnDeleteDocumentArgs = {
 };
 
 
+export type SubscriptionOnDeleteImageArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type SubscriptionOnDeleteNotificationArgs = {
   id: Scalars['ID']['input'];
 };
 
 
 export type SubscriptionOnDeleteProjectArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnDeleteTableArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnDeleteTextArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -488,6 +711,11 @@ export type SubscriptionOnUpdateDocumentArgs = {
 };
 
 
+export type SubscriptionOnUpdateImageArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type SubscriptionOnUpdateNotificationArgs = {
   id: Scalars['ID']['input'];
 };
@@ -495,6 +723,56 @@ export type SubscriptionOnUpdateNotificationArgs = {
 
 export type SubscriptionOnUpdateProjectArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnUpdateTableArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnUpdateTextArgs = {
+  id: Scalars['ID']['input'];
+};
+
+export type Table = Metadata & Node & {
+  __typename?: 'Table';
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  description: Scalars['String']['output'];
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  ownerId: Scalars['ID']['output'];
+  pageNum: Scalars['Int']['output'];
+  parentId: Scalars['ID']['output'];
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+};
+
+export type TableConnection = {
+  __typename?: 'TableConnection';
+  items: Array<Table>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
+export type Text = Metadata & Node & {
+  __typename?: 'Text';
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  ownerId: Scalars['ID']['output'];
+  pageNum: Scalars['Int']['output'];
+  parentId: Scalars['ID']['output'];
+  tenantId: Scalars['ID']['output'];
+  text: Scalars['String']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+};
+
+export type TextConnection = {
+  __typename?: 'TextConnection';
+  items: Array<Text>;
+  nextToken?: Maybe<Scalars['String']['output']>;
 };
 
 export type Topic = Metadata & Node & Shareable & {
@@ -536,10 +814,23 @@ export type UpdateDocumentInput = {
   sizeBytes?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type UpdateImageInput = {
+  bottomRightX?: InputMaybe<Scalars['Int']['input']>;
+  bottomRightY?: InputMaybe<Scalars['Int']['input']>;
+  imageAnnotation?: InputMaybe<Scalars['AWSJSON']['input']>;
+  imageId?: InputMaybe<Scalars['String']['input']>;
+  mimeType?: InputMaybe<Scalars['String']['input']>;
+  pageNum?: InputMaybe<Scalars['Int']['input']>;
+  s3Bucket?: InputMaybe<Scalars['String']['input']>;
+  s3Key?: InputMaybe<Scalars['String']['input']>;
+  sizeBytes?: InputMaybe<Scalars['Int']['input']>;
+  topLeftX?: InputMaybe<Scalars['Int']['input']>;
+  topLeftY?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type UpdateNotificationInput = {
   message?: InputMaybe<Scalars['String']['input']>;
   properties?: InputMaybe<Scalars['AWSJSON']['input']>;
-  timestamp?: InputMaybe<Scalars['AWSDateTime']['input']>;
 };
 
 export type UpdateProjectInput = {
@@ -547,6 +838,16 @@ export type UpdateProjectInput = {
   name?: InputMaybe<Scalars['String']['input']>;
   sharingMode?: InputMaybe<SharingMode>;
   status?: InputMaybe<ProjectStatus>;
+};
+
+export type UpdateTableInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  pageNum?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type UpdateTextInput = {
+  pageNum?: InputMaybe<Scalars['Int']['input']>;
+  text?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateDoclinkMutationVariables = Exact<{
@@ -598,7 +899,7 @@ export type CreateNotificationMutationVariables = Exact<{
 }>;
 
 
-export type CreateNotificationMutation = { __typename?: 'Mutation', createNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, projectId: string, message: string, timestamp: string, properties?: any | null | undefined } | null | undefined };
+export type CreateNotificationMutation = { __typename?: 'Mutation', createNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined } | null | undefined };
 
 export type UpdateNotificationMutationVariables = Exact<{
   key: CompositeKeyInput;
@@ -606,14 +907,14 @@ export type UpdateNotificationMutationVariables = Exact<{
 }>;
 
 
-export type UpdateNotificationMutation = { __typename?: 'Mutation', updateNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, projectId: string, message: string, timestamp: string, properties?: any | null | undefined } | null | undefined };
+export type UpdateNotificationMutation = { __typename?: 'Mutation', updateNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined } | null | undefined };
 
 export type DeleteNotificationMutationVariables = Exact<{
   key: CompositeKeyInput;
 }>;
 
 
-export type DeleteNotificationMutation = { __typename?: 'Mutation', deleteNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, projectId: string, message: string, timestamp: string, properties?: any | null | undefined } | null | undefined };
+export type DeleteNotificationMutation = { __typename?: 'Mutation', deleteNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined } | null | undefined };
 
 export type CreateProjectMutationVariables = Exact<{
   input: CreateProjectInput;
@@ -680,7 +981,7 @@ export type GetNotificationQueryVariables = Exact<{
 }>;
 
 
-export type GetNotificationQuery = { __typename?: 'Query', getNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, projectId: string, message: string, timestamp: string, properties?: any | null | undefined } | null | undefined };
+export type GetNotificationQuery = { __typename?: 'Query', getNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined } | null | undefined };
 
 export type ListNotificationsQueryVariables = Exact<{
   parentId: Scalars['ID']['input'];
@@ -689,7 +990,7 @@ export type ListNotificationsQueryVariables = Exact<{
 }>;
 
 
-export type ListNotificationsQuery = { __typename?: 'Query', listNotifications: { __typename?: 'NotificationConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, projectId: string, message: string, timestamp: string, properties?: any | null | undefined }> } };
+export type ListNotificationsQuery = { __typename?: 'Query', listNotifications: { __typename?: 'NotificationConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined }> } };
 
 export type GetProjectQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -755,21 +1056,21 @@ export type OnCreateNotificationSubscriptionVariables = Exact<{
 }>;
 
 
-export type OnCreateNotificationSubscription = { __typename?: 'Subscription', onCreateNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, projectId: string, message: string, timestamp: string, properties?: any | null | undefined } | null | undefined };
+export type OnCreateNotificationSubscription = { __typename?: 'Subscription', onCreateNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined } | null | undefined };
 
 export type OnUpdateNotificationSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnUpdateNotificationSubscription = { __typename?: 'Subscription', onUpdateNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, projectId: string, message: string, timestamp: string, properties?: any | null | undefined } | null | undefined };
+export type OnUpdateNotificationSubscription = { __typename?: 'Subscription', onUpdateNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined } | null | undefined };
 
 export type OnDeleteNotificationSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnDeleteNotificationSubscription = { __typename?: 'Subscription', onDeleteNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, projectId: string, message: string, timestamp: string, properties?: any | null | undefined } | null | undefined };
+export type OnDeleteNotificationSubscription = { __typename?: 'Subscription', onDeleteNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined } | null | undefined };
 
 export type OnCreateProjectSubscriptionVariables = Exact<{
   tenantId?: InputMaybe<Scalars['ID']['input']>;

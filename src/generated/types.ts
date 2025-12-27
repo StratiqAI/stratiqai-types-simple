@@ -894,6 +894,28 @@ export type DeleteDocumentMutationVariables = Exact<{
 
 export type DeleteDocumentMutation = { __typename?: 'Mutation', deleteDocument?: { __typename?: 'Document', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined } | null | undefined };
 
+export type CreateImageMutationVariables = Exact<{
+  input: CreateImageInput;
+}>;
+
+
+export type CreateImageMutation = { __typename?: 'Mutation', createImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
+
+export type UpdateImageMutationVariables = Exact<{
+  key: CompositeKeyInput;
+  input: UpdateImageInput;
+}>;
+
+
+export type UpdateImageMutation = { __typename?: 'Mutation', updateImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
+
+export type DeleteImageMutationVariables = Exact<{
+  key: CompositeKeyInput;
+}>;
+
+
+export type DeleteImageMutation = { __typename?: 'Mutation', deleteImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
+
 export type CreateNotificationMutationVariables = Exact<{
   input: CreateNotificationInput;
 }>;
@@ -945,6 +967,50 @@ export type RestoreProjectMutationVariables = Exact<{
 
 export type RestoreProjectMutation = { __typename?: 'Mutation', restoreProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus } | null | undefined };
 
+export type CreateTableMutationVariables = Exact<{
+  input: CreateTableInput;
+}>;
+
+
+export type CreateTableMutation = { __typename?: 'Mutation', createTable?: { __typename?: 'Table', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, pageNum: number, description: string } | null | undefined };
+
+export type UpdateTableMutationVariables = Exact<{
+  key: CompositeKeyInput;
+  input: UpdateTableInput;
+}>;
+
+
+export type UpdateTableMutation = { __typename?: 'Mutation', updateTable?: { __typename?: 'Table', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, pageNum: number, description: string } | null | undefined };
+
+export type DeleteTableMutationVariables = Exact<{
+  key: CompositeKeyInput;
+}>;
+
+
+export type DeleteTableMutation = { __typename?: 'Mutation', deleteTable?: { __typename?: 'Table', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, pageNum: number, description: string } | null | undefined };
+
+export type CreateTextMutationVariables = Exact<{
+  input: CreateTextInput;
+}>;
+
+
+export type CreateTextMutation = { __typename?: 'Mutation', createText?: { __typename?: 'Text', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, pageNum: number, text: string } | null | undefined };
+
+export type UpdateTextMutationVariables = Exact<{
+  key: CompositeKeyInput;
+  input: UpdateTextInput;
+}>;
+
+
+export type UpdateTextMutation = { __typename?: 'Mutation', updateText?: { __typename?: 'Text', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, pageNum: number, text: string } | null | undefined };
+
+export type DeleteTextMutationVariables = Exact<{
+  key: CompositeKeyInput;
+}>;
+
+
+export type DeleteTextMutation = { __typename?: 'Mutation', deleteText?: { __typename?: 'Text', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, pageNum: number, text: string } | null | undefined };
+
 export type GetDoclinkQueryVariables = Exact<{
   key: CompositeKeyInput;
 }>;
@@ -975,6 +1041,22 @@ export type ListDocumentsQueryVariables = Exact<{
 
 
 export type ListDocumentsQuery = { __typename?: 'Query', listDocuments: { __typename?: 'DocumentConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Document', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined }> } };
+
+export type GetImageQueryVariables = Exact<{
+  key: CompositeKeyInput;
+}>;
+
+
+export type GetImageQuery = { __typename?: 'Query', getImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
+
+export type ListImagesQueryVariables = Exact<{
+  parentId: Scalars['ID']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ListImagesQuery = { __typename?: 'Query', listImages: { __typename?: 'ImageConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined }> } };
 
 export type GetNotificationQueryVariables = Exact<{
   key: CompositeKeyInput;
@@ -1007,6 +1089,38 @@ export type ListProjectsQueryVariables = Exact<{
 
 
 export type ListProjectsQuery = { __typename?: 'Query', listProjects: { __typename?: 'ProjectConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus }> } };
+
+export type GetTableQueryVariables = Exact<{
+  key: CompositeKeyInput;
+}>;
+
+
+export type GetTableQuery = { __typename?: 'Query', getTable?: { __typename?: 'Table', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, pageNum: number, description: string } | null | undefined };
+
+export type ListTablesQueryVariables = Exact<{
+  parentId: Scalars['ID']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ListTablesQuery = { __typename?: 'Query', listTables: { __typename?: 'TableConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Table', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, pageNum: number, description: string }> } };
+
+export type GetTextQueryVariables = Exact<{
+  key: CompositeKeyInput;
+}>;
+
+
+export type GetTextQuery = { __typename?: 'Query', getText?: { __typename?: 'Text', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, pageNum: number, text: string } | null | undefined };
+
+export type ListTextsQueryVariables = Exact<{
+  parentId: Scalars['ID']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ListTextsQuery = { __typename?: 'Query', listTexts: { __typename?: 'TextConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Text', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, pageNum: number, text: string }> } };
 
 export type OnCreateDoclinkSubscriptionVariables = Exact<{
   parentId?: InputMaybe<Scalars['ID']['input']>;
@@ -1051,6 +1165,27 @@ export type OnDeleteDocumentSubscriptionVariables = Exact<{
 
 export type OnDeleteDocumentSubscription = { __typename?: 'Subscription', onDeleteDocument?: { __typename?: 'Document', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined } | null | undefined };
 
+export type OnCreateImageSubscriptionVariables = Exact<{
+  parentId?: InputMaybe<Scalars['ID']['input']>;
+}>;
+
+
+export type OnCreateImageSubscription = { __typename?: 'Subscription', onCreateImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
+
+export type OnUpdateImageSubscriptionVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnUpdateImageSubscription = { __typename?: 'Subscription', onUpdateImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
+
+export type OnDeleteImageSubscriptionVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnDeleteImageSubscription = { __typename?: 'Subscription', onDeleteImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
+
 export type OnCreateNotificationSubscriptionVariables = Exact<{
   parentId?: InputMaybe<Scalars['ID']['input']>;
 }>;
@@ -1093,12 +1228,57 @@ export type OnDeleteProjectSubscriptionVariables = Exact<{
 
 export type OnDeleteProjectSubscription = { __typename?: 'Subscription', onDeleteProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus } | null | undefined };
 
+export type OnCreateTableSubscriptionVariables = Exact<{
+  parentId?: InputMaybe<Scalars['ID']['input']>;
+}>;
+
+
+export type OnCreateTableSubscription = { __typename?: 'Subscription', onCreateTable?: { __typename?: 'Table', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, pageNum: number, description: string } | null | undefined };
+
+export type OnUpdateTableSubscriptionVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnUpdateTableSubscription = { __typename?: 'Subscription', onUpdateTable?: { __typename?: 'Table', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, pageNum: number, description: string } | null | undefined };
+
+export type OnDeleteTableSubscriptionVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnDeleteTableSubscription = { __typename?: 'Subscription', onDeleteTable?: { __typename?: 'Table', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, pageNum: number, description: string } | null | undefined };
+
+export type OnCreateTextSubscriptionVariables = Exact<{
+  parentId?: InputMaybe<Scalars['ID']['input']>;
+}>;
+
+
+export type OnCreateTextSubscription = { __typename?: 'Subscription', onCreateText?: { __typename?: 'Text', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, pageNum: number, text: string } | null | undefined };
+
+export type OnUpdateTextSubscriptionVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnUpdateTextSubscription = { __typename?: 'Subscription', onUpdateText?: { __typename?: 'Text', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, pageNum: number, text: string } | null | undefined };
+
+export type OnDeleteTextSubscriptionVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnDeleteTextSubscription = { __typename?: 'Subscription', onDeleteText?: { __typename?: 'Text', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, pageNum: number, text: string } | null | undefined };
+
 export declare const CreateDoclink: import("graphql").DocumentNode;
 export declare const UpdateDoclink: import("graphql").DocumentNode;
 export declare const DeleteDoclink: import("graphql").DocumentNode;
 export declare const CreateDocument: import("graphql").DocumentNode;
 export declare const UpdateDocument: import("graphql").DocumentNode;
 export declare const DeleteDocument: import("graphql").DocumentNode;
+export declare const CreateImage: import("graphql").DocumentNode;
+export declare const UpdateImage: import("graphql").DocumentNode;
+export declare const DeleteImage: import("graphql").DocumentNode;
 export declare const CreateNotification: import("graphql").DocumentNode;
 export declare const UpdateNotification: import("graphql").DocumentNode;
 export declare const DeleteNotification: import("graphql").DocumentNode;
@@ -1106,23 +1286,44 @@ export declare const CreateProject: import("graphql").DocumentNode;
 export declare const UpdateProject: import("graphql").DocumentNode;
 export declare const DeleteProject: import("graphql").DocumentNode;
 export declare const RestoreProject: import("graphql").DocumentNode;
+export declare const CreateTable: import("graphql").DocumentNode;
+export declare const UpdateTable: import("graphql").DocumentNode;
+export declare const DeleteTable: import("graphql").DocumentNode;
+export declare const CreateText: import("graphql").DocumentNode;
+export declare const UpdateText: import("graphql").DocumentNode;
+export declare const DeleteText: import("graphql").DocumentNode;
 export declare const GetDoclink: import("graphql").DocumentNode;
 export declare const ListDoclinks: import("graphql").DocumentNode;
 export declare const GetDocument: import("graphql").DocumentNode;
 export declare const ListDocuments: import("graphql").DocumentNode;
+export declare const GetImage: import("graphql").DocumentNode;
+export declare const ListImages: import("graphql").DocumentNode;
 export declare const GetNotification: import("graphql").DocumentNode;
 export declare const ListNotifications: import("graphql").DocumentNode;
 export declare const GetProject: import("graphql").DocumentNode;
 export declare const ListProjects: import("graphql").DocumentNode;
+export declare const GetTable: import("graphql").DocumentNode;
+export declare const ListTables: import("graphql").DocumentNode;
+export declare const GetText: import("graphql").DocumentNode;
+export declare const ListTexts: import("graphql").DocumentNode;
 export declare const OnCreateDoclink: import("graphql").DocumentNode;
 export declare const OnUpdateDoclink: import("graphql").DocumentNode;
 export declare const OnDeleteDoclink: import("graphql").DocumentNode;
 export declare const OnCreateDocument: import("graphql").DocumentNode;
 export declare const OnUpdateDocument: import("graphql").DocumentNode;
 export declare const OnDeleteDocument: import("graphql").DocumentNode;
+export declare const OnCreateImage: import("graphql").DocumentNode;
+export declare const OnUpdateImage: import("graphql").DocumentNode;
+export declare const OnDeleteImage: import("graphql").DocumentNode;
 export declare const OnCreateNotification: import("graphql").DocumentNode;
 export declare const OnUpdateNotification: import("graphql").DocumentNode;
 export declare const OnDeleteNotification: import("graphql").DocumentNode;
 export declare const OnCreateProject: import("graphql").DocumentNode;
 export declare const OnUpdateProject: import("graphql").DocumentNode;
 export declare const OnDeleteProject: import("graphql").DocumentNode;
+export declare const OnCreateTable: import("graphql").DocumentNode;
+export declare const OnUpdateTable: import("graphql").DocumentNode;
+export declare const OnDeleteTable: import("graphql").DocumentNode;
+export declare const OnCreateText: import("graphql").DocumentNode;
+export declare const OnUpdateText: import("graphql").DocumentNode;
+export declare const OnDeleteText: import("graphql").DocumentNode;

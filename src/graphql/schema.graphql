@@ -94,8 +94,6 @@ interface Shareable {
 interface Storable {
   s3Bucket: String!
   s3Key: String!
-  mimeType: String!
-  sizeBytes: Int
 }
 
 # ----------------------------------------------------------------------
@@ -296,8 +294,6 @@ type Scan implements Node & Metadata & Storable
   # Storable Fields
   s3Bucket: String!
   s3Key: String!
-  mimeType: String!
-  sizeBytes: Int
 
   # Scan-specific Fields
   parentId: ID! # Document ID
@@ -521,16 +517,12 @@ input CreateScanInput {
   # Storable Fields
   s3Bucket: String!
   s3Key: String!
-  mimeType: String
-  sizeBytes: Int
 }
 
 input UpdateScanInput {
   # Storable Fields
   s3Bucket: String
   s3Key: String
-  mimeType: String
-  sizeBytes: Int
 }
 
 # ----------------------------------------------------------------------

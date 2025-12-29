@@ -16,8 +16,6 @@ export const Q_GET_SCAN = gql`
       deletedAt
       s3Bucket
       s3Key
-      mimeType
-      sizeBytes
       parentId
     }
   }
@@ -40,8 +38,6 @@ export const Q_LIST_SCANS = gql`
         deletedAt
         s3Bucket
         s3Key
-        mimeType
-        sizeBytes
         parentId
       }
       nextToken

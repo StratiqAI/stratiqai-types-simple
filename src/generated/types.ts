@@ -69,11 +69,9 @@ export type CreateProjectInput = {
 };
 
 export type CreateScanInput = {
-  mimeType?: InputMaybe<Scalars['String']['input']>;
   parentId: Scalars['ID']['input'];
   s3Bucket: Scalars['String']['input'];
   s3Key: Scalars['String']['input'];
-  sizeBytes?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type CreateTableInput = {
@@ -618,12 +616,10 @@ export type Scan = Metadata & Node & Storable & {
   deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
   entityType: EntityType;
   id: Scalars['ID']['output'];
-  mimeType: Scalars['String']['output'];
   ownerId: Scalars['ID']['output'];
   parentId: Scalars['ID']['output'];
   s3Bucket: Scalars['String']['output'];
   s3Key: Scalars['String']['output'];
-  sizeBytes?: Maybe<Scalars['Int']['output']>;
   tenantId: Scalars['ID']['output'];
   updatedAt: Scalars['AWSDateTime']['output'];
 };
@@ -657,10 +653,8 @@ export type SharingMode =
   | 'TENANT_VIEW';
 
 export type Storable = {
-  mimeType: Scalars['String']['output'];
   s3Bucket: Scalars['String']['output'];
   s3Key: Scalars['String']['output'];
-  sizeBytes?: Maybe<Scalars['Int']['output']>;
 };
 
 export type Subscription = {
@@ -933,10 +927,8 @@ export type UpdateProjectInput = {
 };
 
 export type UpdateScanInput = {
-  mimeType?: InputMaybe<Scalars['String']['input']>;
   s3Bucket?: InputMaybe<Scalars['String']['input']>;
   s3Key?: InputMaybe<Scalars['String']['input']>;
-  sizeBytes?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type UpdateTableInput = {
@@ -1071,7 +1063,7 @@ export type CreateScanMutationVariables = Exact<{
 }>;
 
 
-export type CreateScanMutation = { __typename?: 'Mutation', createScan?: { __typename?: 'Scan', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string } | null | undefined };
+export type CreateScanMutation = { __typename?: 'Mutation', createScan?: { __typename?: 'Scan', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, parentId: string } | null | undefined };
 
 export type UpdateScanMutationVariables = Exact<{
   key: CompositeKeyInput;
@@ -1079,14 +1071,14 @@ export type UpdateScanMutationVariables = Exact<{
 }>;
 
 
-export type UpdateScanMutation = { __typename?: 'Mutation', updateScan?: { __typename?: 'Scan', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string } | null | undefined };
+export type UpdateScanMutation = { __typename?: 'Mutation', updateScan?: { __typename?: 'Scan', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, parentId: string } | null | undefined };
 
 export type DeleteScanMutationVariables = Exact<{
   key: CompositeKeyInput;
 }>;
 
 
-export type DeleteScanMutation = { __typename?: 'Mutation', deleteScan?: { __typename?: 'Scan', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string } | null | undefined };
+export type DeleteScanMutation = { __typename?: 'Mutation', deleteScan?: { __typename?: 'Scan', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, parentId: string } | null | undefined };
 
 export type CreateTableMutationVariables = Exact<{
   input: CreateTableInput;
@@ -1216,7 +1208,7 @@ export type GetScanQueryVariables = Exact<{
 }>;
 
 
-export type GetScanQuery = { __typename?: 'Query', getScan?: { __typename?: 'Scan', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string } | null | undefined };
+export type GetScanQuery = { __typename?: 'Query', getScan?: { __typename?: 'Scan', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, parentId: string } | null | undefined };
 
 export type ListScansQueryVariables = Exact<{
   parentId: Scalars['ID']['input'];
@@ -1225,7 +1217,7 @@ export type ListScansQueryVariables = Exact<{
 }>;
 
 
-export type ListScansQuery = { __typename?: 'Query', listScans: { __typename?: 'ScanConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Scan', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string }> } };
+export type ListScansQuery = { __typename?: 'Query', listScans: { __typename?: 'ScanConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Scan', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, parentId: string }> } };
 
 export type GetTableQueryVariables = Exact<{
   key: CompositeKeyInput;
@@ -1370,21 +1362,21 @@ export type OnCreateScanSubscriptionVariables = Exact<{
 }>;
 
 
-export type OnCreateScanSubscription = { __typename?: 'Subscription', onCreateScan?: { __typename?: 'Scan', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string } | null | undefined };
+export type OnCreateScanSubscription = { __typename?: 'Subscription', onCreateScan?: { __typename?: 'Scan', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, parentId: string } | null | undefined };
 
 export type OnUpdateScanSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnUpdateScanSubscription = { __typename?: 'Subscription', onUpdateScan?: { __typename?: 'Scan', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string } | null | undefined };
+export type OnUpdateScanSubscription = { __typename?: 'Subscription', onUpdateScan?: { __typename?: 'Scan', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, parentId: string } | null | undefined };
 
 export type OnDeleteScanSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnDeleteScanSubscription = { __typename?: 'Subscription', onDeleteScan?: { __typename?: 'Scan', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string } | null | undefined };
+export type OnDeleteScanSubscription = { __typename?: 'Subscription', onDeleteScan?: { __typename?: 'Scan', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, parentId: string } | null | undefined };
 
 export type OnCreateTableSubscriptionVariables = Exact<{
   parentId?: InputMaybe<Scalars['ID']['input']>;

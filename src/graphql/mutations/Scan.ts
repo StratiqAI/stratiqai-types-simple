@@ -16,8 +16,6 @@ export const M_CREATE_SCAN = gql`
       deletedAt
       s3Bucket
       s3Key
-      mimeType
-      sizeBytes
       parentId
     }
   }
@@ -35,8 +33,6 @@ export const M_UPDATE_SCAN = gql`
       deletedAt
       s3Bucket
       s3Key
-      mimeType
-      sizeBytes
       parentId
     }
   }
@@ -54,8 +50,6 @@ export const M_DELETE_SCAN = gql`
       deletedAt
       s3Bucket
       s3Key
-      mimeType
-      sizeBytes
       parentId
     }
   }

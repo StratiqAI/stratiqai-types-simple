@@ -16,6 +16,3 @@ export * from './operations.js';
 // Re-export generated types for convenience
 // This ensures consumers get type-safe operations
 export type * from './generated/types.js';
-
-// Export mutation registry for dynamic resolution
-export * from './graphql/mutations/registry.js';

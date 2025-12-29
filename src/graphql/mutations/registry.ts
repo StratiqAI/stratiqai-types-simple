@@ -14,6 +14,7 @@ import { M_CREATE_NOTIFICATION, M_UPDATE_NOTIFICATION, M_DELETE_NOTIFICATION } f
 import { M_CREATE_PROJECT, M_UPDATE_PROJECT, M_DELETE_PROJECT, M_RESTORE_PROJECT } from './Project.js';
 import { M_CREATE_TABLE, M_UPDATE_TABLE, M_DELETE_TABLE } from './Table.js';
 import { M_CREATE_TEXT, M_UPDATE_TEXT, M_DELETE_TEXT } from './Text.js';
+import { M_CREATE_SCAN, M_UPDATE_SCAN, M_DELETE_SCAN } from './Scan.js';
 
 export type EntityType = 
   | 'Project'
@@ -23,7 +24,8 @@ export type EntityType =
   | 'Notification'
   | 'Image'
   | 'Table'
-  | 'Text';
+  | 'Text'
+  | 'Scan';
 
 export type MutationOperation = 'create' | 'update' | 'delete' | 'restore';
 
@@ -171,6 +173,22 @@ export const MUTATION_REGISTRY: MutationRegistry = {
       mutation: M_DELETE_TEXT,
       inputType: 'CompositeKeyInput',
       usesCompositeKey: true, // deleteText uses key: CompositeKeyInput!
+    },
+  },
+  Scan: {
+    create: {
+      mutation: M_CREATE_SCAN,
+      inputType: 'CreateScanInput',
+    },
+    update: {
+      mutation: M_UPDATE_SCAN,
+      inputType: 'UpdateScanInput',
+      usesCompositeKey: true, // updateScan uses key: CompositeKeyInput! and input: UpdateScanInput!
+    },
+    delete: {
+      mutation: M_DELETE_SCAN,
+      inputType: 'CompositeKeyInput',
+      usesCompositeKey: true, // deleteScan uses key: CompositeKeyInput!
     },
   },
   Topic: {

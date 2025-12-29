@@ -10,6 +10,7 @@ export * from './Notification.js';
 export * from './Image.js';
 export * from './Table.js';
 export * from './Text.js';
+export * from './Scan.js';
 
 // Export mutation registry for dynamic resolution
 export * from './registry.js';

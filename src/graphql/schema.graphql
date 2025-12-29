@@ -32,6 +32,7 @@ enum EntityType {
   IMAGE
   TABLE
   TEXT
+  SCAN
 }
 
 enum ProjectStatus {
@@ -102,7 +103,7 @@ interface Storable {
 # ----------------------------------------------------------------------
 
 """
-Composite Key for accessing Child Entities (Doclink, Topic, Image, Table, Text).
+Composite Key for accessing Child Entities (Doclink, Topic, Image, Table, Text, Scan).
 Required because we do not have a Global Lookup GSI for children;
 we must know the parentId to locate the item in the Main Table.
 """
@@ -280,6 +281,33 @@ type TextConnection {
   nextToken: String
 }
 
+type Scan implements Node & Metadata & Storable
+  @aws_iam
+  @aws_cognito_user_pools {
+  # Metadata Fields
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  # Storable Fields
+  s3Bucket: String!
+  s3Key: String!
+  mimeType: String!
+  sizeBytes: Int
+
+  # Scan-specific Fields
+  parentId: ID! # Document ID
+}
+
+type ScanConnection {
+  items: [Scan!]!
+  nextToken: String
+}
+
 # ----------------------------------------------------------------------
 # 6. ENTITIES
 # ----------------------------------------------------------------------
@@ -304,11 +332,12 @@ type Document implements Node & Metadata & Storable
 
   # ---------------------------------------------------------
   # Access Pattern: GSI 1 (The View)
-  # Queries SK begins_with "IMAGE#", "TABLE#", or "TEXT#" under "DOCUMENT#<id>" PK
+  # Queries SK begins_with "IMAGE#", "TABLE#", "TEXT#", or "SCAN#" under "DOCUMENT#<id>" PK
   # ---------------------------------------------------------
   images(limit: Int, nextToken: String): ImageConnection
   tables(limit: Int, nextToken: String): TableConnection
   texts(limit: Int, nextToken: String): TextConnection
+  scans(limit: Int, nextToken: String): ScanConnection
 }
 
 type DocumentConnection {
@@ -484,6 +513,26 @@ input UpdateTextInput {
   text: String
 }
 
+# SCAN INPUTS
+input CreateScanInput {
+  # REQUIRED: To perform the Strongly Consistent Write to Main Table
+  parentId: ID!
+
+  # Storable Fields
+  s3Bucket: String!
+  s3Key: String!
+  mimeType: String
+  sizeBytes: Int
+}
+
+input UpdateScanInput {
+  # Storable Fields
+  s3Bucket: String
+  s3Key: String
+  mimeType: String
+  sizeBytes: Int
+}
+
 # ----------------------------------------------------------------------
 # 8. QUERIES
 # ----------------------------------------------------------------------
@@ -570,6 +619,20 @@ type Query {
     limit: Int
     nextToken: String
   ): TextConnection!
+
+  """
+  Get a single Scan. Requires composite key (ID + ParentID) for access.
+  """
+  getScan(key: CompositeKeyInput!): Scan
+
+  """
+  List Scans for a specific Document. Uses GSI1 (The View).
+  """
+  listScans(
+    parentId: ID! # Required: Cannot list "all scans in tenant" efficiently
+    limit: Int
+    nextToken: String
+  ): ScanConnection!
 }
 
 # ----------------------------------------------------------------------
@@ -637,6 +700,16 @@ type Mutation {
 
   # Delete: Uses Composite Key to access Main Table
   deleteText(key: CompositeKeyInput!): Text
+
+  # SCAN OPERATIONS
+  # Create: Uses parentId from input to write to Main Table
+  createScan(input: CreateScanInput!): Scan
+
+  # Update: Uses Composite Key to access Main Table
+  updateScan(key: CompositeKeyInput!, input: UpdateScanInput!): Scan
+
+  # Delete: Uses Composite Key to access Main Table
+  deleteScan(key: CompositeKeyInput!): Scan
 }
 
 # ----------------------------------------------------------------------
@@ -733,4 +806,16 @@ type Subscription {
 
   # Triggered when a specific Text is deleted
   onDeleteText(id: ID!): Text @aws_subscribe(mutations: ["deleteText"])
+
+  """
+  SCAN SUBSCRIPTIONS
+  """
+  onCreateScan(parentId: ID): Scan
+    @aws_subscribe(mutations: ["createScan"])
+
+  # Triggered when a specific Scan is updated
+  onUpdateScan(id: ID!): Scan @aws_subscribe(mutations: ["updateScan"])
+
+  # Triggered when a specific Scan is deleted
+  onDeleteScan(id: ID!): Scan @aws_subscribe(mutations: ["deleteScan"])
 }

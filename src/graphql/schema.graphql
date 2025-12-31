@@ -29,6 +29,7 @@ enum EntityType {
   TOPIC
   RESOURCE_SHARE
   NOTIFICATION
+  DOCUMENT
   IMAGE
   TABLE
   TEXT
@@ -151,7 +152,7 @@ type Topic implements Node & Metadata & Shareable
   name: String!
 }
 
-type TopicConnection {
+type TopicConnection  @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]){
   items: [Topic!]!
   nextToken: String
 }
@@ -171,7 +172,7 @@ type Doclink implements Node & Metadata @aws_iam @aws_cognito_user_pools {
   documentId: ID!
 }
 
-type DoclinkConnection {
+type DoclinkConnection @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]){
   items: [Doclink!]!
   nextToken: String
 }
@@ -190,7 +191,7 @@ type Notification implements Node & Metadata @aws_iam @aws_cognito_user_pools {
   properties: AWSJSON
 }
 
-type NotificationConnection {
+type NotificationConnection @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]) {
   items: [Notification!]!
   nextToken: String
 }
@@ -214,7 +215,7 @@ type Image implements Node & Metadata & Storable
   # Storable Fields
   s3Bucket: String!
   s3Key: String!
-  mimeType: String!
+  mimeType: String
   sizeBytes: Int
 
   # Image-specific Fields
@@ -228,14 +229,12 @@ type Image implements Node & Metadata & Storable
   imageAnnotation: AWSJSON # Annotation data (can be null)
 }
 
-type ImageConnection {
+type ImageConnection @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]){
   items: [Image!]!
   nextToken: String
 }
 
-type Table implements Node & Metadata
-  @aws_iam
-  @aws_cognito_user_pools {
+type Table implements Node & Metadata @aws_iam @aws_cognito_user_pools {
   # Metadata Fields
   id: ID!
   entityType: EntityType!
@@ -251,14 +250,12 @@ type Table implements Node & Metadata
   description: String!
 }
 
-type TableConnection {
+type TableConnection @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]){
   items: [Table!]!
   nextToken: String
 }
 
-type Text implements Node & Metadata
-  @aws_iam
-  @aws_cognito_user_pools {
+type Text implements Node & Metadata @aws_iam @aws_cognito_user_pools {
   # Metadata Fields
   id: ID!
   entityType: EntityType!
@@ -274,7 +271,7 @@ type Text implements Node & Metadata
   text: String!
 }
 
-type TextConnection {
+type TextConnection @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]){
   items: [Text!]!
   nextToken: String
 }
@@ -299,7 +296,7 @@ type Scan implements Node & Metadata & Storable
   parentId: ID! # Document ID
 }
 
-type ScanConnection {
+type ScanConnection @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]){
   items: [Scan!]!
   nextToken: String
 }
@@ -336,7 +333,9 @@ type Document implements Node & Metadata & Storable
   scans(limit: Int, nextToken: String): ScanConnection
 }
 
-type DocumentConnection {
+type DocumentConnection 
+  @aws_iam
+  @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) {
   items: [Document!]!
   nextToken: String
 }
@@ -367,7 +366,7 @@ type Project implements Node & Metadata & Shareable
   notifications(limit: Int, nextToken: String): NotificationConnection
 }
 
-type ProjectConnection {
+type ProjectConnection @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]) {
   items: [Project!]!
   nextToken: String
 }
@@ -532,15 +531,31 @@ input UpdateScanInput {
 type Query {
   # DOCUMENT QUERIES
   getDocument(id: ID!): Document
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
   listDocuments(limit: Int, nextToken: String): DocumentConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
 
   # PROJECT QUERIES
   getProject(id: ID!): Project
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
   listProjects(
     scope: ListScope = OWNED_BY_ME
     limit: Int
     nextToken: String
   ): ProjectConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
 
   """
   Get a single Doclink. Requires composite key (ID + ParentID) for access.
@@ -560,6 +575,10 @@ type Query {
   Get a single Notification. Requires composite key (ID + ParentID) for access.
   """
   getNotification(key: CompositeKeyInput!): Notification
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
 
   """
   List Notifications for a specific Project. Uses GSI1 (The View).
@@ -574,6 +593,10 @@ type Query {
   Get a single Image. Requires composite key (ID + ParentID) for access.
   """
   getImage(key: CompositeKeyInput!): Image
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
 
   """
   List Images for a specific Document. Uses GSI1 (The View).
@@ -582,12 +605,16 @@ type Query {
     parentId: ID! # Required: Cannot list "all images in tenant" efficiently
     limit: Int
     nextToken: String
-  ): ImageConnection!
+  ): ImageConnection! @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"])
 
   """
   Get a single Table. Requires composite key (ID + ParentID) for access.
   """
   getTable(key: CompositeKeyInput!): Table
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
 
   """
   List Tables for a specific Document. Uses GSI1 (The View).
@@ -596,7 +623,7 @@ type Query {
     parentId: ID! # Required: Cannot list "all tables in tenant" efficiently
     limit: Int
     nextToken: String
-  ): TableConnection!
+  ): TableConnection! @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"])
 
   """
   Get a single Text. Requires composite key (ID + ParentID) for access.
@@ -610,12 +637,16 @@ type Query {
     parentId: ID! # Required: Cannot list "all texts in tenant" efficiently
     limit: Int
     nextToken: String
-  ): TextConnection!
+  ): TextConnection! @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"])
 
   """
   Get a single Scan. Requires composite key (ID + ParentID) for access.
   """
-  getScan(key: CompositeKeyInput!): Scan
+  getScan(key: CompositeKeyInput!): Scan  
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
 
   """
   List Scans for a specific Document. Uses GSI1 (The View).
@@ -624,7 +655,7 @@ type Query {
     parentId: ID! # Required: Cannot list "all scans in tenant" efficiently
     limit: Int
     nextToken: String
-  ): ScanConnection!
+  ): ScanConnection! @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"])
 }
 
 # ----------------------------------------------------------------------
@@ -633,32 +664,65 @@ type Query {
 
 type Mutation {
   # DOCUMENT OPERATIONS
+  # Read-only operations for SystemAdmins, TenantAdmins, and Users should be defined in the Query type, not Mutation.
   createDocument(input: CreateDocumentInput!): Document
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Only SystemAdmins can create
   updateDocument(id: ID!, input: UpdateDocumentInput!): Document
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Only SystemAdmins can update
   deleteDocument(id: ID!): Document
-
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Only SystemAdmins can delete
   # PROJECT OPERATIONS
   createProject(input: CreateProjectInput!): Project
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    ) # Allow system-level Cognito groups to call this
   updateProject(id: ID!, input: UpdateProjectInput!): Project
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    ) # Allow system-level Cognito groups to call this
   deleteProject(id: ID!): Project
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    ) # Allow system-level Cognito groups to call this
   restoreProject(id: ID!): Project
-
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    ) # Allow system-level Cognito groups to call this
   # DOCLINK OPERATIONS
   # Create: Uses parentId from input to write to Main Table
   createDoclink(input: CreateDoclinkInput!): Doclink
-
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    ) # Allow system-level Cognito groups to call this
   # Update: Uses Composite Key to access Main Table
   updateDoclink(key: CompositeKeyInput!, input: UpdateDoclinkInput!): Doclink
-
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    ) # Allow system-level Cognito groups to call this
   # Delete: Uses Composite Key to access Main Table
   deleteDoclink(key: CompositeKeyInput!): Doclink
-
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    ) # Allow system-level Cognito groups to call this
   # NOTIFICATION OPERATIONS
   # Create: Uses parentId from input to write to Main Table
   createNotification(input: CreateNotificationInput!): Notification @aws_iam
 
   # Update: Uses Composite Key to access Main Table
-  updateNotification(key: CompositeKeyInput!, input: UpdateNotificationInput!): Notification @aws_iam
+  updateNotification(
+    key: CompositeKeyInput!
+    input: UpdateNotificationInput!
+  ): Notification @aws_iam
 
   # Delete: Uses Composite Key to access Main Table
   deleteNotification(key: CompositeKeyInput!): Notification @aws_iam
@@ -666,42 +730,55 @@ type Mutation {
   # IMAGE OPERATIONS
   # Create: Uses parentId from input to write to Main Table
   createImage(input: CreateImageInput!): Image
-
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Allow system-level Cognito groups to call this
   # Update: Uses Composite Key to access Main Table
   updateImage(key: CompositeKeyInput!, input: UpdateImageInput!): Image
-
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Allow system-level Cognito groups to call this
   # Delete: Uses Composite Key to access Main Table
   deleteImage(key: CompositeKeyInput!): Image
-
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Allow system-level Cognito groups to call this
   # TABLE OPERATIONS
   # Create: Uses parentId from input to write to Main Table
   createTable(input: CreateTableInput!): Table
-
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Allow system-level Cognito groups to call this
   # Update: Uses Composite Key to access Main Table
   updateTable(key: CompositeKeyInput!, input: UpdateTableInput!): Table
-
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Allow system-level Cognito groups to call this
   # Delete: Uses Composite Key to access Main Table
   deleteTable(key: CompositeKeyInput!): Table
-
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Allow system-level Cognito groups to call this
   # TEXT OPERATIONS
   # Create: Uses parentId from input to write to Main Table
   createText(input: CreateTextInput!): Text
-
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Allow system-level Cognito groups to call this
   # Update: Uses Composite Key to access Main Table
   updateText(key: CompositeKeyInput!, input: UpdateTextInput!): Text
-
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Allow system-level Cognito groups to call this
   # Delete: Uses Composite Key to access Main Table
   deleteText(key: CompositeKeyInput!): Text
-
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Allow system-level Cognito groups to call this
   # SCAN OPERATIONS
   # Create: Uses parentId from input to write to Main Table
   createScan(input: CreateScanInput!): Scan
-
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Allow system-level Cognito groups to call this
   # Update: Uses Composite Key to access Main Table
   updateScan(key: CompositeKeyInput!, input: UpdateScanInput!): Scan
-
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Allow system-level Cognito groups to call this
   # Delete: Uses Composite Key to access Main Table
   deleteScan(key: CompositeKeyInput!): Scan
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Allow system-level Cognito groups to call this
 }
 
 # ----------------------------------------------------------------------
@@ -766,8 +843,7 @@ type Subscription {
   """
   IMAGE SUBSCRIPTIONS
   """
-  onCreateImage(parentId: ID): Image
-    @aws_subscribe(mutations: ["createImage"])
+  onCreateImage(parentId: ID): Image @aws_subscribe(mutations: ["createImage"])
 
   # Triggered when a specific Image is updated
   onUpdateImage(id: ID!): Image @aws_subscribe(mutations: ["updateImage"])
@@ -778,8 +854,7 @@ type Subscription {
   """
   TABLE SUBSCRIPTIONS
   """
-  onCreateTable(parentId: ID): Table
-    @aws_subscribe(mutations: ["createTable"])
+  onCreateTable(parentId: ID): Table @aws_subscribe(mutations: ["createTable"])
 
   # Triggered when a specific Table is updated
   onUpdateTable(id: ID!): Table @aws_subscribe(mutations: ["updateTable"])
@@ -790,8 +865,7 @@ type Subscription {
   """
   TEXT SUBSCRIPTIONS
   """
-  onCreateText(parentId: ID): Text
-    @aws_subscribe(mutations: ["createText"])
+  onCreateText(parentId: ID): Text @aws_subscribe(mutations: ["createText"])
 
   # Triggered when a specific Text is updated
   onUpdateText(id: ID!): Text @aws_subscribe(mutations: ["updateText"])
@@ -802,8 +876,7 @@ type Subscription {
   """
   SCAN SUBSCRIPTIONS
   """
-  onCreateScan(parentId: ID): Scan
-    @aws_subscribe(mutations: ["createScan"])
+  onCreateScan(parentId: ID): Scan @aws_subscribe(mutations: ["createScan"])
 
   # Triggered when a specific Scan is updated
   onUpdateScan(id: ID!): Scan @aws_subscribe(mutations: ["updateScan"])

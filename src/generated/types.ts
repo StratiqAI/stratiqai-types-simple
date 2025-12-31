@@ -169,6 +169,7 @@ export type DocumentConnection = {
 
 export type EntityType =
   | 'DOCLINK'
+  | 'DOCUMENT'
   | 'IMAGE'
   | 'NOTIFICATION'
   | 'PROJECT'
@@ -188,7 +189,7 @@ export type Image = Metadata & Node & Storable & {
   id: Scalars['ID']['output'];
   imageAnnotation?: Maybe<Scalars['AWSJSON']['output']>;
   imageId: Scalars['String']['output'];
-  mimeType: Scalars['String']['output'];
+  mimeType?: Maybe<Scalars['String']['output']>;
   ownerId: Scalars['ID']['output'];
   pageNum: Scalars['Int']['output'];
   parentId: Scalars['ID']['output'];
@@ -990,7 +991,7 @@ export type CreateImageMutationVariables = Exact<{
 }>;
 
 
-export type CreateImageMutation = { __typename?: 'Mutation', createImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
+export type CreateImageMutation = { __typename?: 'Mutation', createImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType?: string | null | undefined, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
 
 export type UpdateImageMutationVariables = Exact<{
   key: CompositeKeyInput;
@@ -998,14 +999,14 @@ export type UpdateImageMutationVariables = Exact<{
 }>;
 
 
-export type UpdateImageMutation = { __typename?: 'Mutation', updateImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
+export type UpdateImageMutation = { __typename?: 'Mutation', updateImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType?: string | null | undefined, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
 
 export type DeleteImageMutationVariables = Exact<{
   key: CompositeKeyInput;
 }>;
 
 
-export type DeleteImageMutation = { __typename?: 'Mutation', deleteImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
+export type DeleteImageMutation = { __typename?: 'Mutation', deleteImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType?: string | null | undefined, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
 
 export type CreateNotificationMutationVariables = Exact<{
   input: CreateNotificationInput;
@@ -1160,7 +1161,7 @@ export type GetImageQueryVariables = Exact<{
 }>;
 
 
-export type GetImageQuery = { __typename?: 'Query', getImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
+export type GetImageQuery = { __typename?: 'Query', getImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType?: string | null | undefined, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
 
 export type ListImagesQueryVariables = Exact<{
   parentId: Scalars['ID']['input'];
@@ -1169,7 +1170,7 @@ export type ListImagesQueryVariables = Exact<{
 }>;
 
 
-export type ListImagesQuery = { __typename?: 'Query', listImages: { __typename?: 'ImageConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined }> } };
+export type ListImagesQuery = { __typename?: 'Query', listImages: { __typename?: 'ImageConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType?: string | null | undefined, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined }> } };
 
 export type GetNotificationQueryVariables = Exact<{
   key: CompositeKeyInput;
@@ -1299,21 +1300,21 @@ export type OnCreateImageSubscriptionVariables = Exact<{
 }>;
 
 
-export type OnCreateImageSubscription = { __typename?: 'Subscription', onCreateImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
+export type OnCreateImageSubscription = { __typename?: 'Subscription', onCreateImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType?: string | null | undefined, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
 
 export type OnUpdateImageSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnUpdateImageSubscription = { __typename?: 'Subscription', onUpdateImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
+export type OnUpdateImageSubscription = { __typename?: 'Subscription', onUpdateImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType?: string | null | undefined, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
 
 export type OnDeleteImageSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnDeleteImageSubscription = { __typename?: 'Subscription', onDeleteImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
+export type OnDeleteImageSubscription = { __typename?: 'Subscription', onDeleteImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType?: string | null | undefined, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
 
 export type OnCreateNotificationSubscriptionVariables = Exact<{
   parentId?: InputMaybe<Scalars['ID']['input']>;

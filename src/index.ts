@@ -10,7 +10,9 @@
  * They will be available in './generated/types.js' after code generation.
  */
 
-export * from "./schema.js";
+// Schema export is optional - schema.graphql is not included in the package
+// Uncomment if you need schema loading functionality:
+// export * from "./schema.js";
 export * from "./operations.js";
 
 // Re-export generated types for convenience

@@ -12,10 +12,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./schema": {
-      "types": "./dist/schema.d.ts",
-      "import": "./dist/schema.js"
-    },
     "./operations": {
       "types": "./dist/operations.d.ts",
       "import": "./dist/operations.js"
@@ -27,7 +23,6 @@
   },
   "files": [
     "dist",
-    "src/schema.graphql",
     "src/generated/types.ts"
   ],
   "scripts": {

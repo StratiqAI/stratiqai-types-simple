@@ -60,19 +60,8 @@ async function buildProject() {
       console.warn('⚠ graphql/queries/index.js was not created');
     }
     
-    // Copy schema.graphql to dist directory
-    const schemaSrc = join(__dirname, 'src', 'schema.graphql');
-    const schemaDest = join(__dirname, 'dist', 'schema.graphql');
-    
-    if (existsSync(schemaSrc)) {
-      // Ensure dist directory exists
-      const distDir = join(__dirname, 'dist');
-      if (!existsSync(distDir)) {
-        mkdirSync(distDir, { recursive: true });
-      }
-      copyFileSync(schemaSrc, schemaDest);
-      console.log('✓ Copied schema.graphql to dist');
-    }
+    // Schema.graphql is not exported - it's only used for code generation
+    // The schema.ts file will return null if the file is not available
     
     console.log('✓ Build completed successfully');
   } catch (error) {

@@ -24,11 +24,13 @@ async function buildProject() {
   try {
     // Find all TypeScript files to build
     const graphqlFiles = findTsFiles(join(__dirname, 'src', 'graphql'));
+    const eventsFiles = findTsFiles(join(__dirname, 'src', 'events'));
     const allTsFiles = [
       join(__dirname, 'src', 'index.ts'),
       join(__dirname, 'src', 'schema.ts'),
       join(__dirname, 'src', 'operations.ts'),
-      ...graphqlFiles
+      ...graphqlFiles,
+      ...eventsFiles
     ];
     
     console.log(`Building ${allTsFiles.length} TypeScript files (${graphqlFiles.length} graphql files)...`);

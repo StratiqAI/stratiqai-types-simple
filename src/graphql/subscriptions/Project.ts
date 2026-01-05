@@ -5,8 +5,8 @@ import { gql } from 'graphql-tag';
  */
 
 export const S_ON_CREATE_PROJECT = gql`
-  subscription OnCreateProject($tenantId: ID) {
-    onCreateProject(tenantId: $tenantId) {
+  subscription OnCreateProject($ownerId: ID, $tenantId: ID) {
+    onCreateProject(ownerId: $ownerId, tenantId: $tenantId) {
       id
       entityType
       tenantId

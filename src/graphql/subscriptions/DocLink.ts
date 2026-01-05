@@ -13,8 +13,11 @@ export const S_ON_CREATE_DOCLINK = gql`
       ownerId
       createdAt
       updatedAt
+      deletedAt
       parentId
       filename
+      vectorStoreId
+      openAIFileId
       status
       documentId
     }
@@ -30,8 +33,11 @@ export const S_ON_UPDATE_DOCLINK = gql`
       ownerId
       createdAt
       updatedAt
+      deletedAt
       parentId
       filename
+      vectorStoreId
+      openAIFileId
       status
       documentId
     }
@@ -47,8 +53,11 @@ export const S_ON_DELETE_DOCLINK = gql`
       ownerId
       createdAt
       updatedAt
+      deletedAt
       parentId
       filename
+      vectorStoreId
+      openAIFileId
       status
       documentId
     }

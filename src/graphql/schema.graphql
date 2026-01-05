@@ -152,7 +152,11 @@ type Topic implements Node & Metadata & Shareable
   name: String!
 }
 
-type TopicConnection  @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]){
+type TopicConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
   items: [Topic!]!
   nextToken: String
 }
@@ -168,11 +172,17 @@ type Doclink implements Node & Metadata @aws_iam @aws_cognito_user_pools {
 
   parentId: ID!
   filename: String!
+  vectorStoreId: ID!
+  openAIFileId: ID!
   status: DoclinkStatus!
   documentId: ID!
 }
 
-type DoclinkConnection @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]){
+type DoclinkConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
   items: [Doclink!]!
   nextToken: String
 }
@@ -191,7 +201,11 @@ type Notification implements Node & Metadata @aws_iam @aws_cognito_user_pools {
   properties: AWSJSON
 }
 
-type NotificationConnection @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]) {
+type NotificationConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
   items: [Notification!]!
   nextToken: String
 }
@@ -229,7 +243,11 @@ type Image implements Node & Metadata & Storable
   imageAnnotation: AWSJSON # Annotation data (can be null)
 }
 
-type ImageConnection @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]){
+type ImageConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
   items: [Image!]!
   nextToken: String
 }
@@ -250,7 +268,11 @@ type Table implements Node & Metadata @aws_iam @aws_cognito_user_pools {
   description: String!
 }
 
-type TableConnection @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]){
+type TableConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
   items: [Table!]!
   nextToken: String
 }
@@ -271,7 +293,11 @@ type Text implements Node & Metadata @aws_iam @aws_cognito_user_pools {
   text: String!
 }
 
-type TextConnection @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]){
+type TextConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
   items: [Text!]!
   nextToken: String
 }
@@ -296,7 +322,11 @@ type Scan implements Node & Metadata & Storable
   parentId: ID! # Document ID
 }
 
-type ScanConnection @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]){
+type ScanConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
   items: [Scan!]!
   nextToken: String
 }
@@ -333,7 +363,7 @@ type Document implements Node & Metadata & Storable
   scans(limit: Int, nextToken: String): ScanConnection
 }
 
-type DocumentConnection 
+type DocumentConnection
   @aws_iam
   @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) {
   items: [Document!]!
@@ -366,7 +396,11 @@ type Project implements Node & Metadata & Shareable
   notifications(limit: Int, nextToken: String): NotificationConnection
 }
 
-type ProjectConnection @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]) {
+type ProjectConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
   items: [Project!]!
   nextToken: String
 }
@@ -414,6 +448,9 @@ input CreateDoclinkInput {
   # REQUIRED: To perform the Strongly Consistent Write to Main Table
   parentId: ID!
 
+  vectorStoreId: ID!
+  openAIFileId: ID!
+
   documentId: ID!
   filename: String!
   status: DoclinkStatus = NOT_UPLOADED
@@ -421,6 +458,8 @@ input CreateDoclinkInput {
 
 input UpdateDoclinkInput {
   filename: String
+  vectorStoreId: ID!
+  openAIFileId: ID!
   status: DoclinkStatus
 }
 
@@ -605,7 +644,11 @@ type Query {
     parentId: ID! # Required: Cannot list "all images in tenant" efficiently
     limit: Int
     nextToken: String
-  ): ImageConnection! @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"])
+  ): ImageConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
 
   """
   Get a single Table. Requires composite key (ID + ParentID) for access.
@@ -623,7 +666,11 @@ type Query {
     parentId: ID! # Required: Cannot list "all tables in tenant" efficiently
     limit: Int
     nextToken: String
-  ): TableConnection! @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"])
+  ): TableConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
 
   """
   Get a single Text. Requires composite key (ID + ParentID) for access.
@@ -637,12 +684,16 @@ type Query {
     parentId: ID! # Required: Cannot list "all texts in tenant" efficiently
     limit: Int
     nextToken: String
-  ): TextConnection! @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"])
+  ): TextConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
 
   """
   Get a single Scan. Requires composite key (ID + ParentID) for access.
   """
-  getScan(key: CompositeKeyInput!): Scan  
+  getScan(key: CompositeKeyInput!): Scan
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -655,7 +706,11 @@ type Query {
     parentId: ID! # Required: Cannot list "all scans in tenant" efficiently
     limit: Int
     nextToken: String
-  ): ScanConnection! @aws_iam @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"])
+  ): ScanConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
 }
 
 # ----------------------------------------------------------------------

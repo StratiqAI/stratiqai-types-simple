@@ -13,8 +13,11 @@ export const Q_GET_DOCLINK = gql`
       ownerId
       createdAt
       updatedAt
+      deletedAt
       parentId
       filename
+      vectorStoreId
+      openAIFileId
       status
       documentId
     }
@@ -35,8 +38,11 @@ export const Q_LIST_DOCLINKS = gql`
         ownerId
         createdAt
         updatedAt
+        deletedAt
         parentId
         filename
+        vectorStoreId
+        openAIFileId
         status
         documentId
       }

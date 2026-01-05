@@ -167,6 +167,13 @@ export type DocumentConnection = {
   nextToken?: Maybe<Scalars['String']['output']>;
 };
 
+export type DocumentProcessingEvent = {
+  __typename?: 'DocumentProcessingEvent';
+  data: Scalars['AWSJSON']['output'];
+  eventType: Scalars['String']['output'];
+  metadata: EventMetadata;
+};
+
 export type EntityType =
   | 'DOCLINK'
   | 'DOCUMENT'
@@ -178,6 +185,14 @@ export type EntityType =
   | 'TABLE'
   | 'TEXT'
   | 'TOPIC';
+
+export type EventMetadata = {
+  __typename?: 'EventMetadata';
+  causation_id: Scalars['String']['output'];
+  correlation_id: Scalars['String']['output'];
+  timestamp: Scalars['String']['output'];
+  version: Scalars['String']['output'];
+};
 
 export type Image = Metadata & Node & Storable & {
   __typename?: 'Image';
@@ -684,6 +699,8 @@ export type Subscription = {
   onDeleteScan?: Maybe<Scan>;
   onDeleteTable?: Maybe<Table>;
   onDeleteText?: Maybe<Text>;
+  /** DOCUMENT PROCESSING SUBSCRIPTIONS */
+  onDocumentProcessing?: Maybe<DocumentProcessingEvent>;
   onRestoreProject?: Maybe<Project>;
   onUpdateDoclink?: Maybe<Doclink>;
   onUpdateDocument?: Maybe<Document>;
@@ -775,6 +792,11 @@ export type SubscriptionOnDeleteTableArgs = {
 
 export type SubscriptionOnDeleteTextArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnDocumentProcessingArgs = {
+  documentId: Scalars['ID']['input'];
 };
 
 
@@ -1295,6 +1317,13 @@ export type OnDeleteDocumentSubscriptionVariables = Exact<{
 
 export type OnDeleteDocumentSubscription = { __typename?: 'Subscription', onDeleteDocument?: { __typename?: 'Document', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined } | null | undefined };
 
+export type OnDocumentProcessingSubscriptionVariables = Exact<{
+  documentId: Scalars['ID']['input'];
+}>;
+
+
+export type OnDocumentProcessingSubscription = { __typename?: 'Subscription', onDocumentProcessing?: { __typename?: 'DocumentProcessingEvent', eventType: string, data: any, metadata: { __typename?: 'EventMetadata', correlation_id: string, causation_id: string, timestamp: string, version: string } } | null | undefined };
+
 export type OnCreateImageSubscriptionVariables = Exact<{
   parentId?: InputMaybe<Scalars['ID']['input']>;
 }>;
@@ -1468,6 +1497,7 @@ export declare const OnDeleteDoclink: import("graphql").DocumentNode;
 export declare const OnCreateDocument: import("graphql").DocumentNode;
 export declare const OnUpdateDocument: import("graphql").DocumentNode;
 export declare const OnDeleteDocument: import("graphql").DocumentNode;
+export declare const OnDocumentProcessing: import("graphql").DocumentNode;
 export declare const OnCreateImage: import("graphql").DocumentNode;
 export declare const OnUpdateImage: import("graphql").DocumentNode;
 export declare const OnDeleteImage: import("graphql").DocumentNode;

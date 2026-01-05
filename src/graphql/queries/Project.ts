@@ -41,9 +41,12 @@ export const Q_GET_PROJECT = gql`
           createdAt
           updatedAt
           parentId
+          vectorStoreId
+          openAIFileId
           filename
           status
           documentId
+          deletedAt
         }
         nextToken
       }

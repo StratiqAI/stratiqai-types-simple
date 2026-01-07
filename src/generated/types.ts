@@ -70,6 +70,14 @@ export type CreateProjectInput = {
   status?: InputMaybe<ProjectStatus>;
 };
 
+export type CreatePromptTemplateInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+  parentId: Scalars['ID']['input'];
+  sharingMode?: InputMaybe<SharingMode>;
+  template: Scalars['String']['input'];
+};
+
 export type CreateScanInput = {
   parentId: Scalars['ID']['input'];
   s3Bucket: Scalars['String']['input'];
@@ -177,6 +185,7 @@ export type EntityType =
   | 'IMAGE'
   | 'NOTIFICATION'
   | 'PROJECT'
+  | 'PROMPT_TEMPLATE'
   | 'RESOURCE_SHARE'
   | 'SCAN'
   | 'TABLE'
@@ -234,6 +243,7 @@ export type Mutation = {
   createImage?: Maybe<Image>;
   createNotification?: Maybe<Notification>;
   createProject?: Maybe<Project>;
+  createPromptTemplate?: Maybe<PromptTemplate>;
   createScan?: Maybe<Scan>;
   createTable?: Maybe<Table>;
   createText?: Maybe<Text>;
@@ -242,6 +252,7 @@ export type Mutation = {
   deleteImage?: Maybe<Image>;
   deleteNotification?: Maybe<Notification>;
   deleteProject?: Maybe<Project>;
+  deletePromptTemplate?: Maybe<PromptTemplate>;
   deleteScan?: Maybe<Scan>;
   deleteTable?: Maybe<Table>;
   deleteText?: Maybe<Text>;
@@ -251,6 +262,7 @@ export type Mutation = {
   updateImage?: Maybe<Image>;
   updateNotification?: Maybe<Notification>;
   updateProject?: Maybe<Project>;
+  updatePromptTemplate?: Maybe<PromptTemplate>;
   updateScan?: Maybe<Scan>;
   updateTable?: Maybe<Table>;
   updateText?: Maybe<Text>;
@@ -279,6 +291,11 @@ export type MutationCreateNotificationArgs = {
 
 export type MutationCreateProjectArgs = {
   input: CreateProjectInput;
+};
+
+
+export type MutationCreatePromptTemplateArgs = {
+  input: CreatePromptTemplateInput;
 };
 
 
@@ -319,6 +336,11 @@ export type MutationDeleteNotificationArgs = {
 
 export type MutationDeleteProjectArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeletePromptTemplateArgs = {
+  key: CompositeKeyInput;
 };
 
 
@@ -369,6 +391,12 @@ export type MutationUpdateNotificationArgs = {
 export type MutationUpdateProjectArgs = {
   id: Scalars['ID']['input'];
   input: UpdateProjectInput;
+};
+
+
+export type MutationUpdatePromptTemplateArgs = {
+  input: UpdatePromptTemplateInput;
+  key: CompositeKeyInput;
 };
 
 
@@ -425,6 +453,7 @@ export type Project = Metadata & Node & Shareable & {
   name: Scalars['String']['output'];
   notifications?: Maybe<NotificationConnection>;
   ownerId: Scalars['ID']['output'];
+  prompttemplates?: Maybe<PromptTemplateConnection>;
   sharingMode: SharingMode;
   status: ProjectStatus;
   tenantId: Scalars['ID']['output'];
@@ -451,6 +480,12 @@ export type ProjectNotificationsArgs = {
 };
 
 
+export type ProjectPrompttemplatesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type ProjectTopicsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
@@ -467,6 +502,35 @@ export type ProjectStatus =
   | 'ARCHIVED'
   | 'DELETED';
 
+export type PromptTemplate = Metadata & Node & Shareable & {
+  __typename?: 'PromptTemplate';
+  accessList?: Maybe<ResourceShareConnection>;
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  ownerId: Scalars['ID']['output'];
+  parentId: Scalars['ID']['output'];
+  sharingMode: SharingMode;
+  template: Scalars['String']['output'];
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+};
+
+
+export type PromptTemplateAccessListArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type PromptTemplateConnection = {
+  __typename?: 'PromptTemplateConnection';
+  items: Array<PromptTemplate>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
 export type Query = {
   __typename?: 'Query';
   /** Get a single Doclink. Requires composite key (ID + ParentID) for access. */
@@ -477,6 +541,8 @@ export type Query = {
   /** Get a single Notification. Requires composite key (ID + ParentID) for access. */
   getNotification?: Maybe<Notification>;
   getProject?: Maybe<Project>;
+  /** Get a single PromptTemplate. Requires composite key (ID + ParentID) for access. */
+  getPromptTemplate?: Maybe<PromptTemplate>;
   /** Get a single Scan. Requires composite key (ID + ParentID) for access. */
   getScan?: Maybe<Scan>;
   /** Get a single Table. Requires composite key (ID + ParentID) for access. */
@@ -491,6 +557,8 @@ export type Query = {
   /** List Notifications for a specific Project. Uses GSI1 (The View). */
   listNotifications: NotificationConnection;
   listProjects: ProjectConnection;
+  /** List PromptTemplates for a specific Project. Uses GSI1 (The View). */
+  listPromptTemplates: PromptTemplateConnection;
   /** List Scans for a specific Document. Uses GSI1 (The View). */
   listScans: ScanConnection;
   /** List Tables for a specific Document. Uses GSI1 (The View). */
@@ -522,6 +590,11 @@ export type QueryGetNotificationArgs = {
 
 export type QueryGetProjectArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryGetPromptTemplateArgs = {
+  key: CompositeKeyInput;
 };
 
 
@@ -571,6 +644,13 @@ export type QueryListProjectsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
   scope?: InputMaybe<ListScope>;
+};
+
+
+export type QueryListPromptTemplatesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  parentId: Scalars['ID']['input'];
 };
 
 
@@ -674,6 +754,8 @@ export type Subscription = {
   onCreateNotification?: Maybe<Notification>;
   /** PROJECT SUBSCRIPTIONS */
   onCreateProject?: Maybe<Project>;
+  /** PROMPT_TEMPLATE SUBSCRIPTIONS */
+  onCreatePromptTemplate?: Maybe<PromptTemplate>;
   /** SCAN SUBSCRIPTIONS */
   onCreateScan?: Maybe<Scan>;
   /** TABLE SUBSCRIPTIONS */
@@ -685,6 +767,7 @@ export type Subscription = {
   onDeleteImage?: Maybe<Image>;
   onDeleteNotification?: Maybe<Notification>;
   onDeleteProject?: Maybe<Project>;
+  onDeletePromptTemplate?: Maybe<PromptTemplate>;
   onDeleteScan?: Maybe<Scan>;
   onDeleteTable?: Maybe<Table>;
   onDeleteText?: Maybe<Text>;
@@ -694,6 +777,7 @@ export type Subscription = {
   onUpdateImage?: Maybe<Image>;
   onUpdateNotification?: Maybe<Notification>;
   onUpdateProject?: Maybe<Project>;
+  onUpdatePromptTemplate?: Maybe<PromptTemplate>;
   onUpdateScan?: Maybe<Scan>;
   onUpdateTable?: Maybe<Table>;
   onUpdateText?: Maybe<Text>;
@@ -724,6 +808,11 @@ export type SubscriptionOnCreateNotificationArgs = {
 export type SubscriptionOnCreateProjectArgs = {
   ownerId?: InputMaybe<Scalars['ID']['input']>;
   tenantId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type SubscriptionOnCreatePromptTemplateArgs = {
+  parentId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -763,6 +852,11 @@ export type SubscriptionOnDeleteNotificationArgs = {
 
 
 export type SubscriptionOnDeleteProjectArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnDeletePromptTemplateArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -808,6 +902,11 @@ export type SubscriptionOnUpdateNotificationArgs = {
 
 
 export type SubscriptionOnUpdateProjectArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnUpdatePromptTemplateArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -931,6 +1030,13 @@ export type UpdateProjectInput = {
   name?: InputMaybe<Scalars['String']['input']>;
   sharingMode?: InputMaybe<SharingMode>;
   status?: InputMaybe<ProjectStatus>;
+};
+
+export type UpdatePromptTemplateInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  sharingMode?: InputMaybe<SharingMode>;
+  template?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateScanInput = {
@@ -1064,6 +1170,28 @@ export type RestoreProjectMutationVariables = Exact<{
 
 
 export type RestoreProjectMutation = { __typename?: 'Mutation', restoreProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus } | null | undefined };
+
+export type CreatePromptTemplateMutationVariables = Exact<{
+  input: CreatePromptTemplateInput;
+}>;
+
+
+export type CreatePromptTemplateMutation = { __typename?: 'Mutation', createPromptTemplate?: { __typename?: 'PromptTemplate', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, template: string, description?: string | null | undefined } | null | undefined };
+
+export type UpdatePromptTemplateMutationVariables = Exact<{
+  key: CompositeKeyInput;
+  input: UpdatePromptTemplateInput;
+}>;
+
+
+export type UpdatePromptTemplateMutation = { __typename?: 'Mutation', updatePromptTemplate?: { __typename?: 'PromptTemplate', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, template: string, description?: string | null | undefined } | null | undefined };
+
+export type DeletePromptTemplateMutationVariables = Exact<{
+  key: CompositeKeyInput;
+}>;
+
+
+export type DeletePromptTemplateMutation = { __typename?: 'Mutation', deletePromptTemplate?: { __typename?: 'PromptTemplate', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, template: string, description?: string | null | undefined } | null | undefined };
 
 export type CreateScanMutationVariables = Exact<{
   input: CreateScanInput;
@@ -1209,6 +1337,22 @@ export type ListProjectsQueryVariables = Exact<{
 
 
 export type ListProjectsQuery = { __typename?: 'Query', listProjects: { __typename?: 'ProjectConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus }> } };
+
+export type GetPromptTemplateQueryVariables = Exact<{
+  key: CompositeKeyInput;
+}>;
+
+
+export type GetPromptTemplateQuery = { __typename?: 'Query', getPromptTemplate?: { __typename?: 'PromptTemplate', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, template: string, description?: string | null | undefined } | null | undefined };
+
+export type ListPromptTemplatesQueryVariables = Exact<{
+  parentId: Scalars['ID']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ListPromptTemplatesQuery = { __typename?: 'Query', listPromptTemplates: { __typename?: 'PromptTemplateConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'PromptTemplate', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, template: string, description?: string | null | undefined }> } };
 
 export type GetScanQueryVariables = Exact<{
   key: CompositeKeyInput;
@@ -1365,6 +1509,27 @@ export type OnDeleteProjectSubscriptionVariables = Exact<{
 
 export type OnDeleteProjectSubscription = { __typename?: 'Subscription', onDeleteProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus } | null | undefined };
 
+export type OnCreatePromptTemplateSubscriptionVariables = Exact<{
+  parentId?: InputMaybe<Scalars['ID']['input']>;
+}>;
+
+
+export type OnCreatePromptTemplateSubscription = { __typename?: 'Subscription', onCreatePromptTemplate?: { __typename?: 'PromptTemplate', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, template: string, description?: string | null | undefined } | null | undefined };
+
+export type OnUpdatePromptTemplateSubscriptionVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnUpdatePromptTemplateSubscription = { __typename?: 'Subscription', onUpdatePromptTemplate?: { __typename?: 'PromptTemplate', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, template: string, description?: string | null | undefined } | null | undefined };
+
+export type OnDeletePromptTemplateSubscriptionVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnDeletePromptTemplateSubscription = { __typename?: 'Subscription', onDeletePromptTemplate?: { __typename?: 'PromptTemplate', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, template: string, description?: string | null | undefined } | null | undefined };
+
 export type OnCreateScanSubscriptionVariables = Exact<{
   parentId?: InputMaybe<Scalars['ID']['input']>;
 }>;
@@ -1444,6 +1609,9 @@ export declare const CreateProject: import("graphql").DocumentNode;
 export declare const UpdateProject: import("graphql").DocumentNode;
 export declare const DeleteProject: import("graphql").DocumentNode;
 export declare const RestoreProject: import("graphql").DocumentNode;
+export declare const CreatePromptTemplate: import("graphql").DocumentNode;
+export declare const UpdatePromptTemplate: import("graphql").DocumentNode;
+export declare const DeletePromptTemplate: import("graphql").DocumentNode;
 export declare const CreateScan: import("graphql").DocumentNode;
 export declare const UpdateScan: import("graphql").DocumentNode;
 export declare const DeleteScan: import("graphql").DocumentNode;
@@ -1463,6 +1631,8 @@ export declare const GetNotification: import("graphql").DocumentNode;
 export declare const ListNotifications: import("graphql").DocumentNode;
 export declare const GetProject: import("graphql").DocumentNode;
 export declare const ListProjects: import("graphql").DocumentNode;
+export declare const GetPromptTemplate: import("graphql").DocumentNode;
+export declare const ListPromptTemplates: import("graphql").DocumentNode;
 export declare const GetScan: import("graphql").DocumentNode;
 export declare const ListScans: import("graphql").DocumentNode;
 export declare const GetTable: import("graphql").DocumentNode;
@@ -1484,6 +1654,9 @@ export declare const OnDeleteNotification: import("graphql").DocumentNode;
 export declare const OnCreateProject: import("graphql").DocumentNode;
 export declare const OnUpdateProject: import("graphql").DocumentNode;
 export declare const OnDeleteProject: import("graphql").DocumentNode;
+export declare const OnCreatePromptTemplate: import("graphql").DocumentNode;
+export declare const OnUpdatePromptTemplate: import("graphql").DocumentNode;
+export declare const OnDeletePromptTemplate: import("graphql").DocumentNode;
 export declare const OnCreateScan: import("graphql").DocumentNode;
 export declare const OnUpdateScan: import("graphql").DocumentNode;
 export declare const OnDeleteScan: import("graphql").DocumentNode;

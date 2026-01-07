@@ -34,6 +34,7 @@ enum EntityType {
   TABLE
   TEXT
   SCAN
+  PROMPT_TEMPLATE
 }
 
 enum ProjectStatus {
@@ -158,6 +159,34 @@ type TopicConnection
     cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
   ) {
   items: [Topic!]!
+  nextToken: String
+}
+
+type PromptTemplate implements Node & Metadata & Shareable
+  @aws_iam
+  @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  sharingMode: SharingMode!
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+
+  parentId: ID!
+  name: String!
+  template: String!
+  description: String
+}
+
+type PromptTemplateConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [PromptTemplate!]!
   nextToken: String
 }
 
@@ -394,6 +423,7 @@ type Project implements Node & Metadata & Shareable
   doclinks(limit: Int, nextToken: String): DoclinkConnection
   topics(limit: Int, nextToken: String): TopicConnection
   notifications(limit: Int, nextToken: String): NotificationConnection
+  prompttemplates(limit: Int, nextToken: String): PromptTemplateConnection
 }
 
 type ProjectConnection
@@ -475,6 +505,24 @@ input CreateNotificationInput {
 input UpdateNotificationInput {
   message: String
   properties: AWSJSON
+}
+
+# PROMPT_TEMPLATE INPUTS
+input CreatePromptTemplateInput {
+  # REQUIRED: To perform the Strongly Consistent Write to Main Table
+  parentId: ID!
+
+  name: String!
+  template: String!
+  description: String
+  sharingMode: SharingMode = PRIVATE
+}
+
+input UpdatePromptTemplateInput {
+  name: String
+  template: String
+  description: String
+  sharingMode: SharingMode
 }
 
 # IMAGE INPUTS
@@ -627,6 +675,28 @@ type Query {
     limit: Int
     nextToken: String
   ): NotificationConnection!
+
+  """
+  Get a single PromptTemplate. Requires composite key (ID + ParentID) for access.
+  """
+  getPromptTemplate(key: CompositeKeyInput!): PromptTemplate
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
+  List PromptTemplates for a specific Project. Uses GSI1 (The View).
+  """
+  listPromptTemplates(
+    parentId: ID! # Required: Cannot list "all prompt templates in tenant" efficiently
+    limit: Int
+    nextToken: String
+  ): PromptTemplateConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
 
   """
   Get a single Image. Requires composite key (ID + ParentID) for access.
@@ -782,6 +852,29 @@ type Mutation {
   # Delete: Uses Composite Key to access Main Table
   deleteNotification(key: CompositeKeyInput!): Notification @aws_iam
 
+  # PROMPT_TEMPLATE OPERATIONS
+  # Create: Uses parentId from input to write to Main Table
+  createPromptTemplate(input: CreatePromptTemplateInput!): PromptTemplate
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    ) # Allow system-level Cognito groups to call this
+  # Update: Uses Composite Key to access Main Table
+  updatePromptTemplate(
+    key: CompositeKeyInput!
+    input: UpdatePromptTemplateInput!
+  ): PromptTemplate
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    ) # Allow system-level Cognito groups to call this
+  # Delete: Uses Composite Key to access Main Table
+  deletePromptTemplate(key: CompositeKeyInput!): PromptTemplate
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    ) # Allow system-level Cognito groups to call this
+
   # IMAGE OPERATIONS
   # Create: Uses parentId from input to write to Main Table
   createImage(input: CreateImageInput!): Image
@@ -894,6 +987,20 @@ type Subscription {
   # Triggered when a specific Notification is deleted
   onDeleteNotification(id: ID!): Notification
     @aws_subscribe(mutations: ["deleteNotification"])
+
+  """
+  PROMPT_TEMPLATE SUBSCRIPTIONS
+  """
+  onCreatePromptTemplate(parentId: ID): PromptTemplate
+    @aws_subscribe(mutations: ["createPromptTemplate"])
+
+  # Triggered when a specific PromptTemplate is updated
+  onUpdatePromptTemplate(id: ID!): PromptTemplate
+    @aws_subscribe(mutations: ["updatePromptTemplate"])
+
+  # Triggered when a specific PromptTemplate is deleted
+  onDeletePromptTemplate(id: ID!): PromptTemplate
+    @aws_subscribe(mutations: ["deletePromptTemplate"])
 
   """
   IMAGE SUBSCRIPTIONS

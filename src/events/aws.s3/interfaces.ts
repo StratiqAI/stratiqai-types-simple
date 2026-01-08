@@ -30,4 +30,5 @@ interface S3ObjectCreatedDetail {
   resources: string[];
   detail: S3ObjectCreatedDetailData;
 }
+
 export type { S3ObjectCreatedDetailData, S3ObjectCreatedDetail };

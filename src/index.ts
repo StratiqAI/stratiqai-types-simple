@@ -20,4 +20,4 @@ export * from "./operations.js";
 export type * from "./generated/types.js";
  
 // Re-export EventBridge interfaces for convenience
-export * from "./events/aws.s3/interfaces.js";
+export type { S3ObjectCreatedDetailData, S3ObjectCreatedDetail } from "./events/aws.s3/interfaces.js";

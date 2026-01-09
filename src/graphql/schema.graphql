@@ -377,6 +377,7 @@ type Document implements Node & Metadata & Storable
   deletedAt: AWSDateTime
 
   # Storable Fields
+  fileHash: String! # SHA256 hash of the document content (same as id)
   s3Bucket: String!
   s3Key: String!
   mimeType: String! @default(value: "application/pdf")
@@ -441,6 +442,7 @@ type ProjectConnection
 
 # DOCUMENT INPUTS
 input CreateDocumentInput {
+  fileHash: String!
   s3Bucket: String!
   s3Key: String!
   mimeType: String
@@ -448,6 +450,7 @@ input CreateDocumentInput {
 }
 
 input UpdateDocumentInput {
+  fileHash: String
   s3Bucket: String
   s3Key: String
   mimeType: String

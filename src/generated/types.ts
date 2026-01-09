@@ -36,6 +36,7 @@ export type CreateDoclinkInput = {
 };
 
 export type CreateDocumentInput = {
+  fileHash: Scalars['String']['input'];
   mimeType?: InputMaybe<Scalars['String']['input']>;
   s3Bucket: Scalars['String']['input'];
   s3Key: Scalars['String']['input'];
@@ -135,6 +136,7 @@ export type Document = Metadata & Node & Storable & {
   createdAt: Scalars['AWSDateTime']['output'];
   deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
   entityType: EntityType;
+  fileHash: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   images?: Maybe<ImageConnection>;
   mimeType: Scalars['String']['output'];
@@ -1000,6 +1002,7 @@ export type UpdateDoclinkInput = {
 };
 
 export type UpdateDocumentInput = {
+  fileHash?: InputMaybe<Scalars['String']['input']>;
   mimeType?: InputMaybe<Scalars['String']['input']>;
   s3Bucket?: InputMaybe<Scalars['String']['input']>;
   s3Key?: InputMaybe<Scalars['String']['input']>;

@@ -481,8 +481,8 @@ input CreateDoclinkInput {
   # REQUIRED: To perform the Strongly Consistent Write to Main Table
   parentId: ID!
 
-  vectorStoreId: ID!
-  openAIFileId: ID!
+  vectorStoreId: ID
+  openAIFileId: ID
 
   documentId: ID!
   filename: String!

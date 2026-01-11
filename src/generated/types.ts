@@ -29,10 +29,10 @@ export type CompositeKeyInput = {
 export type CreateDoclinkInput = {
   documentId: Scalars['ID']['input'];
   filename: Scalars['String']['input'];
-  openAIFileId: Scalars['ID']['input'];
+  openAIFileId?: InputMaybe<Scalars['ID']['input']>;
   parentId: Scalars['ID']['input'];
   status?: InputMaybe<DoclinkStatus>;
-  vectorStoreId: Scalars['ID']['input'];
+  vectorStoreId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 export type CreateDocumentInput = {

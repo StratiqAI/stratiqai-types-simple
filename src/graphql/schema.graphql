@@ -35,6 +35,7 @@ enum EntityType {
   TEXT
   SCAN
   PROMPT_TEMPLATE
+  WORKFLOW
 }
 
 enum ProjectStatus {
@@ -436,6 +437,31 @@ type ProjectConnection
   nextToken: String
 }
 
+type Workflow implements Node & Metadata & Shareable
+  @aws_iam
+  @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  sharingMode: SharingMode!
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+
+  name: String!
+  definitionJSON: AWSJSON!
+}
+
+type WorkflowConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [Workflow!]!
+  nextToken: String
+}
 # ----------------------------------------------------------------------
 # 7. INPUTS
 # ----------------------------------------------------------------------
@@ -614,6 +640,16 @@ input UpdateScanInput {
   s3Key: String
 }
 
+# Workflow INPUTS
+input CreateWorkflowInput {
+  name: String!
+  definitionJSON: AWSJSON!
+}
+
+input UpdateWorkflowInput {
+  name: String!
+  definitionJSON: AWSJSON!
+}
 # ----------------------------------------------------------------------
 # 8. QUERIES
 # ----------------------------------------------------------------------
@@ -784,6 +820,18 @@ type Query {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
+
+  # WORKFLOW QUERIES
+  getWorkflow(id: ID!): Workflow
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  listWorkflows(limit: Int, nextToken: String): WorkflowConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
 }
 
 # ----------------------------------------------------------------------
@@ -877,7 +925,6 @@ type Mutation {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     ) # Allow system-level Cognito groups to call this
-
   # IMAGE OPERATIONS
   # Create: Uses parentId from input to write to Main Table
   createImage(input: CreateImageInput!): Image
@@ -928,6 +975,18 @@ type Mutation {
     @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Allow system-level Cognito groups to call this
   # Delete: Uses Composite Key to access Main Table
   deleteScan(key: CompositeKeyInput!): Scan
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Allow system-level Cognito groups to call this
+  # WORKFLOW OPERATIONS
+  createWorkflow(input: CreateWorkflowInput!): Workflow
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    ) # Allow system-level Cognito groups to call this
+  updateWorkflow(id: ID!, input: UpdateWorkflowInput!): Workflow
+    @aws_iam # Allow system-level IAM roles to call this
+    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Allow system-level Cognito groups to call this
+  deleteWorkflow(id: ID!): Workflow
     @aws_iam # Allow system-level IAM roles to call this
     @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Allow system-level Cognito groups to call this
 }
@@ -1048,4 +1107,18 @@ type Subscription {
 
   # Triggered when a specific Scan is deleted
   onDeleteScan(id: ID!): Scan @aws_subscribe(mutations: ["deleteScan"])
+
+  """
+  WORKFLOW SUBSCRIPTIONS
+  """
+  onCreateWorkflow(parentId: ID): Workflow
+    @aws_subscribe(mutations: ["createWorkflow"])
+
+  # Triggered when a specific Workflow is updated
+  onUpdateWorkflow(id: ID!): Workflow
+    @aws_subscribe(mutations: ["updateWorkflow"])
+
+  # Triggered when a specific Workflow is deleted
+  onDeleteWorkflow(id: ID!): Workflow
+    @aws_subscribe(mutations: ["deleteWorkflow"])
 }

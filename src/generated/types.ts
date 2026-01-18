@@ -97,6 +97,11 @@ export type CreateTextInput = {
   text: Scalars['String']['input'];
 };
 
+export type CreateWorkflowInput = {
+  definitionJSON: Scalars['AWSJSON']['input'];
+  name: Scalars['String']['input'];
+};
+
 export type DeleteDocumentInput = {
   id: Scalars['ID']['input'];
 };
@@ -109,13 +114,13 @@ export type Doclink = Metadata & Node & {
   entityType: EntityType;
   filename: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  openAIFileId: Scalars['ID']['output'];
+  openAIFileId?: Maybe<Scalars['ID']['output']>;
   ownerId: Scalars['ID']['output'];
   parentId: Scalars['ID']['output'];
   status: DoclinkStatus;
   tenantId: Scalars['ID']['output'];
   updatedAt: Scalars['AWSDateTime']['output'];
-  vectorStoreId: Scalars['ID']['output'];
+  vectorStoreId?: Maybe<Scalars['ID']['output']>;
 };
 
 export type DoclinkConnection = {
@@ -192,7 +197,8 @@ export type EntityType =
   | 'SCAN'
   | 'TABLE'
   | 'TEXT'
-  | 'TOPIC';
+  | 'TOPIC'
+  | 'WORKFLOW';
 
 export type Image = Metadata & Node & Storable & {
   __typename?: 'Image';
@@ -249,6 +255,7 @@ export type Mutation = {
   createScan?: Maybe<Scan>;
   createTable?: Maybe<Table>;
   createText?: Maybe<Text>;
+  createWorkflow?: Maybe<Workflow>;
   deleteDoclink?: Maybe<Doclink>;
   deleteDocument?: Maybe<Document>;
   deleteImage?: Maybe<Image>;
@@ -258,6 +265,7 @@ export type Mutation = {
   deleteScan?: Maybe<Scan>;
   deleteTable?: Maybe<Table>;
   deleteText?: Maybe<Text>;
+  deleteWorkflow?: Maybe<Workflow>;
   restoreProject?: Maybe<Project>;
   updateDoclink?: Maybe<Doclink>;
   updateDocument?: Maybe<Document>;
@@ -268,6 +276,7 @@ export type Mutation = {
   updateScan?: Maybe<Scan>;
   updateTable?: Maybe<Table>;
   updateText?: Maybe<Text>;
+  updateWorkflow?: Maybe<Workflow>;
 };
 
 
@@ -316,6 +325,11 @@ export type MutationCreateTextArgs = {
 };
 
 
+export type MutationCreateWorkflowArgs = {
+  input: CreateWorkflowInput;
+};
+
+
 export type MutationDeleteDoclinkArgs = {
   key: CompositeKeyInput;
 };
@@ -358,6 +372,11 @@ export type MutationDeleteTableArgs = {
 
 export type MutationDeleteTextArgs = {
   key: CompositeKeyInput;
+};
+
+
+export type MutationDeleteWorkflowArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -417,6 +436,12 @@ export type MutationUpdateTableArgs = {
 export type MutationUpdateTextArgs = {
   input: UpdateTextInput;
   key: CompositeKeyInput;
+};
+
+
+export type MutationUpdateWorkflowArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateWorkflowInput;
 };
 
 export type Node = {
@@ -551,6 +576,7 @@ export type Query = {
   getTable?: Maybe<Table>;
   /** Get a single Text. Requires composite key (ID + ParentID) for access. */
   getText?: Maybe<Text>;
+  getWorkflow?: Maybe<Workflow>;
   /** List Doclinks for a specific Project. Uses GSI1 (The View). */
   listDoclinks: DoclinkConnection;
   listDocuments: DocumentConnection;
@@ -567,6 +593,7 @@ export type Query = {
   listTables: TableConnection;
   /** List Texts for a specific Document. Uses GSI1 (The View). */
   listTexts: TextConnection;
+  listWorkflows: WorkflowConnection;
 };
 
 
@@ -612,6 +639,11 @@ export type QueryGetTableArgs = {
 
 export type QueryGetTextArgs = {
   key: CompositeKeyInput;
+};
+
+
+export type QueryGetWorkflowArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -674,6 +706,12 @@ export type QueryListTextsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
   parentId: Scalars['ID']['input'];
+};
+
+
+export type QueryListWorkflowsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type ResourceShare = Metadata & Node & {
@@ -764,6 +802,8 @@ export type Subscription = {
   onCreateTable?: Maybe<Table>;
   /** TEXT SUBSCRIPTIONS */
   onCreateText?: Maybe<Text>;
+  /** WORKFLOW SUBSCRIPTIONS */
+  onCreateWorkflow?: Maybe<Workflow>;
   onDeleteDoclink?: Maybe<Doclink>;
   onDeleteDocument?: Maybe<Document>;
   onDeleteImage?: Maybe<Image>;
@@ -773,6 +813,7 @@ export type Subscription = {
   onDeleteScan?: Maybe<Scan>;
   onDeleteTable?: Maybe<Table>;
   onDeleteText?: Maybe<Text>;
+  onDeleteWorkflow?: Maybe<Workflow>;
   onRestoreProject?: Maybe<Project>;
   onUpdateDoclink?: Maybe<Doclink>;
   onUpdateDocument?: Maybe<Document>;
@@ -783,6 +824,7 @@ export type Subscription = {
   onUpdateScan?: Maybe<Scan>;
   onUpdateTable?: Maybe<Table>;
   onUpdateText?: Maybe<Text>;
+  onUpdateWorkflow?: Maybe<Workflow>;
 };
 
 
@@ -833,6 +875,11 @@ export type SubscriptionOnCreateTextArgs = {
 };
 
 
+export type SubscriptionOnCreateWorkflowArgs = {
+  parentId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
 export type SubscriptionOnDeleteDoclinkArgs = {
   id: Scalars['ID']['input'];
 };
@@ -874,6 +921,11 @@ export type SubscriptionOnDeleteTableArgs = {
 
 
 export type SubscriptionOnDeleteTextArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnDeleteWorkflowArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -924,6 +976,11 @@ export type SubscriptionOnUpdateTableArgs = {
 
 
 export type SubscriptionOnUpdateTextArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnUpdateWorkflowArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -1057,12 +1114,44 @@ export type UpdateTextInput = {
   text?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UpdateWorkflowInput = {
+  definitionJSON: Scalars['AWSJSON']['input'];
+  name: Scalars['String']['input'];
+};
+
+export type Workflow = Metadata & Node & Shareable & {
+  __typename?: 'Workflow';
+  accessList?: Maybe<ResourceShareConnection>;
+  createdAt: Scalars['AWSDateTime']['output'];
+  definitionJSON: Scalars['AWSJSON']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  ownerId: Scalars['ID']['output'];
+  sharingMode: SharingMode;
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+};
+
+
+export type WorkflowAccessListArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type WorkflowConnection = {
+  __typename?: 'WorkflowConnection';
+  items: Array<Workflow>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
 export type CreateDoclinkMutationVariables = Exact<{
   input: CreateDoclinkInput;
 }>;
 
 
-export type CreateDoclinkMutation = { __typename?: 'Mutation', createDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId: string, openAIFileId: string, status: DoclinkStatus, documentId: string } | null | undefined };
+export type CreateDoclinkMutation = { __typename?: 'Mutation', createDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, status: DoclinkStatus, documentId: string } | null | undefined };
 
 export type UpdateDoclinkMutationVariables = Exact<{
   key: CompositeKeyInput;
@@ -1070,14 +1159,14 @@ export type UpdateDoclinkMutationVariables = Exact<{
 }>;
 
 
-export type UpdateDoclinkMutation = { __typename?: 'Mutation', updateDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId: string, openAIFileId: string, status: DoclinkStatus, documentId: string } | null | undefined };
+export type UpdateDoclinkMutation = { __typename?: 'Mutation', updateDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, status: DoclinkStatus, documentId: string } | null | undefined };
 
 export type DeleteDoclinkMutationVariables = Exact<{
   key: CompositeKeyInput;
 }>;
 
 
-export type DeleteDoclinkMutation = { __typename?: 'Mutation', deleteDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId: string, openAIFileId: string, status: DoclinkStatus, documentId: string } | null | undefined };
+export type DeleteDoclinkMutation = { __typename?: 'Mutation', deleteDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, status: DoclinkStatus, documentId: string } | null | undefined };
 
 export type CreateDocumentMutationVariables = Exact<{
   input: CreateDocumentInput;
@@ -1262,12 +1351,34 @@ export type DeleteTextMutationVariables = Exact<{
 
 export type DeleteTextMutation = { __typename?: 'Mutation', deleteText?: { __typename?: 'Text', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, pageNum: number, text: string } | null | undefined };
 
+export type CreateWorkflowMutationVariables = Exact<{
+  input: CreateWorkflowInput;
+}>;
+
+
+export type CreateWorkflowMutation = { __typename?: 'Mutation', createWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definitionJSON: any } | null | undefined };
+
+export type UpdateWorkflowMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: UpdateWorkflowInput;
+}>;
+
+
+export type UpdateWorkflowMutation = { __typename?: 'Mutation', updateWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definitionJSON: any } | null | undefined };
+
+export type DeleteWorkflowMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeleteWorkflowMutation = { __typename?: 'Mutation', deleteWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definitionJSON: any } | null | undefined };
+
 export type GetDoclinkQueryVariables = Exact<{
   key: CompositeKeyInput;
 }>;
 
 
-export type GetDoclinkQuery = { __typename?: 'Query', getDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId: string, openAIFileId: string, status: DoclinkStatus, documentId: string } | null | undefined };
+export type GetDoclinkQuery = { __typename?: 'Query', getDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, status: DoclinkStatus, documentId: string } | null | undefined };
 
 export type ListDoclinksQueryVariables = Exact<{
   parentId: Scalars['ID']['input'];
@@ -1276,7 +1387,7 @@ export type ListDoclinksQueryVariables = Exact<{
 }>;
 
 
-export type ListDoclinksQuery = { __typename?: 'Query', listDoclinks: { __typename?: 'DoclinkConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId: string, openAIFileId: string, status: DoclinkStatus, documentId: string }> } };
+export type ListDoclinksQuery = { __typename?: 'Query', listDoclinks: { __typename?: 'DoclinkConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, status: DoclinkStatus, documentId: string }> } };
 
 export type GetDocumentQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1330,7 +1441,7 @@ export type GetProjectQueryVariables = Exact<{
 }>;
 
 
-export type GetProjectQuery = { __typename?: 'Query', getProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus, accessList?: { __typename?: 'ResourceShareConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'ResourceShare', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, recipientUserId: string, permission: SharePermission, resourceTitle: string, resourceType: EntityType }> } | null | undefined, doclinks?: { __typename?: 'DoclinkConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, parentId: string, vectorStoreId: string, openAIFileId: string, filename: string, status: DoclinkStatus, documentId: string, deletedAt?: string | null | undefined }> } | null | undefined, topics?: { __typename?: 'TopicConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Topic', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, parentId: string, name: string }> } | null | undefined } | null | undefined };
+export type GetProjectQuery = { __typename?: 'Query', getProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus, accessList?: { __typename?: 'ResourceShareConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'ResourceShare', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, recipientUserId: string, permission: SharePermission, resourceTitle: string, resourceType: EntityType }> } | null | undefined, doclinks?: { __typename?: 'DoclinkConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, parentId: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, filename: string, status: DoclinkStatus, documentId: string, deletedAt?: string | null | undefined }> } | null | undefined, topics?: { __typename?: 'TopicConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Topic', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, parentId: string, name: string }> } | null | undefined } | null | undefined };
 
 export type ListProjectsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -1405,26 +1516,41 @@ export type ListTextsQueryVariables = Exact<{
 
 export type ListTextsQuery = { __typename?: 'Query', listTexts: { __typename?: 'TextConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Text', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, pageNum: number, text: string }> } };
 
+export type GetWorkflowQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetWorkflowQuery = { __typename?: 'Query', getWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definitionJSON: any, accessList?: { __typename?: 'ResourceShareConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'ResourceShare', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, recipientUserId: string, permission: SharePermission, resourceTitle: string, resourceType: EntityType }> } | null | undefined } | null | undefined };
+
+export type ListWorkflowsQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ListWorkflowsQuery = { __typename?: 'Query', listWorkflows: { __typename?: 'WorkflowConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definitionJSON: any }> } };
+
 export type OnCreateDoclinkSubscriptionVariables = Exact<{
   parentId?: InputMaybe<Scalars['ID']['input']>;
 }>;
 
 
-export type OnCreateDoclinkSubscription = { __typename?: 'Subscription', onCreateDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId: string, openAIFileId: string, status: DoclinkStatus, documentId: string } | null | undefined };
+export type OnCreateDoclinkSubscription = { __typename?: 'Subscription', onCreateDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, status: DoclinkStatus, documentId: string } | null | undefined };
 
 export type OnUpdateDoclinkSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnUpdateDoclinkSubscription = { __typename?: 'Subscription', onUpdateDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId: string, openAIFileId: string, status: DoclinkStatus, documentId: string } | null | undefined };
+export type OnUpdateDoclinkSubscription = { __typename?: 'Subscription', onUpdateDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, status: DoclinkStatus, documentId: string } | null | undefined };
 
 export type OnDeleteDoclinkSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnDeleteDoclinkSubscription = { __typename?: 'Subscription', onDeleteDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId: string, openAIFileId: string, status: DoclinkStatus, documentId: string } | null | undefined };
+export type OnDeleteDoclinkSubscription = { __typename?: 'Subscription', onDeleteDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, status: DoclinkStatus, documentId: string } | null | undefined };
 
 export type OnCreateDocumentSubscriptionVariables = Exact<{
   ownerId?: InputMaybe<Scalars['ID']['input']>;
@@ -1596,6 +1722,27 @@ export type OnDeleteTextSubscriptionVariables = Exact<{
 
 export type OnDeleteTextSubscription = { __typename?: 'Subscription', onDeleteText?: { __typename?: 'Text', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, pageNum: number, text: string } | null | undefined };
 
+export type OnCreateWorkflowSubscriptionVariables = Exact<{
+  parentId?: InputMaybe<Scalars['ID']['input']>;
+}>;
+
+
+export type OnCreateWorkflowSubscription = { __typename?: 'Subscription', onCreateWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definitionJSON: any } | null | undefined };
+
+export type OnUpdateWorkflowSubscriptionVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnUpdateWorkflowSubscription = { __typename?: 'Subscription', onUpdateWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definitionJSON: any } | null | undefined };
+
+export type OnDeleteWorkflowSubscriptionVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnDeleteWorkflowSubscription = { __typename?: 'Subscription', onDeleteWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definitionJSON: any } | null | undefined };
+
 export declare const CreateDoclink: import("graphql").DocumentNode;
 export declare const UpdateDoclink: import("graphql").DocumentNode;
 export declare const DeleteDoclink: import("graphql").DocumentNode;
@@ -1624,6 +1771,9 @@ export declare const DeleteTable: import("graphql").DocumentNode;
 export declare const CreateText: import("graphql").DocumentNode;
 export declare const UpdateText: import("graphql").DocumentNode;
 export declare const DeleteText: import("graphql").DocumentNode;
+export declare const CreateWorkflow: import("graphql").DocumentNode;
+export declare const UpdateWorkflow: import("graphql").DocumentNode;
+export declare const DeleteWorkflow: import("graphql").DocumentNode;
 export declare const GetDoclink: import("graphql").DocumentNode;
 export declare const ListDoclinks: import("graphql").DocumentNode;
 export declare const GetDocument: import("graphql").DocumentNode;
@@ -1642,6 +1792,8 @@ export declare const GetTable: import("graphql").DocumentNode;
 export declare const ListTables: import("graphql").DocumentNode;
 export declare const GetText: import("graphql").DocumentNode;
 export declare const ListTexts: import("graphql").DocumentNode;
+export declare const GetWorkflow: import("graphql").DocumentNode;
+export declare const ListWorkflows: import("graphql").DocumentNode;
 export declare const OnCreateDoclink: import("graphql").DocumentNode;
 export declare const OnUpdateDoclink: import("graphql").DocumentNode;
 export declare const OnDeleteDoclink: import("graphql").DocumentNode;
@@ -1669,3 +1821,6 @@ export declare const OnDeleteTable: import("graphql").DocumentNode;
 export declare const OnCreateText: import("graphql").DocumentNode;
 export declare const OnUpdateText: import("graphql").DocumentNode;
 export declare const OnDeleteText: import("graphql").DocumentNode;
+export declare const OnCreateWorkflow: import("graphql").DocumentNode;
+export declare const OnUpdateWorkflow: import("graphql").DocumentNode;
+export declare const OnDeleteWorkflow: import("graphql").DocumentNode;

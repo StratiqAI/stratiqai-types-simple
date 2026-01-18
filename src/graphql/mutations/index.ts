@@ -12,3 +12,4 @@ export * from './Image.js';
 export * from './Table.js';
 export * from './Text.js';
 export * from './Scan.js';
+export * from './Workflow.js';

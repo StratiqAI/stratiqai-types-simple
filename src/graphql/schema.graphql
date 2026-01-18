@@ -426,6 +426,7 @@ type Project implements Node & Metadata & Shareable
   topics(limit: Int, nextToken: String): TopicConnection
   notifications(limit: Int, nextToken: String): NotificationConnection
   prompttemplates(limit: Int, nextToken: String): PromptTemplateConnection
+  workflows(limit: Int, nextToken: String): WorkflowConnection
 }
 
 type ProjectConnection
@@ -642,6 +643,8 @@ input UpdateScanInput {
 
 # Workflow INPUTS
 input CreateWorkflowInput {
+  # REQUIRED: To perform the Strongly Consistent Write to Main Table
+  parentId: ID!
   name: String!
   definitionJSON: AWSJSON!
 }

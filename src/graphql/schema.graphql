@@ -201,8 +201,8 @@ type Doclink implements Node & Metadata @aws_iam @aws_cognito_user_pools {
 
   parentId: ID!
   filename: String!
-  vectorStoreId: ID!
-  openAIFileId: ID!
+  vectorStoreId: ID
+  openAIFileId: ID
   status: DoclinkStatus!
   documentId: ID!
 }

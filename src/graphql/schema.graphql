@@ -650,8 +650,8 @@ input CreateWorkflowInput {
 }
 
 input UpdateWorkflowInput {
-  name: String!
-  definitionJSON: AWSJSON!
+  name: String
+  definitionJSON: AWSJSON
 }
 # ----------------------------------------------------------------------
 # 8. QUERIES
@@ -986,12 +986,12 @@ type Mutation {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     ) # Allow system-level Cognito groups to call this
-  updateWorkflow(id: ID!, input: UpdateWorkflowInput!): Workflow
+  updateWorkflow(key: CompositeKeyInput!, input: UpdateWorkflowInput!): Workflow
     @aws_iam # Allow system-level IAM roles to call this
-    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Allow system-level Cognito groups to call this
-  deleteWorkflow(id: ID!): Workflow
+    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]) # Allow system-level Cognito groups to call this
+  deleteWorkflow(key: CompositeKeyInput!): Workflow
     @aws_iam # Allow system-level IAM roles to call this
-    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins"]) # Allow system-level Cognito groups to call this
+    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]) # Allow system-level Cognito groups to call this
 }
 
 # ----------------------------------------------------------------------

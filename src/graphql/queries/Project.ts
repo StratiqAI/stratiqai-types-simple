@@ -64,6 +64,21 @@ export const Q_GET_PROJECT = gql`
         }
         nextToken
       }
+      workflows {
+        items {
+          id
+          entityType
+          tenantId
+          ownerId
+          createdAt
+          updatedAt
+          deletedAt
+          sharingMode
+          name
+          definitionJSON
+        }
+        nextToken
+      }
     }
   }
 `;

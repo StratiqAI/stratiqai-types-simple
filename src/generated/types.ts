@@ -97,10 +97,28 @@ export type CreateTextInput = {
   text: Scalars['String']['input'];
 };
 
+export type CreateWorkflowExecutionInput = {
+  inputData?: InputMaybe<Scalars['AWSJSON']['input']>;
+  stepFunctionExecutionArn?: InputMaybe<Scalars['String']['input']>;
+  stepFunctionStateMachineArn?: InputMaybe<Scalars['String']['input']>;
+  triggerEvent?: InputMaybe<Scalars['AWSJSON']['input']>;
+  workflowId: Scalars['ID']['input'];
+};
+
 export type CreateWorkflowInput = {
   definitionJSON: Scalars['AWSJSON']['input'];
   name: Scalars['String']['input'];
   parentId: Scalars['ID']['input'];
+};
+
+export type CreateWorkflowNodeExecutionInput = {
+  inputData?: InputMaybe<Scalars['AWSJSON']['input']>;
+  nodeId: Scalars['String']['input'];
+  nodeName?: InputMaybe<Scalars['String']['input']>;
+  nodeType?: InputMaybe<Scalars['String']['input']>;
+  stepFunctionExecutionArn?: InputMaybe<Scalars['String']['input']>;
+  stepFunctionTaskToken?: InputMaybe<Scalars['String']['input']>;
+  workflowExecutionId: Scalars['ID']['input'];
 };
 
 export type DeleteDocumentInput = {
@@ -199,7 +217,9 @@ export type EntityType =
   | 'TABLE'
   | 'TEXT'
   | 'TOPIC'
-  | 'WORKFLOW';
+  | 'WORKFLOW'
+  | 'WORKFLOW_EXECUTION'
+  | 'WORKFLOW_NODE_EXECUTION';
 
 export type Image = Metadata & Node & Storable & {
   __typename?: 'Image';
@@ -247,6 +267,7 @@ export type Metadata = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  cancelWorkflowExecution?: Maybe<WorkflowExecution>;
   createDoclink?: Maybe<Doclink>;
   createDocument?: Maybe<Document>;
   createImage?: Maybe<Image>;
@@ -257,6 +278,8 @@ export type Mutation = {
   createTable?: Maybe<Table>;
   createText?: Maybe<Text>;
   createWorkflow?: Maybe<Workflow>;
+  createWorkflowExecution?: Maybe<WorkflowExecution>;
+  createWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
   deleteDoclink?: Maybe<Doclink>;
   deleteDocument?: Maybe<Document>;
   deleteImage?: Maybe<Image>;
@@ -278,6 +301,13 @@ export type Mutation = {
   updateTable?: Maybe<Table>;
   updateText?: Maybe<Text>;
   updateWorkflow?: Maybe<Workflow>;
+  updateWorkflowExecution?: Maybe<WorkflowExecution>;
+  updateWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
+};
+
+
+export type MutationCancelWorkflowExecutionArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -331,6 +361,16 @@ export type MutationCreateWorkflowArgs = {
 };
 
 
+export type MutationCreateWorkflowExecutionArgs = {
+  input: CreateWorkflowExecutionInput;
+};
+
+
+export type MutationCreateWorkflowNodeExecutionArgs = {
+  input: CreateWorkflowNodeExecutionInput;
+};
+
+
 export type MutationDeleteDoclinkArgs = {
   key: CompositeKeyInput;
 };
@@ -377,7 +417,7 @@ export type MutationDeleteTextArgs = {
 
 
 export type MutationDeleteWorkflowArgs = {
-  id: Scalars['ID']['input'];
+  key: CompositeKeyInput;
 };
 
 
@@ -441,8 +481,20 @@ export type MutationUpdateTextArgs = {
 
 
 export type MutationUpdateWorkflowArgs = {
-  id: Scalars['ID']['input'];
   input: UpdateWorkflowInput;
+  key: CompositeKeyInput;
+};
+
+
+export type MutationUpdateWorkflowExecutionArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateWorkflowExecutionInput;
+};
+
+
+export type MutationUpdateWorkflowNodeExecutionArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateWorkflowNodeExecutionInput;
 };
 
 export type Node = {
@@ -585,6 +637,8 @@ export type Query = {
   /** Get a single Text. Requires composite key (ID + ParentID) for access. */
   getText?: Maybe<Text>;
   getWorkflow?: Maybe<Workflow>;
+  getWorkflowExecution?: Maybe<WorkflowExecution>;
+  getWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
   /** List Doclinks for a specific Project. Uses GSI1 (The View). */
   listDoclinks: DoclinkConnection;
   listDocuments: DocumentConnection;
@@ -601,6 +655,8 @@ export type Query = {
   listTables: TableConnection;
   /** List Texts for a specific Document. Uses GSI1 (The View). */
   listTexts: TextConnection;
+  listWorkflowExecutions: WorkflowExecutionConnection;
+  listWorkflowNodeExecutions: WorkflowNodeExecutionConnection;
   listWorkflows: WorkflowConnection;
 };
 
@@ -651,6 +707,16 @@ export type QueryGetTextArgs = {
 
 
 export type QueryGetWorkflowArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryGetWorkflowExecutionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryGetWorkflowNodeExecutionArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -714,6 +780,22 @@ export type QueryListTextsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
   parentId: Scalars['ID']['input'];
+};
+
+
+export type QueryListWorkflowExecutionsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<WorkflowExecutionStatus>;
+  workflowId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type QueryListWorkflowNodeExecutionsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<WorkflowNodeExecutionStatus>;
+  workflowExecutionId: Scalars['ID']['input'];
 };
 
 
@@ -812,6 +894,10 @@ export type Subscription = {
   onCreateText?: Maybe<Text>;
   /** WORKFLOW SUBSCRIPTIONS */
   onCreateWorkflow?: Maybe<Workflow>;
+  /** WORKFLOW EXECUTION SUBSCRIPTIONS */
+  onCreateWorkflowExecution?: Maybe<WorkflowExecution>;
+  /** WORKFLOW NODE EXECUTION SUBSCRIPTIONS */
+  onCreateWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
   onDeleteDoclink?: Maybe<Doclink>;
   onDeleteDocument?: Maybe<Document>;
   onDeleteImage?: Maybe<Image>;
@@ -833,6 +919,10 @@ export type Subscription = {
   onUpdateTable?: Maybe<Table>;
   onUpdateText?: Maybe<Text>;
   onUpdateWorkflow?: Maybe<Workflow>;
+  onUpdateWorkflowExecution?: Maybe<WorkflowExecution>;
+  onUpdateWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
+  onWorkflowExecutionStatusChange?: Maybe<WorkflowExecution>;
+  onWorkflowNodeExecutionStatusChange?: Maybe<WorkflowNodeExecution>;
 };
 
 
@@ -885,6 +975,16 @@ export type SubscriptionOnCreateTextArgs = {
 
 export type SubscriptionOnCreateWorkflowArgs = {
   parentId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type SubscriptionOnCreateWorkflowExecutionArgs = {
+  workflowId: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnCreateWorkflowNodeExecutionArgs = {
+  workflowExecutionId: Scalars['ID']['input'];
 };
 
 
@@ -990,6 +1090,27 @@ export type SubscriptionOnUpdateTextArgs = {
 
 export type SubscriptionOnUpdateWorkflowArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnUpdateWorkflowExecutionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnUpdateWorkflowNodeExecutionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnWorkflowExecutionStatusChangeArgs = {
+  status?: InputMaybe<WorkflowExecutionStatus>;
+  workflowId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type SubscriptionOnWorkflowNodeExecutionStatusChangeArgs = {
+  workflowExecutionId: Scalars['ID']['input'];
 };
 
 export type Table = Metadata & Node & {
@@ -1122,9 +1243,26 @@ export type UpdateTextInput = {
   text?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UpdateWorkflowExecutionInput = {
+  cancelledAt?: InputMaybe<Scalars['AWSDateTime']['input']>;
+  completedAt?: InputMaybe<Scalars['AWSDateTime']['input']>;
+  errorMessage?: InputMaybe<Scalars['String']['input']>;
+  outputData?: InputMaybe<Scalars['AWSJSON']['input']>;
+  status?: InputMaybe<WorkflowExecutionStatus>;
+};
+
 export type UpdateWorkflowInput = {
-  definitionJSON: Scalars['AWSJSON']['input'];
-  name: Scalars['String']['input'];
+  definitionJSON?: InputMaybe<Scalars['AWSJSON']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateWorkflowNodeExecutionInput = {
+  completedAt?: InputMaybe<Scalars['AWSDateTime']['input']>;
+  errorDetails?: InputMaybe<Scalars['AWSJSON']['input']>;
+  errorMessage?: InputMaybe<Scalars['String']['input']>;
+  outputData?: InputMaybe<Scalars['AWSJSON']['input']>;
+  startedAt?: InputMaybe<Scalars['AWSDateTime']['input']>;
+  status?: InputMaybe<WorkflowNodeExecutionStatus>;
 };
 
 export type Workflow = Metadata & Node & Shareable & {
@@ -1153,6 +1291,87 @@ export type WorkflowConnection = {
   items: Array<Workflow>;
   nextToken?: Maybe<Scalars['String']['output']>;
 };
+
+export type WorkflowExecution = Metadata & Node & {
+  __typename?: 'WorkflowExecution';
+  cancelledAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  completedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  entityType: EntityType;
+  errorMessage?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  inputData?: Maybe<Scalars['AWSJSON']['output']>;
+  nodeExecutions?: Maybe<WorkflowNodeExecutionConnection>;
+  outputData?: Maybe<Scalars['AWSJSON']['output']>;
+  ownerId: Scalars['ID']['output'];
+  startedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  status: WorkflowExecutionStatus;
+  stepFunctionExecutionArn?: Maybe<Scalars['String']['output']>;
+  stepFunctionStateMachineArn?: Maybe<Scalars['String']['output']>;
+  tenantId: Scalars['ID']['output'];
+  triggerEvent?: Maybe<Scalars['AWSJSON']['output']>;
+  updatedAt: Scalars['AWSDateTime']['output'];
+  workflow?: Maybe<Workflow>;
+  workflowId: Scalars['ID']['output'];
+};
+
+
+export type WorkflowExecutionNodeExecutionsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type WorkflowExecutionConnection = {
+  __typename?: 'WorkflowExecutionConnection';
+  items: Array<WorkflowExecution>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
+export type WorkflowExecutionStatus =
+  | 'CANCELLED'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'PENDING'
+  | 'RUNNING';
+
+export type WorkflowNodeExecution = Metadata & Node & {
+  __typename?: 'WorkflowNodeExecution';
+  completedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  entityType: EntityType;
+  errorDetails?: Maybe<Scalars['AWSJSON']['output']>;
+  errorMessage?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  inputData?: Maybe<Scalars['AWSJSON']['output']>;
+  nodeId: Scalars['String']['output'];
+  nodeName?: Maybe<Scalars['String']['output']>;
+  nodeType?: Maybe<Scalars['String']['output']>;
+  outputData?: Maybe<Scalars['AWSJSON']['output']>;
+  ownerId: Scalars['ID']['output'];
+  startedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  status: WorkflowNodeExecutionStatus;
+  stepFunctionExecutionArn?: Maybe<Scalars['String']['output']>;
+  stepFunctionTaskToken?: Maybe<Scalars['String']['output']>;
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+  workflowExecution?: Maybe<WorkflowExecution>;
+  workflowExecutionId: Scalars['ID']['output'];
+};
+
+export type WorkflowNodeExecutionConnection = {
+  __typename?: 'WorkflowNodeExecutionConnection';
+  items: Array<WorkflowNodeExecution>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
+export type WorkflowNodeExecutionStatus =
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'PENDING'
+  | 'RUNNING'
+  | 'SKIPPED';
 
 export type CreateDoclinkMutationVariables = Exact<{
   input: CreateDoclinkInput;
@@ -1367,7 +1586,7 @@ export type CreateWorkflowMutationVariables = Exact<{
 export type CreateWorkflowMutation = { __typename?: 'Mutation', createWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definitionJSON: any } | null | undefined };
 
 export type UpdateWorkflowMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
+  key: CompositeKeyInput;
   input: UpdateWorkflowInput;
 }>;
 
@@ -1375,7 +1594,7 @@ export type UpdateWorkflowMutationVariables = Exact<{
 export type UpdateWorkflowMutation = { __typename?: 'Mutation', updateWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definitionJSON: any } | null | undefined };
 
 export type DeleteWorkflowMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
+  key: CompositeKeyInput;
 }>;
 
 

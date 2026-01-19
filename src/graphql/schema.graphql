@@ -36,6 +36,8 @@ enum EntityType {
   SCAN
   PROMPT_TEMPLATE
   WORKFLOW
+  WORKFLOW_EXECUTION
+  WORKFLOW_NODE_EXECUTION
 }
 
 enum ProjectStatus {
@@ -69,6 +71,22 @@ enum ListScope {
   OWNED_BY_ME
   SHARED_WITH_ME
   ALL_TENANT
+}
+
+enum WorkflowExecutionStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum WorkflowNodeExecutionStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  SKIPPED
 }
 
 # ----------------------------------------------------------------------
@@ -463,6 +481,93 @@ type WorkflowConnection
   items: [Workflow!]!
   nextToken: String
 }
+
+type WorkflowExecution implements Node & Metadata
+  @aws_iam
+  @aws_cognito_user_pools {
+  # Metadata Fields
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  # Workflow Execution Fields
+  workflowId: ID!
+  workflow: Workflow
+  status: WorkflowExecutionStatus!
+  startedAt: AWSDateTime
+  completedAt: AWSDateTime
+  cancelledAt: AWSDateTime
+
+  # Execution Context
+  triggerEvent: AWSJSON
+  inputData: AWSJSON
+  outputData: AWSJSON
+  errorMessage: String
+
+  # Step Functions Integration
+  stepFunctionExecutionArn: String
+  stepFunctionStateMachineArn: String
+
+  # Node Executions
+  nodeExecutions(limit: Int, nextToken: String): WorkflowNodeExecutionConnection
+}
+
+type WorkflowExecutionConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [WorkflowExecution!]!
+  nextToken: String
+}
+
+type WorkflowNodeExecution implements Node & Metadata
+  @aws_iam
+  @aws_cognito_user_pools {
+  # Metadata Fields
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  # Node Execution Fields
+  workflowExecutionId: ID!
+  workflowExecution: WorkflowExecution
+  nodeId: String!
+  nodeName: String
+  nodeType: String
+  status: WorkflowNodeExecutionStatus!
+
+  # Timing
+  startedAt: AWSDateTime
+  completedAt: AWSDateTime
+
+  # Execution Data
+  inputData: AWSJSON
+  outputData: AWSJSON
+  errorMessage: String
+  errorDetails: AWSJSON
+
+  # Step Functions Integration
+  stepFunctionTaskToken: String
+  stepFunctionExecutionArn: String
+}
+
+type WorkflowNodeExecutionConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [WorkflowNodeExecution!]!
+  nextToken: String
+}
 # ----------------------------------------------------------------------
 # 7. INPUTS
 # ----------------------------------------------------------------------
@@ -653,6 +758,43 @@ input UpdateWorkflowInput {
   name: String
   definitionJSON: AWSJSON
 }
+
+# WORKFLOW EXECUTION INPUTS
+input CreateWorkflowExecutionInput {
+  workflowId: ID!
+  triggerEvent: AWSJSON
+  inputData: AWSJSON
+  stepFunctionExecutionArn: String
+  stepFunctionStateMachineArn: String
+}
+
+input UpdateWorkflowExecutionInput {
+  status: WorkflowExecutionStatus
+  outputData: AWSJSON
+  errorMessage: String
+  completedAt: AWSDateTime
+  cancelledAt: AWSDateTime
+}
+
+# WORKFLOW NODE EXECUTION INPUTS
+input CreateWorkflowNodeExecutionInput {
+  workflowExecutionId: ID!
+  nodeId: String!
+  nodeName: String
+  nodeType: String
+  inputData: AWSJSON
+  stepFunctionTaskToken: String
+  stepFunctionExecutionArn: String
+}
+
+input UpdateWorkflowNodeExecutionInput {
+  status: WorkflowNodeExecutionStatus
+  outputData: AWSJSON
+  errorMessage: String
+  errorDetails: AWSJSON
+  startedAt: AWSDateTime
+  completedAt: AWSDateTime
+}
 # ----------------------------------------------------------------------
 # 8. QUERIES
 # ----------------------------------------------------------------------
@@ -835,6 +977,40 @@ type Query {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
+
+  # WORKFLOW EXECUTION QUERIES
+  getWorkflowExecution(id: ID!): WorkflowExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  listWorkflowExecutions(
+    workflowId: ID
+    status: WorkflowExecutionStatus
+    limit: Int
+    nextToken: String
+  ): WorkflowExecutionConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  # WORKFLOW NODE EXECUTION QUERIES
+  getWorkflowNodeExecution(id: ID!): WorkflowNodeExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  listWorkflowNodeExecutions(
+    workflowExecutionId: ID!
+    status: WorkflowNodeExecutionStatus
+    limit: Int
+    nextToken: String
+  ): WorkflowNodeExecutionConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
 }
 
 # ----------------------------------------------------------------------
@@ -992,6 +1168,41 @@ type Mutation {
   deleteWorkflow(key: CompositeKeyInput!): Workflow
     @aws_iam # Allow system-level IAM roles to call this
     @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]) # Allow system-level Cognito groups to call this
+
+  # WORKFLOW EXECUTION OPERATIONS
+  createWorkflowExecution(input: CreateWorkflowExecutionInput!): WorkflowExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  updateWorkflowExecution(
+    id: ID!
+    input: UpdateWorkflowExecutionInput!
+  ): WorkflowExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  cancelWorkflowExecution(id: ID!): WorkflowExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  # WORKFLOW NODE EXECUTION OPERATIONS
+  createWorkflowNodeExecution(input: CreateWorkflowNodeExecutionInput!): WorkflowNodeExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  updateWorkflowNodeExecution(
+    id: ID!
+    input: UpdateWorkflowNodeExecutionInput!
+  ): WorkflowNodeExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
 }
 
 # ----------------------------------------------------------------------
@@ -1124,4 +1335,37 @@ type Subscription {
   # Triggered when a specific Workflow is deleted
   onDeleteWorkflow(id: ID!): Workflow
     @aws_subscribe(mutations: ["deleteWorkflow"])
+
+  """
+  WORKFLOW EXECUTION SUBSCRIPTIONS
+  """
+  # Subscribe to new workflow executions for a specific workflow
+  onCreateWorkflowExecution(workflowId: ID!): WorkflowExecution
+    @aws_subscribe(mutations: ["createWorkflowExecution"])
+
+  # Subscribe to updates for a specific workflow execution
+  onUpdateWorkflowExecution(id: ID!): WorkflowExecution
+    @aws_subscribe(mutations: ["updateWorkflowExecution", "cancelWorkflowExecution"])
+
+  # Subscribe to all workflow executions for a project (via workflowId filter)
+  onWorkflowExecutionStatusChange(
+    workflowId: ID
+    status: WorkflowExecutionStatus
+  ): WorkflowExecution
+    @aws_subscribe(mutations: ["createWorkflowExecution", "updateWorkflowExecution", "cancelWorkflowExecution"])
+
+  """
+  WORKFLOW NODE EXECUTION SUBSCRIPTIONS
+  """
+  # Subscribe to new node executions for a specific workflow execution
+  onCreateWorkflowNodeExecution(workflowExecutionId: ID!): WorkflowNodeExecution
+    @aws_subscribe(mutations: ["createWorkflowNodeExecution"])
+
+  # Subscribe to updates for a specific node execution
+  onUpdateWorkflowNodeExecution(id: ID!): WorkflowNodeExecution
+    @aws_subscribe(mutations: ["updateWorkflowNodeExecution"])
+
+  # Subscribe to all node execution updates for a workflow execution
+  onWorkflowNodeExecutionStatusChange(workflowExecutionId: ID!): WorkflowNodeExecution
+    @aws_subscribe(mutations: ["createWorkflowNodeExecution", "updateWorkflowNodeExecution"])
 }

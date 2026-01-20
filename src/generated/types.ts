@@ -1600,6 +1600,28 @@ export type DeleteWorkflowMutationVariables = Exact<{
 
 export type DeleteWorkflowMutation = { __typename?: 'Mutation', deleteWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definitionJSON: any } | null | undefined };
 
+export type CreateWorkflowExecutionMutationVariables = Exact<{
+  input: CreateWorkflowExecutionInput;
+}>;
+
+
+export type CreateWorkflowExecutionMutation = { __typename?: 'Mutation', createWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, stepFunctionExecutionArn?: string | null | undefined, stepFunctionStateMachineArn?: string | null | undefined } | null | undefined };
+
+export type UpdateWorkflowExecutionMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: UpdateWorkflowExecutionInput;
+}>;
+
+
+export type UpdateWorkflowExecutionMutation = { __typename?: 'Mutation', updateWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, stepFunctionExecutionArn?: string | null | undefined, stepFunctionStateMachineArn?: string | null | undefined } | null | undefined };
+
+export type CancelWorkflowExecutionMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type CancelWorkflowExecutionMutation = { __typename?: 'Mutation', cancelWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, stepFunctionExecutionArn?: string | null | undefined, stepFunctionStateMachineArn?: string | null | undefined } | null | undefined };
+
 export type GetDoclinkQueryVariables = Exact<{
   key: CompositeKeyInput;
 }>;
@@ -1757,6 +1779,40 @@ export type ListWorkflowsQueryVariables = Exact<{
 
 
 export type ListWorkflowsQuery = { __typename?: 'Query', listWorkflows: { __typename?: 'WorkflowConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definitionJSON: any }> } };
+
+export type GetWorkflowExecutionQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetWorkflowExecutionQuery = { __typename?: 'Query', getWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, stepFunctionExecutionArn?: string | null | undefined, stepFunctionStateMachineArn?: string | null | undefined, workflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definitionJSON: any } | null | undefined, nodeExecutions?: { __typename?: 'WorkflowNodeExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, workflowExecutionId: string, nodeId: string, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined, stepFunctionTaskToken?: string | null | undefined, stepFunctionExecutionArn?: string | null | undefined }> } | null | undefined } | null | undefined };
+
+export type ListWorkflowExecutionsQueryVariables = Exact<{
+  workflowId?: InputMaybe<Scalars['ID']['input']>;
+  status?: InputMaybe<WorkflowExecutionStatus>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ListWorkflowExecutionsQuery = { __typename?: 'Query', listWorkflowExecutions: { __typename?: 'WorkflowExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, stepFunctionExecutionArn?: string | null | undefined, stepFunctionStateMachineArn?: string | null | undefined, workflow?: { __typename?: 'Workflow', id: string, name: string, definitionJSON: any } | null | undefined }> } };
+
+export type GetWorkflowNodeExecutionQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetWorkflowNodeExecutionQuery = { __typename?: 'Query', getWorkflowNodeExecution?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, workflowExecutionId: string, nodeId: string, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined, stepFunctionTaskToken?: string | null | undefined, stepFunctionExecutionArn?: string | null | undefined, workflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, stepFunctionExecutionArn?: string | null | undefined, stepFunctionStateMachineArn?: string | null | undefined } | null | undefined } | null | undefined };
+
+export type ListWorkflowNodeExecutionsQueryVariables = Exact<{
+  workflowExecutionId: Scalars['ID']['input'];
+  status?: InputMaybe<WorkflowNodeExecutionStatus>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ListWorkflowNodeExecutionsQuery = { __typename?: 'Query', listWorkflowNodeExecutions: { __typename?: 'WorkflowNodeExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, workflowExecutionId: string, nodeId: string, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined, stepFunctionTaskToken?: string | null | undefined, stepFunctionExecutionArn?: string | null | undefined }> } };
 
 export type OnCreateDoclinkSubscriptionVariables = Exact<{
   parentId?: InputMaybe<Scalars['ID']['input']>;
@@ -2001,6 +2057,9 @@ export declare const DeleteText: import("graphql").DocumentNode;
 export declare const CreateWorkflow: import("graphql").DocumentNode;
 export declare const UpdateWorkflow: import("graphql").DocumentNode;
 export declare const DeleteWorkflow: import("graphql").DocumentNode;
+export declare const CreateWorkflowExecution: import("graphql").DocumentNode;
+export declare const UpdateWorkflowExecution: import("graphql").DocumentNode;
+export declare const CancelWorkflowExecution: import("graphql").DocumentNode;
 export declare const GetDoclink: import("graphql").DocumentNode;
 export declare const ListDoclinks: import("graphql").DocumentNode;
 export declare const GetDocument: import("graphql").DocumentNode;
@@ -2021,6 +2080,10 @@ export declare const GetText: import("graphql").DocumentNode;
 export declare const ListTexts: import("graphql").DocumentNode;
 export declare const GetWorkflow: import("graphql").DocumentNode;
 export declare const ListWorkflows: import("graphql").DocumentNode;
+export declare const GetWorkflowExecution: import("graphql").DocumentNode;
+export declare const ListWorkflowExecutions: import("graphql").DocumentNode;
+export declare const GetWorkflowNodeExecution: import("graphql").DocumentNode;
+export declare const ListWorkflowNodeExecutions: import("graphql").DocumentNode;
 export declare const OnCreateDoclink: import("graphql").DocumentNode;
 export declare const OnUpdateDoclink: import("graphql").DocumentNode;
 export declare const OnDeleteDoclink: import("graphql").DocumentNode;

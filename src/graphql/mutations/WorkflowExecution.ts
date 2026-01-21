@@ -14,6 +14,7 @@ export const M_CREATE_WORKFLOW_EXECUTION = gql`
       createdAt
       updatedAt
       deletedAt
+      parentId
       workflowId
       status
       startedAt
@@ -23,8 +24,9 @@ export const M_CREATE_WORKFLOW_EXECUTION = gql`
       inputData
       outputData
       errorMessage
-      stepFunctionExecutionArn
-      stepFunctionStateMachineArn
+      totalNodes
+      completedNodes
+      currentNodeId
     }
   }
 `;
@@ -39,6 +41,7 @@ export const M_UPDATE_WORKFLOW_EXECUTION = gql`
       createdAt
       updatedAt
       deletedAt
+      parentId
       workflowId
       status
       startedAt
@@ -48,8 +51,9 @@ export const M_UPDATE_WORKFLOW_EXECUTION = gql`
       inputData
       outputData
       errorMessage
-      stepFunctionExecutionArn
-      stepFunctionStateMachineArn
+      totalNodes
+      completedNodes
+      currentNodeId
     }
   }
 `;
@@ -64,6 +68,7 @@ export const M_CANCEL_WORKFLOW_EXECUTION = gql`
       createdAt
       updatedAt
       deletedAt
+      parentId
       workflowId
       status
       startedAt
@@ -73,8 +78,9 @@ export const M_CANCEL_WORKFLOW_EXECUTION = gql`
       inputData
       outputData
       errorMessage
-      stepFunctionExecutionArn
-      stepFunctionStateMachineArn
+      totalNodes
+      completedNodes
+      currentNodeId
     }
   }
 `;

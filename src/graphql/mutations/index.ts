@@ -14,3 +14,4 @@ export * from './Text.js';
 export * from './Scan.js';
 export * from './Workflow.js';
 export * from './WorkflowExecution.js';
+export * from './WorkflowNodeExecution.js';

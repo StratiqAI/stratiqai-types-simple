@@ -99,8 +99,7 @@ export type CreateTextInput = {
 
 export type CreateWorkflowExecutionInput = {
   inputData?: InputMaybe<Scalars['AWSJSON']['input']>;
-  stepFunctionExecutionArn?: InputMaybe<Scalars['String']['input']>;
-  stepFunctionStateMachineArn?: InputMaybe<Scalars['String']['input']>;
+  parentId: Scalars['ID']['input'];
   triggerEvent?: InputMaybe<Scalars['AWSJSON']['input']>;
   workflowId: Scalars['ID']['input'];
 };
@@ -113,11 +112,11 @@ export type CreateWorkflowInput = {
 
 export type CreateWorkflowNodeExecutionInput = {
   inputData?: InputMaybe<Scalars['AWSJSON']['input']>;
+  nodeCategory?: InputMaybe<Scalars['String']['input']>;
   nodeId: Scalars['String']['input'];
   nodeName?: InputMaybe<Scalars['String']['input']>;
   nodeType?: InputMaybe<Scalars['String']['input']>;
-  stepFunctionExecutionArn?: InputMaybe<Scalars['String']['input']>;
-  stepFunctionTaskToken?: InputMaybe<Scalars['String']['input']>;
+  parentId: Scalars['ID']['input'];
   workflowExecutionId: Scalars['ID']['input'];
 };
 
@@ -290,6 +289,8 @@ export type Mutation = {
   deleteTable?: Maybe<Table>;
   deleteText?: Maybe<Text>;
   deleteWorkflow?: Maybe<Workflow>;
+  deleteWorkflowExecution?: Maybe<WorkflowExecution>;
+  deleteWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
   restoreProject?: Maybe<Project>;
   updateDoclink?: Maybe<Doclink>;
   updateDocument?: Maybe<Document>;
@@ -421,6 +422,16 @@ export type MutationDeleteWorkflowArgs = {
 };
 
 
+export type MutationDeleteWorkflowExecutionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteWorkflowNodeExecutionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationRestoreProjectArgs = {
   id: Scalars['ID']['input'];
 };
@@ -539,6 +550,7 @@ export type Project = Metadata & Node & Shareable & {
   tenantId: Scalars['ID']['output'];
   topics?: Maybe<TopicConnection>;
   updatedAt: Scalars['AWSDateTime']['output'];
+  workflowexecutions?: Maybe<WorkflowExecutionConnection>;
   workflows?: Maybe<WorkflowConnection>;
 };
 
@@ -568,6 +580,12 @@ export type ProjectPrompttemplatesArgs = {
 
 
 export type ProjectTopicsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type ProjectWorkflowexecutionsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
 };
@@ -1246,9 +1264,12 @@ export type UpdateTextInput = {
 export type UpdateWorkflowExecutionInput = {
   cancelledAt?: InputMaybe<Scalars['AWSDateTime']['input']>;
   completedAt?: InputMaybe<Scalars['AWSDateTime']['input']>;
+  completedNodes?: InputMaybe<Scalars['Int']['input']>;
+  currentNodeId?: InputMaybe<Scalars['String']['input']>;
   errorMessage?: InputMaybe<Scalars['String']['input']>;
   outputData?: InputMaybe<Scalars['AWSJSON']['input']>;
   status?: InputMaybe<WorkflowExecutionStatus>;
+  totalNodes?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type UpdateWorkflowInput = {
@@ -1275,13 +1296,22 @@ export type Workflow = Metadata & Node & Shareable & {
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   ownerId: Scalars['ID']['output'];
+  parentId: Scalars['ID']['output'];
+  project?: Maybe<Project>;
   sharingMode: SharingMode;
   tenantId: Scalars['ID']['output'];
   updatedAt: Scalars['AWSDateTime']['output'];
+  workflowExecutions?: Maybe<WorkflowExecutionConnection>;
 };
 
 
 export type WorkflowAccessListArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type WorkflowWorkflowExecutionsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
 };
@@ -1296,7 +1326,9 @@ export type WorkflowExecution = Metadata & Node & {
   __typename?: 'WorkflowExecution';
   cancelledAt?: Maybe<Scalars['AWSDateTime']['output']>;
   completedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  completedNodes?: Maybe<Scalars['Int']['output']>;
   createdAt: Scalars['AWSDateTime']['output'];
+  currentNodeId?: Maybe<Scalars['String']['output']>;
   deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
   entityType: EntityType;
   errorMessage?: Maybe<Scalars['String']['output']>;
@@ -1305,19 +1337,28 @@ export type WorkflowExecution = Metadata & Node & {
   nodeExecutions?: Maybe<WorkflowNodeExecutionConnection>;
   outputData?: Maybe<Scalars['AWSJSON']['output']>;
   ownerId: Scalars['ID']['output'];
+  parentId: Scalars['ID']['output'];
+  project?: Maybe<Project>;
   startedAt?: Maybe<Scalars['AWSDateTime']['output']>;
   status: WorkflowExecutionStatus;
-  stepFunctionExecutionArn?: Maybe<Scalars['String']['output']>;
-  stepFunctionStateMachineArn?: Maybe<Scalars['String']['output']>;
   tenantId: Scalars['ID']['output'];
+  totalNodes?: Maybe<Scalars['Int']['output']>;
   triggerEvent?: Maybe<Scalars['AWSJSON']['output']>;
   updatedAt: Scalars['AWSDateTime']['output'];
   workflow?: Maybe<Workflow>;
   workflowId: Scalars['ID']['output'];
+  /** @deprecated Use nodeExecutions instead */
+  workflownodeexecutions?: Maybe<WorkflowNodeExecutionConnection>;
 };
 
 
 export type WorkflowExecutionNodeExecutionsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type WorkflowExecutionWorkflownodeexecutionsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
 };
@@ -1345,15 +1386,15 @@ export type WorkflowNodeExecution = Metadata & Node & {
   errorMessage?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   inputData?: Maybe<Scalars['AWSJSON']['output']>;
+  nodeCategory?: Maybe<Scalars['String']['output']>;
   nodeId: Scalars['String']['output'];
   nodeName?: Maybe<Scalars['String']['output']>;
   nodeType?: Maybe<Scalars['String']['output']>;
   outputData?: Maybe<Scalars['AWSJSON']['output']>;
   ownerId: Scalars['ID']['output'];
+  parentId: Scalars['ID']['output'];
   startedAt?: Maybe<Scalars['AWSDateTime']['output']>;
   status: WorkflowNodeExecutionStatus;
-  stepFunctionExecutionArn?: Maybe<Scalars['String']['output']>;
-  stepFunctionTaskToken?: Maybe<Scalars['String']['output']>;
   tenantId: Scalars['ID']['output'];
   updatedAt: Scalars['AWSDateTime']['output'];
   workflowExecution?: Maybe<WorkflowExecution>;
@@ -1605,7 +1646,7 @@ export type CreateWorkflowExecutionMutationVariables = Exact<{
 }>;
 
 
-export type CreateWorkflowExecutionMutation = { __typename?: 'Mutation', createWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, stepFunctionExecutionArn?: string | null | undefined, stepFunctionStateMachineArn?: string | null | undefined } | null | undefined };
+export type CreateWorkflowExecutionMutation = { __typename?: 'Mutation', createWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined } | null | undefined };
 
 export type UpdateWorkflowExecutionMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1613,14 +1654,36 @@ export type UpdateWorkflowExecutionMutationVariables = Exact<{
 }>;
 
 
-export type UpdateWorkflowExecutionMutation = { __typename?: 'Mutation', updateWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, stepFunctionExecutionArn?: string | null | undefined, stepFunctionStateMachineArn?: string | null | undefined } | null | undefined };
+export type UpdateWorkflowExecutionMutation = { __typename?: 'Mutation', updateWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined } | null | undefined };
 
 export type CancelWorkflowExecutionMutationVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type CancelWorkflowExecutionMutation = { __typename?: 'Mutation', cancelWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, stepFunctionExecutionArn?: string | null | undefined, stepFunctionStateMachineArn?: string | null | undefined } | null | undefined };
+export type CancelWorkflowExecutionMutation = { __typename?: 'Mutation', cancelWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined } | null | undefined };
+
+export type CreateWorkflowNodeExecutionMutationVariables = Exact<{
+  input: CreateWorkflowNodeExecutionInput;
+}>;
+
+
+export type CreateWorkflowNodeExecutionMutation = { __typename?: 'Mutation', createWorkflowNodeExecution?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowExecutionId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined } | null | undefined };
+
+export type UpdateWorkflowNodeExecutionMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: UpdateWorkflowNodeExecutionInput;
+}>;
+
+
+export type UpdateWorkflowNodeExecutionMutation = { __typename?: 'Mutation', updateWorkflowNodeExecution?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowExecutionId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined } | null | undefined };
+
+export type DeleteWorkflowNodeExecutionMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeleteWorkflowNodeExecutionMutation = { __typename?: 'Mutation', deleteWorkflowNodeExecution?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowExecutionId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined } | null | undefined };
 
 export type GetDoclinkQueryVariables = Exact<{
   key: CompositeKeyInput;
@@ -1785,7 +1848,7 @@ export type GetWorkflowExecutionQueryVariables = Exact<{
 }>;
 
 
-export type GetWorkflowExecutionQuery = { __typename?: 'Query', getWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, stepFunctionExecutionArn?: string | null | undefined, stepFunctionStateMachineArn?: string | null | undefined, workflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definitionJSON: any } | null | undefined, nodeExecutions?: { __typename?: 'WorkflowNodeExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, workflowExecutionId: string, nodeId: string, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined, stepFunctionTaskToken?: string | null | undefined, stepFunctionExecutionArn?: string | null | undefined }> } | null | undefined } | null | undefined };
+export type GetWorkflowExecutionQuery = { __typename?: 'Query', getWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined, workflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definitionJSON: any } | null | undefined, nodeExecutions?: { __typename?: 'WorkflowNodeExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowExecutionId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined }> } | null | undefined } | null | undefined };
 
 export type ListWorkflowExecutionsQueryVariables = Exact<{
   workflowId?: InputMaybe<Scalars['ID']['input']>;
@@ -1795,14 +1858,14 @@ export type ListWorkflowExecutionsQueryVariables = Exact<{
 }>;
 
 
-export type ListWorkflowExecutionsQuery = { __typename?: 'Query', listWorkflowExecutions: { __typename?: 'WorkflowExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, stepFunctionExecutionArn?: string | null | undefined, stepFunctionStateMachineArn?: string | null | undefined, workflow?: { __typename?: 'Workflow', id: string, name: string, definitionJSON: any } | null | undefined }> } };
+export type ListWorkflowExecutionsQuery = { __typename?: 'Query', listWorkflowExecutions: { __typename?: 'WorkflowExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined, workflow?: { __typename?: 'Workflow', id: string, name: string, definitionJSON: any } | null | undefined }> } };
 
 export type GetWorkflowNodeExecutionQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type GetWorkflowNodeExecutionQuery = { __typename?: 'Query', getWorkflowNodeExecution?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, workflowExecutionId: string, nodeId: string, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined, stepFunctionTaskToken?: string | null | undefined, stepFunctionExecutionArn?: string | null | undefined, workflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, stepFunctionExecutionArn?: string | null | undefined, stepFunctionStateMachineArn?: string | null | undefined } | null | undefined } | null | undefined };
+export type GetWorkflowNodeExecutionQuery = { __typename?: 'Query', getWorkflowNodeExecution?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowExecutionId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined, workflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined } | null | undefined } | null | undefined };
 
 export type ListWorkflowNodeExecutionsQueryVariables = Exact<{
   workflowExecutionId: Scalars['ID']['input'];
@@ -1812,7 +1875,7 @@ export type ListWorkflowNodeExecutionsQueryVariables = Exact<{
 }>;
 
 
-export type ListWorkflowNodeExecutionsQuery = { __typename?: 'Query', listWorkflowNodeExecutions: { __typename?: 'WorkflowNodeExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, workflowExecutionId: string, nodeId: string, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined, stepFunctionTaskToken?: string | null | undefined, stepFunctionExecutionArn?: string | null | undefined }> } };
+export type ListWorkflowNodeExecutionsQuery = { __typename?: 'Query', listWorkflowNodeExecutions: { __typename?: 'WorkflowNodeExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowExecutionId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined }> } };
 
 export type OnCreateDoclinkSubscriptionVariables = Exact<{
   parentId?: InputMaybe<Scalars['ID']['input']>;
@@ -2026,6 +2089,49 @@ export type OnDeleteWorkflowSubscriptionVariables = Exact<{
 
 export type OnDeleteWorkflowSubscription = { __typename?: 'Subscription', onDeleteWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definitionJSON: any } | null | undefined };
 
+export type OnCreateWorkflowExecutionSubscriptionVariables = Exact<{
+  workflowId: Scalars['ID']['input'];
+}>;
+
+
+export type OnCreateWorkflowExecutionSubscription = { __typename?: 'Subscription', onCreateWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined } | null | undefined };
+
+export type OnUpdateWorkflowExecutionSubscriptionVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnUpdateWorkflowExecutionSubscription = { __typename?: 'Subscription', onUpdateWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined } | null | undefined };
+
+export type OnWorkflowExecutionStatusChangeSubscriptionVariables = Exact<{
+  workflowId?: InputMaybe<Scalars['ID']['input']>;
+  status?: InputMaybe<WorkflowExecutionStatus>;
+}>;
+
+
+export type OnWorkflowExecutionStatusChangeSubscription = { __typename?: 'Subscription', onWorkflowExecutionStatusChange?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined } | null | undefined };
+
+export type OnCreateWorkflowNodeExecutionSubscriptionVariables = Exact<{
+  workflowExecutionId: Scalars['ID']['input'];
+}>;
+
+
+export type OnCreateWorkflowNodeExecutionSubscription = { __typename?: 'Subscription', onCreateWorkflowNodeExecution?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowExecutionId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined } | null | undefined };
+
+export type OnUpdateWorkflowNodeExecutionSubscriptionVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnUpdateWorkflowNodeExecutionSubscription = { __typename?: 'Subscription', onUpdateWorkflowNodeExecution?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowExecutionId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined } | null | undefined };
+
+export type OnWorkflowNodeExecutionStatusChangeSubscriptionVariables = Exact<{
+  workflowExecutionId: Scalars['ID']['input'];
+}>;
+
+
+export type OnWorkflowNodeExecutionStatusChangeSubscription = { __typename?: 'Subscription', onWorkflowNodeExecutionStatusChange?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowExecutionId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined } | null | undefined };
+
 export declare const CreateDoclink: import("graphql").DocumentNode;
 export declare const UpdateDoclink: import("graphql").DocumentNode;
 export declare const DeleteDoclink: import("graphql").DocumentNode;
@@ -2060,6 +2166,9 @@ export declare const DeleteWorkflow: import("graphql").DocumentNode;
 export declare const CreateWorkflowExecution: import("graphql").DocumentNode;
 export declare const UpdateWorkflowExecution: import("graphql").DocumentNode;
 export declare const CancelWorkflowExecution: import("graphql").DocumentNode;
+export declare const CreateWorkflowNodeExecution: import("graphql").DocumentNode;
+export declare const UpdateWorkflowNodeExecution: import("graphql").DocumentNode;
+export declare const DeleteWorkflowNodeExecution: import("graphql").DocumentNode;
 export declare const GetDoclink: import("graphql").DocumentNode;
 export declare const ListDoclinks: import("graphql").DocumentNode;
 export declare const GetDocument: import("graphql").DocumentNode;
@@ -2114,3 +2223,9 @@ export declare const OnDeleteText: import("graphql").DocumentNode;
 export declare const OnCreateWorkflow: import("graphql").DocumentNode;
 export declare const OnUpdateWorkflow: import("graphql").DocumentNode;
 export declare const OnDeleteWorkflow: import("graphql").DocumentNode;
+export declare const OnCreateWorkflowExecution: import("graphql").DocumentNode;
+export declare const OnUpdateWorkflowExecution: import("graphql").DocumentNode;
+export declare const OnWorkflowExecutionStatusChange: import("graphql").DocumentNode;
+export declare const OnCreateWorkflowNodeExecution: import("graphql").DocumentNode;
+export declare const OnUpdateWorkflowNodeExecution: import("graphql").DocumentNode;
+export declare const OnWorkflowNodeExecutionStatusChange: import("graphql").DocumentNode;

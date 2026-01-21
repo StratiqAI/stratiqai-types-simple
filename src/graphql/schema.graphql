@@ -445,6 +445,7 @@ type Project implements Node & Metadata & Shareable
   notifications(limit: Int, nextToken: String): NotificationConnection
   prompttemplates(limit: Int, nextToken: String): PromptTemplateConnection
   workflows(limit: Int, nextToken: String): WorkflowConnection
+  workflowexecutions(limit: Int, nextToken: String): WorkflowExecutionConnection
 }
 
 type ProjectConnection
@@ -471,6 +472,13 @@ type Workflow implements Node & Metadata & Shareable
 
   name: String!
   definitionJSON: AWSJSON!
+
+  # Parent Relationship
+  parentId: ID!
+  project: Project
+
+  # Workflow Fields
+  workflowExecutions(limit: Int, nextToken: String): WorkflowExecutionConnection
 }
 
 type WorkflowConnection
@@ -485,6 +493,7 @@ type WorkflowConnection
 type WorkflowExecution implements Node & Metadata
   @aws_iam
   @aws_cognito_user_pools {
+
   # Metadata Fields
   id: ID!
   entityType: EntityType!
@@ -493,6 +502,10 @@ type WorkflowExecution implements Node & Metadata
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
   deletedAt: AWSDateTime
+
+  # Parent Relationship
+  parentId: ID!
+  project: Project
 
   # Workflow Execution Fields
   workflowId: ID!
@@ -508,12 +521,14 @@ type WorkflowExecution implements Node & Metadata
   outputData: AWSJSON
   errorMessage: String
 
-  # Step Functions Integration
-  stepFunctionExecutionArn: String
-  stepFunctionStateMachineArn: String
+  # Progress Tracking
+  totalNodes: Int
+  completedNodes: Int
+  currentNodeId: String
 
   # Node Executions
   nodeExecutions(limit: Int, nextToken: String): WorkflowNodeExecutionConnection
+  workflownodeexecutions(limit: Int, nextToken: String): WorkflowNodeExecutionConnection @deprecated(reason: "Use nodeExecutions instead")
 }
 
 type WorkflowExecutionConnection
@@ -537,10 +552,16 @@ type WorkflowNodeExecution implements Node & Metadata
   updatedAt: AWSDateTime!
   deletedAt: AWSDateTime
 
+  # Parent Relationship (for DynamoDB access pattern)
+  parentId: ID!
+
+  # Node Identity
+  nodeId: String!
+  nodeCategory: String
+
   # Node Execution Fields
   workflowExecutionId: ID!
   workflowExecution: WorkflowExecution
-  nodeId: String!
   nodeName: String
   nodeType: String
   status: WorkflowNodeExecutionStatus!
@@ -555,9 +576,6 @@ type WorkflowNodeExecution implements Node & Metadata
   errorMessage: String
   errorDetails: AWSJSON
 
-  # Step Functions Integration
-  stepFunctionTaskToken: String
-  stepFunctionExecutionArn: String
 }
 
 type WorkflowNodeExecutionConnection
@@ -761,11 +779,11 @@ input UpdateWorkflowInput {
 
 # WORKFLOW EXECUTION INPUTS
 input CreateWorkflowExecutionInput {
+  # REQUIRED: To perform the Strongly Consistent Write to Main Table
+  parentId: ID!
   workflowId: ID!
   triggerEvent: AWSJSON
   inputData: AWSJSON
-  stepFunctionExecutionArn: String
-  stepFunctionStateMachineArn: String
 }
 
 input UpdateWorkflowExecutionInput {
@@ -774,17 +792,21 @@ input UpdateWorkflowExecutionInput {
   errorMessage: String
   completedAt: AWSDateTime
   cancelledAt: AWSDateTime
+  # Progress tracking
+  totalNodes: Int
+  completedNodes: Int
+  currentNodeId: String
 }
 
 # WORKFLOW NODE EXECUTION INPUTS
 input CreateWorkflowNodeExecutionInput {
   workflowExecutionId: ID!
+  parentId: ID!
   nodeId: String!
   nodeName: String
   nodeType: String
+  nodeCategory: String
   inputData: AWSJSON
-  stepFunctionTaskToken: String
-  stepFunctionExecutionArn: String
 }
 
 input UpdateWorkflowNodeExecutionInput {
@@ -1188,6 +1210,11 @@ type Mutation {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
+  deleteWorkflowExecution(id: ID!): WorkflowExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
 
   # WORKFLOW NODE EXECUTION OPERATIONS
   createWorkflowNodeExecution(input: CreateWorkflowNodeExecutionInput!): WorkflowNodeExecution
@@ -1199,6 +1226,11 @@ type Mutation {
     id: ID!
     input: UpdateWorkflowNodeExecutionInput!
   ): WorkflowNodeExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  deleteWorkflowNodeExecution(id: ID!): WorkflowNodeExecution
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]

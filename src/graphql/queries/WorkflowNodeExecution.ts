@@ -14,6 +14,7 @@ export const Q_GET_WORKFLOW_NODE_EXECUTION = gql`
       createdAt
       updatedAt
       deletedAt
+      parentId
       workflowExecutionId
       workflowExecution {
         id
@@ -23,6 +24,7 @@ export const Q_GET_WORKFLOW_NODE_EXECUTION = gql`
         createdAt
         updatedAt
         deletedAt
+        parentId
         workflowId
         status
         startedAt
@@ -32,10 +34,12 @@ export const Q_GET_WORKFLOW_NODE_EXECUTION = gql`
         inputData
         outputData
         errorMessage
-        stepFunctionExecutionArn
-        stepFunctionStateMachineArn
+        totalNodes
+        completedNodes
+        currentNodeId
       }
       nodeId
+      nodeCategory
       nodeName
       nodeType
       status
@@ -45,8 +49,6 @@ export const Q_GET_WORKFLOW_NODE_EXECUTION = gql`
       outputData
       errorMessage
       errorDetails
-      stepFunctionTaskToken
-      stepFunctionExecutionArn
     }
   }
 `;
@@ -72,8 +74,10 @@ export const Q_LIST_WORKFLOW_NODE_EXECUTIONS = gql`
         createdAt
         updatedAt
         deletedAt
+        parentId
         workflowExecutionId
         nodeId
+        nodeCategory
         nodeName
         nodeType
         status
@@ -83,8 +87,6 @@ export const Q_LIST_WORKFLOW_NODE_EXECUTIONS = gql`
         outputData
         errorMessage
         errorDetails
-        stepFunctionTaskToken
-        stepFunctionExecutionArn
       }
       nextToken
     }

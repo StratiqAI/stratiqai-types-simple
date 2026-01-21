@@ -1764,6 +1764,13 @@ export type ListProjectsQueryVariables = Exact<{
 
 export type ListProjectsQuery = { __typename?: 'Query', listProjects: { __typename?: 'ProjectConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus }> } };
 
+export type GetProjectWithPromptTemplatesQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetProjectWithPromptTemplatesQuery = { __typename?: 'Query', getProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus, prompttemplates?: { __typename?: 'PromptTemplateConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'PromptTemplate', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, template: string, description?: string | null | undefined }> } | null | undefined } | null | undefined };
+
 export type GetPromptTemplateQueryVariables = Exact<{
   key: CompositeKeyInput;
 }>;
@@ -2179,6 +2186,7 @@ export declare const GetNotification: import("graphql").DocumentNode;
 export declare const ListNotifications: import("graphql").DocumentNode;
 export declare const GetProject: import("graphql").DocumentNode;
 export declare const ListProjects: import("graphql").DocumentNode;
+export declare const GetProjectWithPromptTemplates: import("graphql").DocumentNode;
 export declare const GetPromptTemplate: import("graphql").DocumentNode;
 export declare const ListPromptTemplates: import("graphql").DocumentNode;
 export declare const GetScan: import("graphql").DocumentNode;

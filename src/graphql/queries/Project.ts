@@ -102,3 +102,41 @@ export const Q_LIST_PROJECTS = gql`
     }
   }
 `;
+
+/**
+ * Query to get a project with its prompt templates
+ * Used by the Library page to fetch templates for a selected project
+ */
+export const Q_GET_PROJECT_WITH_PROMPT_TEMPLATES = gql`
+  query GetProjectWithPromptTemplates($id: ID!) {
+    getProject(id: $id) {
+      id
+      entityType
+      tenantId
+      ownerId
+      createdAt
+      updatedAt
+      sharingMode
+      name
+      description
+      status
+      prompttemplates(limit: 100) {
+        items {
+          id
+          entityType
+          tenantId
+          ownerId
+          createdAt
+          updatedAt
+          deletedAt
+          sharingMode
+          parentId
+          name
+          template
+          description
+        }
+        nextToken
+      }
+    }
+  }
+`;

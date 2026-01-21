@@ -32,8 +32,8 @@ export const M_CREATE_WORKFLOW_EXECUTION = gql`
 `;
 
 export const M_UPDATE_WORKFLOW_EXECUTION = gql`
-  mutation UpdateWorkflowExecution($id: ID!, $input: UpdateWorkflowExecutionInput!) {
-    updateWorkflowExecution(id: $id, input: $input) {
+  mutation UpdateWorkflowExecution($key: CompositeKeyInput!, $input: UpdateWorkflowExecutionInput!) {
+    updateWorkflowExecution(key: $key, input: $input) {
       id
       entityType
       tenantId
@@ -59,8 +59,8 @@ export const M_UPDATE_WORKFLOW_EXECUTION = gql`
 `;
 
 export const M_CANCEL_WORKFLOW_EXECUTION = gql`
-  mutation CancelWorkflowExecution($id: ID!) {
-    cancelWorkflowExecution(id: $id) {
+  mutation CancelWorkflowExecution($key: CompositeKeyInput!) {
+    cancelWorkflowExecution(key: $key) {
       id
       entityType
       tenantId

@@ -308,7 +308,7 @@ export type Mutation = {
 
 
 export type MutationCancelWorkflowExecutionArgs = {
-  id: Scalars['ID']['input'];
+  key: CompositeKeyInput;
 };
 
 
@@ -423,12 +423,12 @@ export type MutationDeleteWorkflowArgs = {
 
 
 export type MutationDeleteWorkflowExecutionArgs = {
-  id: Scalars['ID']['input'];
+  key: CompositeKeyInput;
 };
 
 
 export type MutationDeleteWorkflowNodeExecutionArgs = {
-  id: Scalars['ID']['input'];
+  key: CompositeKeyInput;
 };
 
 
@@ -498,14 +498,14 @@ export type MutationUpdateWorkflowArgs = {
 
 
 export type MutationUpdateWorkflowExecutionArgs = {
-  id: Scalars['ID']['input'];
   input: UpdateWorkflowExecutionInput;
+  key: CompositeKeyInput;
 };
 
 
 export type MutationUpdateWorkflowNodeExecutionArgs = {
-  id: Scalars['ID']['input'];
   input: UpdateWorkflowNodeExecutionInput;
+  key: CompositeKeyInput;
 };
 
 export type Node = {
@@ -1649,7 +1649,7 @@ export type CreateWorkflowExecutionMutationVariables = Exact<{
 export type CreateWorkflowExecutionMutation = { __typename?: 'Mutation', createWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined } | null | undefined };
 
 export type UpdateWorkflowExecutionMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
+  key: CompositeKeyInput;
   input: UpdateWorkflowExecutionInput;
 }>;
 
@@ -1657,7 +1657,7 @@ export type UpdateWorkflowExecutionMutationVariables = Exact<{
 export type UpdateWorkflowExecutionMutation = { __typename?: 'Mutation', updateWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined } | null | undefined };
 
 export type CancelWorkflowExecutionMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
+  key: CompositeKeyInput;
 }>;
 
 
@@ -1671,7 +1671,7 @@ export type CreateWorkflowNodeExecutionMutationVariables = Exact<{
 export type CreateWorkflowNodeExecutionMutation = { __typename?: 'Mutation', createWorkflowNodeExecution?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowExecutionId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined } | null | undefined };
 
 export type UpdateWorkflowNodeExecutionMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
+  key: CompositeKeyInput;
   input: UpdateWorkflowNodeExecutionInput;
 }>;
 
@@ -1679,7 +1679,7 @@ export type UpdateWorkflowNodeExecutionMutationVariables = Exact<{
 export type UpdateWorkflowNodeExecutionMutation = { __typename?: 'Mutation', updateWorkflowNodeExecution?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowExecutionId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined } | null | undefined };
 
 export type DeleteWorkflowNodeExecutionMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
+  key: CompositeKeyInput;
 }>;
 
 

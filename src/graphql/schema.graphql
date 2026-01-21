@@ -1197,20 +1197,23 @@ type Mutation {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
+  # Update: Uses Composite Key to access Main Table
   updateWorkflowExecution(
-    id: ID!
+    key: CompositeKeyInput!
     input: UpdateWorkflowExecutionInput!
   ): WorkflowExecution
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
-  cancelWorkflowExecution(id: ID!): WorkflowExecution
+  # Cancel: Uses Composite Key to access Main Table
+  cancelWorkflowExecution(key: CompositeKeyInput!): WorkflowExecution
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
-  deleteWorkflowExecution(id: ID!): WorkflowExecution
+  # Delete: Uses Composite Key to access Main Table
+  deleteWorkflowExecution(key: CompositeKeyInput!): WorkflowExecution
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -1222,15 +1225,17 @@ type Mutation {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
+  # Update: Uses Composite Key to access Main Table
   updateWorkflowNodeExecution(
-    id: ID!
+    key: CompositeKeyInput!
     input: UpdateWorkflowNodeExecutionInput!
   ): WorkflowNodeExecution
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
-  deleteWorkflowNodeExecution(id: ID!): WorkflowNodeExecution
+  # Delete: Uses Composite Key to access Main Table
+  deleteWorkflowNodeExecution(key: CompositeKeyInput!): WorkflowNodeExecution
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]

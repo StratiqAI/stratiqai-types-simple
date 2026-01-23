@@ -101,7 +101,6 @@ export type CreateWorkflowExecutionInput = {
   inputData?: InputMaybe<Scalars['AWSJSON']['input']>;
   parentId: Scalars['ID']['input'];
   triggerEvent?: InputMaybe<Scalars['AWSJSON']['input']>;
-  workflowId: Scalars['ID']['input'];
 };
 
 export type CreateWorkflowInput = {
@@ -118,7 +117,6 @@ export type CreateWorkflowNodeExecutionInput = {
   nodeName?: InputMaybe<Scalars['String']['input']>;
   nodeType?: InputMaybe<Scalars['String']['input']>;
   parentId: Scalars['ID']['input'];
-  workflowExecutionId: Scalars['ID']['input'];
 };
 
 export type DeleteDocumentInput = {
@@ -551,7 +549,6 @@ export type Project = Metadata & Node & Shareable & {
   tenantId: Scalars['ID']['output'];
   topics?: Maybe<TopicConnection>;
   updatedAt: Scalars['AWSDateTime']['output'];
-  workflowexecutions?: Maybe<WorkflowExecutionConnection>;
   workflows?: Maybe<WorkflowConnection>;
 };
 
@@ -581,12 +578,6 @@ export type ProjectPrompttemplatesArgs = {
 
 
 export type ProjectTopicsArgs = {
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  nextToken?: InputMaybe<Scalars['String']['input']>;
-};
-
-
-export type ProjectWorkflowexecutionsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
 };
@@ -655,8 +646,11 @@ export type Query = {
   getTable?: Maybe<Table>;
   /** Get a single Text. Requires composite key (ID + ParentID) for access. */
   getText?: Maybe<Text>;
+  /** Get a single Workflow. Requires composite key (ID + ParentID) for access. */
   getWorkflow?: Maybe<Workflow>;
+  /** Get a single WorkflowExecution. Requires composite key (ID + ParentID) for access. */
   getWorkflowExecution?: Maybe<WorkflowExecution>;
+  /** Get a single WorkflowNodeExecution. Requires composite key (ID + ParentID) for access. */
   getWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
   /** List Doclinks for a specific Project. Uses GSI1 (The View). */
   listDoclinks: DoclinkConnection;
@@ -674,8 +668,11 @@ export type Query = {
   listTables: TableConnection;
   /** List Texts for a specific Document. Uses GSI1 (The View). */
   listTexts: TextConnection;
+  /** List WorkflowExecutions for a specific Workflow. Uses main table query. */
   listWorkflowExecutions: WorkflowExecutionConnection;
+  /** List WorkflowNodeExecutions for a specific WorkflowExecution. Uses main table query. */
   listWorkflowNodeExecutions: WorkflowNodeExecutionConnection;
+  /** List Workflows for a specific Project. Uses main table query. */
   listWorkflows: WorkflowConnection;
 };
 
@@ -726,17 +723,17 @@ export type QueryGetTextArgs = {
 
 
 export type QueryGetWorkflowArgs = {
-  id: Scalars['ID']['input'];
+  key: CompositeKeyInput;
 };
 
 
 export type QueryGetWorkflowExecutionArgs = {
-  id: Scalars['ID']['input'];
+  key: CompositeKeyInput;
 };
 
 
 export type QueryGetWorkflowNodeExecutionArgs = {
-  id: Scalars['ID']['input'];
+  key: CompositeKeyInput;
 };
 
 
@@ -805,22 +802,23 @@ export type QueryListTextsArgs = {
 export type QueryListWorkflowExecutionsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
+  parentId: Scalars['ID']['input'];
   status?: InputMaybe<WorkflowExecutionStatus>;
-  workflowId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
 export type QueryListWorkflowNodeExecutionsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
+  parentId: Scalars['ID']['input'];
   status?: InputMaybe<WorkflowNodeExecutionStatus>;
-  workflowExecutionId: Scalars['ID']['input'];
 };
 
 
 export type QueryListWorkflowsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
+  parentId: Scalars['ID']['input'];
 };
 
 export type ResourceShare = Metadata & Node & {
@@ -1304,7 +1302,7 @@ export type Workflow = Metadata & Node & Shareable & {
   tenantId: Scalars['ID']['output'];
   ui?: Maybe<WorkflowUi>;
   updatedAt: Scalars['AWSDateTime']['output'];
-  workflowExecutions?: Maybe<WorkflowExecutionConnection>;
+  workflowexecutions?: Maybe<WorkflowExecutionConnection>;
 };
 
 
@@ -1314,7 +1312,7 @@ export type WorkflowAccessListArgs = {
 };
 
 
-export type WorkflowWorkflowExecutionsArgs = {
+export type WorkflowWorkflowexecutionsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
 };
@@ -1337,7 +1335,6 @@ export type WorkflowExecution = Metadata & Node & {
   errorMessage?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   inputData?: Maybe<Scalars['AWSJSON']['output']>;
-  nodeExecutions?: Maybe<WorkflowNodeExecutionConnection>;
   outputData?: Maybe<Scalars['AWSJSON']['output']>;
   ownerId: Scalars['ID']['output'];
   parentId: Scalars['ID']['output'];
@@ -1350,14 +1347,7 @@ export type WorkflowExecution = Metadata & Node & {
   updatedAt: Scalars['AWSDateTime']['output'];
   workflow?: Maybe<Workflow>;
   workflowId: Scalars['ID']['output'];
-  /** @deprecated Use nodeExecutions instead */
   workflownodeexecutions?: Maybe<WorkflowNodeExecutionConnection>;
-};
-
-
-export type WorkflowExecutionNodeExecutionsArgs = {
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  nextToken?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1807,7 +1797,7 @@ export type GetProjectQueryVariables = Exact<{
 }>;
 
 
-export type GetProjectQuery = { __typename?: 'Query', getProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus, accessList?: { __typename?: 'ResourceShareConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'ResourceShare', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, recipientUserId: string, permission: SharePermission, resourceTitle: string, resourceType: EntityType }> } | null | undefined, doclinks?: { __typename?: 'DoclinkConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, parentId: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, filename: string, status: DoclinkStatus, documentId: string, deletedAt?: string | null | undefined }> } | null | undefined, topics?: { __typename?: 'TopicConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Topic', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, parentId: string, name: string }> } | null | undefined, workflows?: { __typename?: 'WorkflowConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definition: any, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined }> } | null | undefined, workflowexecutions?: { __typename?: 'WorkflowExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined }> } | null | undefined } | null | undefined };
+export type GetProjectQuery = { __typename?: 'Query', getProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus, accessList?: { __typename?: 'ResourceShareConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'ResourceShare', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, recipientUserId: string, permission: SharePermission, resourceTitle: string, resourceType: EntityType }> } | null | undefined, doclinks?: { __typename?: 'DoclinkConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, parentId: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, filename: string, status: DoclinkStatus, documentId: string, deletedAt?: string | null | undefined }> } | null | undefined, topics?: { __typename?: 'TopicConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Topic', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, parentId: string, name: string }> } | null | undefined, workflows?: { __typename?: 'WorkflowConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definition: any, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined }> } | null | undefined } | null | undefined };
 
 export type ListProjectsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -1890,13 +1880,14 @@ export type ListTextsQueryVariables = Exact<{
 export type ListTextsQuery = { __typename?: 'Query', listTexts: { __typename?: 'TextConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Text', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, pageNum: number, text: string }> } };
 
 export type GetWorkflowQueryVariables = Exact<{
-  id: Scalars['ID']['input'];
+  key: CompositeKeyInput;
 }>;
 
 
 export type GetWorkflowQuery = { __typename?: 'Query', getWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definition: any, parentId: string, accessList?: { __typename?: 'ResourceShareConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'ResourceShare', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, recipientUserId: string, permission: SharePermission, resourceTitle: string, resourceType: EntityType }> } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
 
 export type ListWorkflowsQueryVariables = Exact<{
+  parentId: Scalars['ID']['input'];
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
 }>;
@@ -1905,14 +1896,14 @@ export type ListWorkflowsQueryVariables = Exact<{
 export type ListWorkflowsQuery = { __typename?: 'Query', listWorkflows: { __typename?: 'WorkflowConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definition: any, parentId: string, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined }> } };
 
 export type GetWorkflowExecutionQueryVariables = Exact<{
-  id: Scalars['ID']['input'];
+  key: CompositeKeyInput;
 }>;
 
 
-export type GetWorkflowExecutionQuery = { __typename?: 'Query', getWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined, workflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definition: any, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined, nodeExecutions?: { __typename?: 'WorkflowNodeExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowExecutionId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined }> } | null | undefined } | null | undefined };
+export type GetWorkflowExecutionQuery = { __typename?: 'Query', getWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined, workflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definition: any, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined, workflownodeexecutions?: { __typename?: 'WorkflowNodeExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowExecutionId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined }> } | null | undefined } | null | undefined };
 
 export type ListWorkflowExecutionsQueryVariables = Exact<{
-  workflowId?: InputMaybe<Scalars['ID']['input']>;
+  parentId: Scalars['ID']['input'];
   status?: InputMaybe<WorkflowExecutionStatus>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
@@ -1922,14 +1913,14 @@ export type ListWorkflowExecutionsQueryVariables = Exact<{
 export type ListWorkflowExecutionsQuery = { __typename?: 'Query', listWorkflowExecutions: { __typename?: 'WorkflowExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined, workflow?: { __typename?: 'Workflow', id: string, name: string, definition: any } | null | undefined }> } };
 
 export type GetWorkflowNodeExecutionQueryVariables = Exact<{
-  id: Scalars['ID']['input'];
+  key: CompositeKeyInput;
 }>;
 
 
 export type GetWorkflowNodeExecutionQuery = { __typename?: 'Query', getWorkflowNodeExecution?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowExecutionId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined, workflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined } | null | undefined } | null | undefined };
 
 export type ListWorkflowNodeExecutionsQueryVariables = Exact<{
-  workflowExecutionId: Scalars['ID']['input'];
+  parentId: Scalars['ID']['input'];
   status?: InputMaybe<WorkflowNodeExecutionStatus>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;

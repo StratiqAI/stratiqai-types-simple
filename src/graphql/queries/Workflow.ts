@@ -5,8 +5,8 @@ import { gql } from 'graphql-tag';
  */
 
 export const Q_GET_WORKFLOW = gql`
-  query GetWorkflow($id: ID!) {
-    getWorkflow(id: $id) {
+  query GetWorkflow($key: CompositeKeyInput!) {
+    getWorkflow(key: $key) {
       id
       entityType
       tenantId
@@ -57,8 +57,8 @@ export const Q_GET_WORKFLOW = gql`
 `;
 
 export const Q_LIST_WORKFLOWS = gql`
-  query ListWorkflows($limit: Int, $nextToken: String) {
-    listWorkflows(limit: $limit, nextToken: $nextToken) {
+  query ListWorkflows($parentId: ID!, $limit: Int, $nextToken: String) {
+    listWorkflows(parentId: $parentId, limit: $limit, nextToken: $nextToken) {
       items {
         id
         entityType

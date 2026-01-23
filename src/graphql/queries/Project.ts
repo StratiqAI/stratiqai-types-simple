@@ -98,31 +98,6 @@ export const Q_GET_PROJECT = gql`
         }
         nextToken
       }
-      workflowexecutions(limit: 100) {
-        items {
-          id
-          entityType
-          tenantId
-          ownerId
-          createdAt
-          updatedAt
-          deletedAt
-          parentId
-          workflowId
-          status
-          startedAt
-          completedAt
-          cancelledAt
-          triggerEvent
-          inputData
-          outputData
-          errorMessage
-          totalNodes
-          completedNodes
-          currentNodeId
-        }
-        nextToken
-      }
     }
   }
 `;

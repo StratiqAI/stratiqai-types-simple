@@ -5,8 +5,8 @@ import { gql } from 'graphql-tag';
  */
 
 export const Q_GET_WORKFLOW_NODE_EXECUTION = gql`
-  query GetWorkflowNodeExecution($id: ID!) {
-    getWorkflowNodeExecution(id: $id) {
+  query GetWorkflowNodeExecution($key: CompositeKeyInput!) {
+    getWorkflowNodeExecution(key: $key) {
       id
       entityType
       tenantId
@@ -55,13 +55,13 @@ export const Q_GET_WORKFLOW_NODE_EXECUTION = gql`
 
 export const Q_LIST_WORKFLOW_NODE_EXECUTIONS = gql`
   query ListWorkflowNodeExecutions(
-    $workflowExecutionId: ID!
+    $parentId: ID!
     $status: WorkflowNodeExecutionStatus
     $limit: Int
     $nextToken: String
   ) {
     listWorkflowNodeExecutions(
-      workflowExecutionId: $workflowExecutionId
+      parentId: $parentId
       status: $status
       limit: $limit
       nextToken: $nextToken

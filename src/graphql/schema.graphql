@@ -445,7 +445,7 @@ type Project implements Node & Metadata & Shareable
   notifications(limit: Int, nextToken: String): NotificationConnection
   prompttemplates(limit: Int, nextToken: String): PromptTemplateConnection
   workflows(limit: Int, nextToken: String): WorkflowConnection
-  workflowexecutions(limit: Int, nextToken: String): WorkflowExecutionConnection
+
 }
 
 type ProjectConnection
@@ -504,7 +504,7 @@ type Workflow implements Node & Metadata & Shareable
   project: Project
 
   # Workflow Fields
-  workflowExecutions(limit: Int, nextToken: String): WorkflowExecutionConnection
+  workflowexecutions(limit: Int, nextToken: String): WorkflowExecutionConnection
 }
 
 type WorkflowConnection
@@ -530,12 +530,12 @@ type WorkflowExecution implements Node & Metadata
   deletedAt: AWSDateTime
 
   # Parent Relationship
-  parentId: ID!
-  project: Project
+  parentId: ID! # Workflow ID (WorkflowExecution is a child of Workflow)
+  workflow: Workflow
 
   # Workflow Execution Fields
-  workflowId: ID!
-  workflow: Workflow
+  workflowId: ID! # Same as parentId, kept for clarity and backward compatibility
+  project: Project # Back-reference to project (via workflow.project)
   status: WorkflowExecutionStatus!
   startedAt: AWSDateTime
   completedAt: AWSDateTime
@@ -553,8 +553,7 @@ type WorkflowExecution implements Node & Metadata
   currentNodeId: String
 
   # Node Executions
-  nodeExecutions(limit: Int, nextToken: String): WorkflowNodeExecutionConnection
-  workflownodeexecutions(limit: Int, nextToken: String): WorkflowNodeExecutionConnection @deprecated(reason: "Use nodeExecutions instead")
+  workflownodeexecutions(limit: Int, nextToken: String): WorkflowNodeExecutionConnection
 }
 
 type WorkflowExecutionConnection
@@ -578,16 +577,16 @@ type WorkflowNodeExecution implements Node & Metadata
   updatedAt: AWSDateTime!
   deletedAt: AWSDateTime
 
-  # Parent Relationship (for DynamoDB access pattern)
-  parentId: ID!
+  # Parent Relationship
+  parentId: ID! # WorkflowExecution ID (WorkflowNodeExecution is a child of WorkflowExecution)
+  workflowExecution: WorkflowExecution
 
   # Node Identity
   nodeId: String!
   nodeCategory: String
 
   # Node Execution Fields
-  workflowExecutionId: ID!
-  workflowExecution: WorkflowExecution
+  workflowExecutionId: ID! # Same as parentId, kept for clarity and backward compatibility
   nodeName: String
   nodeType: String
   status: WorkflowNodeExecutionStatus!
@@ -833,8 +832,8 @@ input UpdateWorkflowInput {
 # WORKFLOW EXECUTION INPUTS
 input CreateWorkflowExecutionInput {
   # REQUIRED: To perform the Strongly Consistent Write to Main Table
+  # parentId is the Workflow ID (WorkflowExecution is a child of Workflow)
   parentId: ID!
-  workflowId: ID!
   triggerEvent: AWSJSON
   inputData: AWSJSON
 }
@@ -853,7 +852,8 @@ input UpdateWorkflowExecutionInput {
 
 # WORKFLOW NODE EXECUTION INPUTS
 input CreateWorkflowNodeExecutionInput {
-  workflowExecutionId: ID!
+  # REQUIRED: To perform the Strongly Consistent Write to Main Table
+  # parentId is the WorkflowExecution ID (WorkflowNodeExecution is a child of WorkflowExecution)
   parentId: ID!
   nodeId: String!
   nodeName: String
@@ -1042,25 +1042,41 @@ type Query {
     )
 
   # WORKFLOW QUERIES
-  getWorkflow(id: ID!): Workflow
+  """
+  Get a single Workflow. Requires composite key (ID + ParentID) for access.
+  """
+  getWorkflow(key: CompositeKeyInput!): Workflow
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
-  listWorkflows(limit: Int, nextToken: String): WorkflowConnection!
+  """
+  List Workflows for a specific Project. Uses main table query.
+  """
+  listWorkflows(
+    parentId: ID! # Required: Cannot list "all workflows in tenant" efficiently
+    limit: Int
+    nextToken: String
+  ): WorkflowConnection!
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
 
   # WORKFLOW EXECUTION QUERIES
-  getWorkflowExecution(id: ID!): WorkflowExecution
+  """
+  Get a single WorkflowExecution. Requires composite key (ID + ParentID) for access.
+  """
+  getWorkflowExecution(key: CompositeKeyInput!): WorkflowExecution
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
+  """
+  List WorkflowExecutions for a specific Workflow. Uses main table query.
+  """
   listWorkflowExecutions(
-    workflowId: ID
+    parentId: ID! # Required: Workflow ID (cannot list "all executions in tenant" efficiently)
     status: WorkflowExecutionStatus
     limit: Int
     nextToken: String
@@ -1071,13 +1087,19 @@ type Query {
     )
 
   # WORKFLOW NODE EXECUTION QUERIES
-  getWorkflowNodeExecution(id: ID!): WorkflowNodeExecution
+  """
+  Get a single WorkflowNodeExecution. Requires composite key (ID + ParentID) for access.
+  """
+  getWorkflowNodeExecution(key: CompositeKeyInput!): WorkflowNodeExecution
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
+  """
+  List WorkflowNodeExecutions for a specific WorkflowExecution. Uses main table query.
+  """
   listWorkflowNodeExecutions(
-    workflowExecutionId: ID!
+    parentId: ID! # Required: WorkflowExecution ID (cannot list "all node executions in tenant" efficiently)
     status: WorkflowNodeExecutionStatus
     limit: Int
     nextToken: String

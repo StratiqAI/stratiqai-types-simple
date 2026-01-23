@@ -31,7 +31,7 @@ export const Q_GET_WORKFLOW = gql`
         nextToken
       }
       name
-      definitionJSON
+      definition
     }
   }
 `;
@@ -49,7 +49,7 @@ export const Q_LIST_WORKFLOWS = gql`
         deletedAt
         sharingMode
         name
-        definitionJSON
+        definition
       }
       nextToken
     }

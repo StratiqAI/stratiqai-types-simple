@@ -75,7 +75,7 @@ export const Q_GET_PROJECT = gql`
           deletedAt
           sharingMode
           name
-          definitionJSON
+          definition
         }
         nextToken
       }

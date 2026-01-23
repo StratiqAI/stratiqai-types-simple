@@ -16,7 +16,7 @@ export const M_CREATE_WORKFLOW = gql`
       deletedAt
       sharingMode
       name
-      definitionJSON
+      definition
     }
   }
 `;
@@ -33,7 +33,7 @@ export const M_UPDATE_WORKFLOW = gql`
       deletedAt
       sharingMode
       name
-      definitionJSON
+      definition
     }
   }
 `;
@@ -50,7 +50,7 @@ export const M_DELETE_WORKFLOW = gql`
       deletedAt
       sharingMode
       name
-      definitionJSON
+      definition
     }
   }
 `;

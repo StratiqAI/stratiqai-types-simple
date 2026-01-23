@@ -633,12 +633,12 @@ const worker = async (
   console.log("eventDetailType", eventDetailType);
   
   for (const workflow of workflows) {
-    if (!workflow.definitionJSON) continue;
+    if (!workflow.definition) continue;
 
     try {
-      const definition = typeof workflow.definitionJSON === 'string' 
-        ? JSON.parse(workflow.definitionJSON) 
-        : workflow.definitionJSON;
+      const definition = typeof workflow.definition === 'string' 
+        ? JSON.parse(workflow.definition) 
+        : workflow.definition;
 
       const inputNodes = definition.elements?.filter((el: any) => el.category === 'input') || [];
 

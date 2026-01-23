@@ -457,6 +457,31 @@ type ProjectConnection
   nextToken: String
 }
 
+# Workflow UI Types
+type WorkflowUIElement {
+  id: String!
+  type: String!
+  category: String!
+  typeLabel: String!
+  x: Float!
+  y: Float!
+  width: Float!
+  height: Float!
+}
+
+type WorkflowUIConnection {
+  id: String!
+  from: String!
+  to: String!
+  fromSide: String!
+  toSide: String!
+}
+
+type WorkflowUI {
+  elements: [WorkflowUIElement!]!
+  connections: [WorkflowUIConnection!]!
+}
+
 type Workflow implements Node & Metadata & Shareable
   @aws_iam
   @aws_cognito_user_pools {
@@ -471,7 +496,8 @@ type Workflow implements Node & Metadata & Shareable
   accessList(limit: Int, nextToken: String): ResourceShareConnection
 
   name: String!
-  definitionJSON: AWSJSON!
+  definition: AWSJSON!
+  ui: WorkflowUI
 
   # Parent Relationship
   parentId: ID!
@@ -765,16 +791,43 @@ input UpdateScanInput {
 }
 
 # Workflow INPUTS
+# Workflow UI Input Types
+input WorkflowUIElementInput {
+  id: String!
+  type: String!
+  category: String!
+  typeLabel: String!
+  x: Float!
+  y: Float!
+  width: Float!
+  height: Float!
+}
+
+input WorkflowUIConnectionInput {
+  id: String!
+  from: String!
+  to: String!
+  fromSide: String!
+  toSide: String!
+}
+
+input WorkflowUIInput {
+  elements: [WorkflowUIElementInput!]!
+  connections: [WorkflowUIConnectionInput!]!
+}
+
 input CreateWorkflowInput {
   # REQUIRED: To perform the Strongly Consistent Write to Main Table
   parentId: ID!
   name: String!
-  definitionJSON: AWSJSON!
+  definition: AWSJSON!
+  ui: WorkflowUIInput
 }
 
 input UpdateWorkflowInput {
   name: String
-  definitionJSON: AWSJSON
+  definition: AWSJSON
+  ui: WorkflowUIInput
 }
 
 # WORKFLOW EXECUTION INPUTS

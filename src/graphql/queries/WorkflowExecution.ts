@@ -26,7 +26,7 @@ export const Q_GET_WORKFLOW_EXECUTION = gql`
         deletedAt
         sharingMode
         name
-        definitionJSON
+        definition
       }
       status
       startedAt
@@ -94,7 +94,7 @@ export const Q_LIST_WORKFLOW_EXECUTIONS = gql`
         workflow {
           id
           name
-          definitionJSON
+          definition
         }
         status
         startedAt

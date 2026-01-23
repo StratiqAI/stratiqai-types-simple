@@ -32,6 +32,26 @@ export const Q_GET_WORKFLOW = gql`
       }
       name
       definition
+      parentId
+      ui {
+        elements {
+          id
+          type
+          category
+          typeLabel
+          x
+          y
+          width
+          height
+        }
+        connections {
+          id
+          from
+          to
+          fromSide
+          toSide
+        }
+      }
     }
   }
 `;
@@ -50,6 +70,26 @@ export const Q_LIST_WORKFLOWS = gql`
         sharingMode
         name
         definition
+        parentId
+        ui {
+          elements {
+            id
+            type
+            category
+            typeLabel
+            x
+            y
+            width
+            height
+          }
+          connections {
+            id
+            from
+            to
+            fromSide
+            toSide
+          }
+        }
       }
       nextToken
     }

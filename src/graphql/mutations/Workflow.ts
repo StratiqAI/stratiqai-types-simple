@@ -17,6 +17,26 @@ export const M_CREATE_WORKFLOW = gql`
       sharingMode
       name
       definition
+      parentId
+      ui {
+        elements {
+          id
+          type
+          category
+          typeLabel
+          x
+          y
+          width
+          height
+        }
+        connections {
+          id
+          from
+          to
+          fromSide
+          toSide
+        }
+      }
     }
   }
 `;
@@ -34,6 +54,26 @@ export const M_UPDATE_WORKFLOW = gql`
       sharingMode
       name
       definition
+      parentId
+      ui {
+        elements {
+          id
+          type
+          category
+          typeLabel
+          x
+          y
+          width
+          height
+        }
+        connections {
+          id
+          from
+          to
+          fromSide
+          toSide
+        }
+      }
     }
   }
 `;
@@ -51,6 +91,26 @@ export const M_DELETE_WORKFLOW = gql`
       sharingMode
       name
       definition
+      parentId
+      ui {
+        elements {
+          id
+          type
+          category
+          typeLabel
+          x
+          y
+          width
+          height
+        }
+        connections {
+          id
+          from
+          to
+          fromSide
+          toSide
+        }
+      }
     }
   }
 `;

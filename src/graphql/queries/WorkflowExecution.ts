@@ -27,6 +27,25 @@ export const Q_GET_WORKFLOW_EXECUTION = gql`
         sharingMode
         name
         definition
+        ui {
+          elements {
+            id
+            type
+            category
+            typeLabel
+            x
+            y
+            width
+            height
+          }
+          connections {
+            id
+            from
+            to
+            fromSide
+            toSide
+          }
+        }
       }
       status
       startedAt

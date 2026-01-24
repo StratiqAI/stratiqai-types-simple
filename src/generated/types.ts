@@ -1707,6 +1707,13 @@ export type CancelWorkflowExecutionMutationVariables = Exact<{
 
 export type CancelWorkflowExecutionMutation = { __typename?: 'Mutation', cancelWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined } | null | undefined };
 
+export type DeleteWorkflowExecutionMutationVariables = Exact<{
+  key: CompositeKeyInput;
+}>;
+
+
+export type DeleteWorkflowExecutionMutation = { __typename?: 'Mutation', deleteWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined } | null | undefined };
+
 export type CreateWorkflowNodeExecutionMutationVariables = Exact<{
   input: CreateWorkflowNodeExecutionInput;
 }>;
@@ -2218,6 +2225,7 @@ export declare const DeleteWorkflow: import("graphql").DocumentNode;
 export declare const CreateWorkflowExecution: import("graphql").DocumentNode;
 export declare const UpdateWorkflowExecution: import("graphql").DocumentNode;
 export declare const CancelWorkflowExecution: import("graphql").DocumentNode;
+export declare const DeleteWorkflowExecution: import("graphql").DocumentNode;
 export declare const CreateWorkflowNodeExecution: import("graphql").DocumentNode;
 export declare const UpdateWorkflowNodeExecution: import("graphql").DocumentNode;
 export declare const DeleteWorkflowNodeExecution: import("graphql").DocumentNode;

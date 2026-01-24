@@ -84,3 +84,30 @@ export const M_CANCEL_WORKFLOW_EXECUTION = gql`
     }
   }
 `;
+
+export const M_DELETE_WORKFLOW_EXECUTION = gql`
+  mutation DeleteWorkflowExecution($key: CompositeKeyInput!) {
+    deleteWorkflowExecution(key: $key) {
+      id
+      entityType
+      tenantId
+      ownerId
+      createdAt
+      updatedAt
+      deletedAt
+      parentId
+      workflowId
+      status
+      startedAt
+      completedAt
+      cancelledAt
+      triggerEvent
+      inputData
+      outputData
+      errorMessage
+      totalNodes
+      completedNodes
+      currentNodeId
+    }
+  }
+`;

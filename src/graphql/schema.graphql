@@ -1282,11 +1282,46 @@ type Mutation {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
+  # Start: Uses Composite Key to access Main Table
+  # Starts a workflow execution (sets status to RUNNING, sets startedAt)
+  startWorkflowExecution(key: CompositeKeyInput!): WorkflowExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
   # Update: Uses Composite Key to access Main Table
   updateWorkflowExecution(
     key: CompositeKeyInput!
     input: UpdateWorkflowExecutionInput!
   ): WorkflowExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  # Complete: Uses Composite Key to access Main Table
+  # Marks a workflow execution as completed (sets status to COMPLETED, sets completedAt)
+  completeWorkflowExecution(
+    key: CompositeKeyInput!
+    outputData: AWSJSON
+  ): WorkflowExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  # Fail: Uses Composite Key to access Main Table
+  # Marks a workflow execution as failed (sets status to FAILED, sets errorMessage)
+  failWorkflowExecution(
+    key: CompositeKeyInput!
+    errorMessage: String!
+    errorDetails: AWSJSON
+  ): WorkflowExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  # Retry: Uses Composite Key to access Main Table
+  # Retries a failed workflow execution (resets status to PENDING, clears errors)
+  retryWorkflowExecution(key: CompositeKeyInput!): WorkflowExecution
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -1310,11 +1345,46 @@ type Mutation {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
+  # Start: Uses Composite Key to access Main Table
+  # Starts a node execution (sets status to RUNNING, sets startedAt)
+  startWorkflowNodeExecution(key: CompositeKeyInput!): WorkflowNodeExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
   # Update: Uses Composite Key to access Main Table
   updateWorkflowNodeExecution(
     key: CompositeKeyInput!
     input: UpdateWorkflowNodeExecutionInput!
   ): WorkflowNodeExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  # Complete: Uses Composite Key to access Main Table
+  # Marks a node execution as completed (sets status to COMPLETED, sets completedAt)
+  completeWorkflowNodeExecution(
+    key: CompositeKeyInput!
+    outputData: AWSJSON
+  ): WorkflowNodeExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  # Fail: Uses Composite Key to access Main Table
+  # Marks a node execution as failed (sets status to FAILED, sets errorMessage)
+  failWorkflowNodeExecution(
+    key: CompositeKeyInput!
+    errorMessage: String!
+    errorDetails: AWSJSON
+  ): WorkflowNodeExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  # Retry: Uses Composite Key to access Main Table
+  # Retries a failed node execution (resets status to PENDING, clears errors)
+  retryWorkflowNodeExecution(key: CompositeKeyInput!): WorkflowNodeExecution
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -1467,14 +1537,14 @@ type Subscription {
 
   # Subscribe to updates for a specific workflow execution
   onUpdateWorkflowExecution(id: ID!): WorkflowExecution
-    @aws_subscribe(mutations: ["updateWorkflowExecution", "cancelWorkflowExecution"])
+    @aws_subscribe(mutations: ["updateWorkflowExecution", "startWorkflowExecution", "completeWorkflowExecution", "failWorkflowExecution", "retryWorkflowExecution", "cancelWorkflowExecution"])
 
   # Subscribe to all workflow executions for a project (via workflowId filter)
   onWorkflowExecutionStatusChange(
     workflowId: ID
     status: WorkflowExecutionStatus
   ): WorkflowExecution
-    @aws_subscribe(mutations: ["createWorkflowExecution", "updateWorkflowExecution", "cancelWorkflowExecution"])
+    @aws_subscribe(mutations: ["createWorkflowExecution", "updateWorkflowExecution", "startWorkflowExecution", "completeWorkflowExecution", "failWorkflowExecution", "retryWorkflowExecution", "cancelWorkflowExecution"])
 
   """
   WORKFLOW NODE EXECUTION SUBSCRIPTIONS
@@ -1485,9 +1555,9 @@ type Subscription {
 
   # Subscribe to updates for a specific node execution
   onUpdateWorkflowNodeExecution(id: ID!): WorkflowNodeExecution
-    @aws_subscribe(mutations: ["updateWorkflowNodeExecution"])
+    @aws_subscribe(mutations: ["updateWorkflowNodeExecution", "startWorkflowNodeExecution", "completeWorkflowNodeExecution", "failWorkflowNodeExecution", "retryWorkflowNodeExecution"])
 
   # Subscribe to all node execution updates for a workflow execution
   onWorkflowNodeExecutionStatusChange(workflowExecutionId: ID!): WorkflowNodeExecution
-    @aws_subscribe(mutations: ["createWorkflowNodeExecution", "updateWorkflowNodeExecution"])
+    @aws_subscribe(mutations: ["createWorkflowNodeExecution", "updateWorkflowNodeExecution", "startWorkflowNodeExecution", "completeWorkflowNodeExecution", "failWorkflowNodeExecution", "retryWorkflowNodeExecution"])
 }

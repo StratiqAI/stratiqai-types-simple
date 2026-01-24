@@ -266,6 +266,8 @@ export type Metadata = {
 export type Mutation = {
   __typename?: 'Mutation';
   cancelWorkflowExecution?: Maybe<WorkflowExecution>;
+  completeWorkflowExecution?: Maybe<WorkflowExecution>;
+  completeWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
   createDoclink?: Maybe<Doclink>;
   createDocument?: Maybe<Document>;
   createImage?: Maybe<Image>;
@@ -290,7 +292,13 @@ export type Mutation = {
   deleteWorkflow?: Maybe<Workflow>;
   deleteWorkflowExecution?: Maybe<WorkflowExecution>;
   deleteWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
+  failWorkflowExecution?: Maybe<WorkflowExecution>;
+  failWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
   restoreProject?: Maybe<Project>;
+  retryWorkflowExecution?: Maybe<WorkflowExecution>;
+  retryWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
+  startWorkflowExecution?: Maybe<WorkflowExecution>;
+  startWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
   updateDoclink?: Maybe<Doclink>;
   updateDocument?: Maybe<Document>;
   updateImage?: Maybe<Image>;
@@ -308,6 +316,18 @@ export type Mutation = {
 
 export type MutationCancelWorkflowExecutionArgs = {
   key: CompositeKeyInput;
+};
+
+
+export type MutationCompleteWorkflowExecutionArgs = {
+  key: CompositeKeyInput;
+  outputData?: InputMaybe<Scalars['AWSJSON']['input']>;
+};
+
+
+export type MutationCompleteWorkflowNodeExecutionArgs = {
+  key: CompositeKeyInput;
+  outputData?: InputMaybe<Scalars['AWSJSON']['input']>;
 };
 
 
@@ -431,8 +451,42 @@ export type MutationDeleteWorkflowNodeExecutionArgs = {
 };
 
 
+export type MutationFailWorkflowExecutionArgs = {
+  errorDetails?: InputMaybe<Scalars['AWSJSON']['input']>;
+  errorMessage: Scalars['String']['input'];
+  key: CompositeKeyInput;
+};
+
+
+export type MutationFailWorkflowNodeExecutionArgs = {
+  errorDetails?: InputMaybe<Scalars['AWSJSON']['input']>;
+  errorMessage: Scalars['String']['input'];
+  key: CompositeKeyInput;
+};
+
+
 export type MutationRestoreProjectArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationRetryWorkflowExecutionArgs = {
+  key: CompositeKeyInput;
+};
+
+
+export type MutationRetryWorkflowNodeExecutionArgs = {
+  key: CompositeKeyInput;
+};
+
+
+export type MutationStartWorkflowExecutionArgs = {
+  key: CompositeKeyInput;
+};
+
+
+export type MutationStartWorkflowNodeExecutionArgs = {
+  key: CompositeKeyInput;
 };
 
 
@@ -1707,6 +1761,37 @@ export type CancelWorkflowExecutionMutationVariables = Exact<{
 
 export type CancelWorkflowExecutionMutation = { __typename?: 'Mutation', cancelWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined } | null | undefined };
 
+export type StartWorkflowExecutionMutationVariables = Exact<{
+  key: CompositeKeyInput;
+}>;
+
+
+export type StartWorkflowExecutionMutation = { __typename?: 'Mutation', startWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined } | null | undefined };
+
+export type CompleteWorkflowExecutionMutationVariables = Exact<{
+  key: CompositeKeyInput;
+  outputData?: InputMaybe<Scalars['AWSJSON']['input']>;
+}>;
+
+
+export type CompleteWorkflowExecutionMutation = { __typename?: 'Mutation', completeWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined } | null | undefined };
+
+export type FailWorkflowExecutionMutationVariables = Exact<{
+  key: CompositeKeyInput;
+  errorMessage: Scalars['String']['input'];
+  errorDetails?: InputMaybe<Scalars['AWSJSON']['input']>;
+}>;
+
+
+export type FailWorkflowExecutionMutation = { __typename?: 'Mutation', failWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined } | null | undefined };
+
+export type RetryWorkflowExecutionMutationVariables = Exact<{
+  key: CompositeKeyInput;
+}>;
+
+
+export type RetryWorkflowExecutionMutation = { __typename?: 'Mutation', retryWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined } | null | undefined };
+
 export type DeleteWorkflowExecutionMutationVariables = Exact<{
   key: CompositeKeyInput;
 }>;
@@ -1728,6 +1813,37 @@ export type UpdateWorkflowNodeExecutionMutationVariables = Exact<{
 
 
 export type UpdateWorkflowNodeExecutionMutation = { __typename?: 'Mutation', updateWorkflowNodeExecution?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowExecutionId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined } | null | undefined };
+
+export type StartWorkflowNodeExecutionMutationVariables = Exact<{
+  key: CompositeKeyInput;
+}>;
+
+
+export type StartWorkflowNodeExecutionMutation = { __typename?: 'Mutation', startWorkflowNodeExecution?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowExecutionId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined } | null | undefined };
+
+export type CompleteWorkflowNodeExecutionMutationVariables = Exact<{
+  key: CompositeKeyInput;
+  outputData?: InputMaybe<Scalars['AWSJSON']['input']>;
+}>;
+
+
+export type CompleteWorkflowNodeExecutionMutation = { __typename?: 'Mutation', completeWorkflowNodeExecution?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowExecutionId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined } | null | undefined };
+
+export type FailWorkflowNodeExecutionMutationVariables = Exact<{
+  key: CompositeKeyInput;
+  errorMessage: Scalars['String']['input'];
+  errorDetails?: InputMaybe<Scalars['AWSJSON']['input']>;
+}>;
+
+
+export type FailWorkflowNodeExecutionMutation = { __typename?: 'Mutation', failWorkflowNodeExecution?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowExecutionId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined } | null | undefined };
+
+export type RetryWorkflowNodeExecutionMutationVariables = Exact<{
+  key: CompositeKeyInput;
+}>;
+
+
+export type RetryWorkflowNodeExecutionMutation = { __typename?: 'Mutation', retryWorkflowNodeExecution?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, workflowExecutionId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined } | null | undefined };
 
 export type DeleteWorkflowNodeExecutionMutationVariables = Exact<{
   key: CompositeKeyInput;
@@ -2225,9 +2341,17 @@ export declare const DeleteWorkflow: import("graphql").DocumentNode;
 export declare const CreateWorkflowExecution: import("graphql").DocumentNode;
 export declare const UpdateWorkflowExecution: import("graphql").DocumentNode;
 export declare const CancelWorkflowExecution: import("graphql").DocumentNode;
+export declare const StartWorkflowExecution: import("graphql").DocumentNode;
+export declare const CompleteWorkflowExecution: import("graphql").DocumentNode;
+export declare const FailWorkflowExecution: import("graphql").DocumentNode;
+export declare const RetryWorkflowExecution: import("graphql").DocumentNode;
 export declare const DeleteWorkflowExecution: import("graphql").DocumentNode;
 export declare const CreateWorkflowNodeExecution: import("graphql").DocumentNode;
 export declare const UpdateWorkflowNodeExecution: import("graphql").DocumentNode;
+export declare const StartWorkflowNodeExecution: import("graphql").DocumentNode;
+export declare const CompleteWorkflowNodeExecution: import("graphql").DocumentNode;
+export declare const FailWorkflowNodeExecution: import("graphql").DocumentNode;
+export declare const RetryWorkflowNodeExecution: import("graphql").DocumentNode;
 export declare const DeleteWorkflowNodeExecution: import("graphql").DocumentNode;
 export declare const GetDoclink: import("graphql").DocumentNode;
 export declare const ListDoclinks: import("graphql").DocumentNode;

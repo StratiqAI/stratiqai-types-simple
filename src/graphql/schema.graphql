@@ -458,7 +458,11 @@ type ProjectConnection
 }
 
 # Workflow UI Types
-type WorkflowUIElement {
+type WorkflowUIElement   @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+
   id: String!
   type: String!
   category: String!
@@ -469,7 +473,10 @@ type WorkflowUIElement {
   height: Float!
 }
 
-type WorkflowUIConnection {
+type WorkflowUIConnection   @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
   id: String!
   from: String!
   to: String!
@@ -477,7 +484,10 @@ type WorkflowUIConnection {
   toSide: String!
 }
 
-type WorkflowUI {
+type WorkflowUI   @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
   elements: [WorkflowUIElement!]!
   connections: [WorkflowUIConnection!]!
 }

@@ -15,7 +15,6 @@ export const Q_GET_WORKFLOW_NODE_EXECUTION = gql`
       updatedAt
       deletedAt
       parentId
-      workflowExecutionId
       workflowExecution {
         id
         entityType
@@ -25,7 +24,6 @@ export const Q_GET_WORKFLOW_NODE_EXECUTION = gql`
         updatedAt
         deletedAt
         parentId
-        workflowId
         status
         startedAt
         completedAt
@@ -75,7 +73,6 @@ export const Q_LIST_WORKFLOW_NODE_EXECUTIONS = gql`
         updatedAt
         deletedAt
         parentId
-        workflowExecutionId
         nodeId
         nodeCategory
         nodeName

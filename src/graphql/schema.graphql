@@ -544,7 +544,6 @@ type WorkflowExecution implements Node & Metadata
   workflow: Workflow
 
   # Workflow Execution Fields
-  workflowId: ID! # Same as parentId, kept for clarity and backward compatibility
   project: Project # Back-reference to project (via workflow.project)
   status: WorkflowExecutionStatus!
   startedAt: AWSDateTime
@@ -596,7 +595,6 @@ type WorkflowNodeExecution implements Node & Metadata
   nodeCategory: String
 
   # Node Execution Fields
-  workflowExecutionId: ID! # Same as parentId, kept for clarity and backward compatibility
   nodeName: String
   nodeType: String
   status: WorkflowNodeExecutionStatus!
@@ -1532,16 +1530,16 @@ type Subscription {
   WORKFLOW EXECUTION SUBSCRIPTIONS
   """
   # Subscribe to new workflow executions for a specific workflow
-  onCreateWorkflowExecution(workflowId: ID!): WorkflowExecution
+  onCreateWorkflowExecution(parentId: ID!): WorkflowExecution
     @aws_subscribe(mutations: ["createWorkflowExecution"])
 
   # Subscribe to updates for a specific workflow execution
   onUpdateWorkflowExecution(id: ID!): WorkflowExecution
     @aws_subscribe(mutations: ["updateWorkflowExecution", "startWorkflowExecution", "completeWorkflowExecution", "failWorkflowExecution", "retryWorkflowExecution", "cancelWorkflowExecution"])
 
-  # Subscribe to all workflow executions for a project (via workflowId filter)
+  # Subscribe to all workflow executions for a workflow (via parentId filter)
   onWorkflowExecutionStatusChange(
-    workflowId: ID
+    parentId: ID
     status: WorkflowExecutionStatus
   ): WorkflowExecution
     @aws_subscribe(mutations: ["createWorkflowExecution", "updateWorkflowExecution", "startWorkflowExecution", "completeWorkflowExecution", "failWorkflowExecution", "retryWorkflowExecution", "cancelWorkflowExecution"])
@@ -1550,7 +1548,7 @@ type Subscription {
   WORKFLOW NODE EXECUTION SUBSCRIPTIONS
   """
   # Subscribe to new node executions for a specific workflow execution
-  onCreateWorkflowNodeExecution(workflowExecutionId: ID!): WorkflowNodeExecution
+  onCreateWorkflowNodeExecution(parentId: ID!): WorkflowNodeExecution
     @aws_subscribe(mutations: ["createWorkflowNodeExecution"])
 
   # Subscribe to updates for a specific node execution
@@ -1558,6 +1556,6 @@ type Subscription {
     @aws_subscribe(mutations: ["updateWorkflowNodeExecution", "startWorkflowNodeExecution", "completeWorkflowNodeExecution", "failWorkflowNodeExecution", "retryWorkflowNodeExecution"])
 
   # Subscribe to all node execution updates for a workflow execution
-  onWorkflowNodeExecutionStatusChange(workflowExecutionId: ID!): WorkflowNodeExecution
+  onWorkflowNodeExecutionStatusChange(parentId: ID!): WorkflowNodeExecution
     @aws_subscribe(mutations: ["createWorkflowNodeExecution", "updateWorkflowNodeExecution", "startWorkflowNodeExecution", "completeWorkflowNodeExecution", "failWorkflowNodeExecution", "retryWorkflowNodeExecution"])
 }

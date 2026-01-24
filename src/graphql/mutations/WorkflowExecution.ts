@@ -15,7 +15,6 @@ export const M_CREATE_WORKFLOW_EXECUTION = gql`
       updatedAt
       deletedAt
       parentId
-      workflowId
       status
       startedAt
       completedAt
@@ -42,7 +41,6 @@ export const M_UPDATE_WORKFLOW_EXECUTION = gql`
       updatedAt
       deletedAt
       parentId
-      workflowId
       status
       startedAt
       completedAt
@@ -69,7 +67,6 @@ export const M_CANCEL_WORKFLOW_EXECUTION = gql`
       updatedAt
       deletedAt
       parentId
-      workflowId
       status
       startedAt
       completedAt
@@ -96,7 +93,6 @@ export const M_START_WORKFLOW_EXECUTION = gql`
       updatedAt
       deletedAt
       parentId
-      workflowId
       status
       startedAt
       completedAt
@@ -123,7 +119,6 @@ export const M_COMPLETE_WORKFLOW_EXECUTION = gql`
       updatedAt
       deletedAt
       parentId
-      workflowId
       status
       startedAt
       completedAt
@@ -150,7 +145,6 @@ export const M_FAIL_WORKFLOW_EXECUTION = gql`
       updatedAt
       deletedAt
       parentId
-      workflowId
       status
       startedAt
       completedAt
@@ -177,7 +171,6 @@ export const M_RETRY_WORKFLOW_EXECUTION = gql`
       updatedAt
       deletedAt
       parentId
-      workflowId
       status
       startedAt
       completedAt
@@ -204,7 +197,6 @@ export const M_DELETE_WORKFLOW_EXECUTION = gql`
       updatedAt
       deletedAt
       parentId
-      workflowId
       status
       startedAt
       completedAt

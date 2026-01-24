@@ -12,8 +12,8 @@ import { gql } from 'graphql-tag';
  * Use this to see when new nodes start executing
  */
 export const S_ON_CREATE_WORKFLOW_NODE_EXECUTION = gql`
-  subscription OnCreateWorkflowNodeExecution($workflowExecutionId: ID!) {
-    onCreateWorkflowNodeExecution(workflowExecutionId: $workflowExecutionId) {
+  subscription OnCreateWorkflowNodeExecution($parentId: ID!) {
+    onCreateWorkflowNodeExecution(parentId: $parentId) {
       id
       entityType
       tenantId
@@ -22,7 +22,6 @@ export const S_ON_CREATE_WORKFLOW_NODE_EXECUTION = gql`
       updatedAt
       deletedAt
       parentId
-      workflowExecutionId
       nodeId
       nodeCategory
       nodeName
@@ -53,7 +52,6 @@ export const S_ON_UPDATE_WORKFLOW_NODE_EXECUTION = gql`
       updatedAt
       deletedAt
       parentId
-      workflowExecutionId
       nodeId
       nodeCategory
       nodeName
@@ -74,8 +72,8 @@ export const S_ON_UPDATE_WORKFLOW_NODE_EXECUTION = gql`
  * Use this to track all nodes in a workflow execution in real-time
  */
 export const S_ON_WORKFLOW_NODE_EXECUTION_STATUS_CHANGE = gql`
-  subscription OnWorkflowNodeExecutionStatusChange($workflowExecutionId: ID!) {
-    onWorkflowNodeExecutionStatusChange(workflowExecutionId: $workflowExecutionId) {
+  subscription OnWorkflowNodeExecutionStatusChange($parentId: ID!) {
+    onWorkflowNodeExecutionStatusChange(parentId: $parentId) {
       id
       entityType
       tenantId
@@ -84,7 +82,6 @@ export const S_ON_WORKFLOW_NODE_EXECUTION_STATUS_CHANGE = gql`
       updatedAt
       deletedAt
       parentId
-      workflowExecutionId
       nodeId
       nodeCategory
       nodeName

@@ -11,8 +11,8 @@ import { gql } from 'graphql-tag';
  * Subscribe to new workflow executions for a specific workflow
  */
 export const S_ON_CREATE_WORKFLOW_EXECUTION = gql`
-  subscription OnCreateWorkflowExecution($workflowId: ID!) {
-    onCreateWorkflowExecution(workflowId: $workflowId) {
+  subscription OnCreateWorkflowExecution($parentId: ID!) {
+    onCreateWorkflowExecution(parentId: $parentId) {
       id
       entityType
       tenantId
@@ -21,7 +21,6 @@ export const S_ON_CREATE_WORKFLOW_EXECUTION = gql`
       updatedAt
       deletedAt
       parentId
-      workflowId
       status
       startedAt
       completedAt
@@ -52,7 +51,6 @@ export const S_ON_UPDATE_WORKFLOW_EXECUTION = gql`
       updatedAt
       deletedAt
       parentId
-      workflowId
       status
       startedAt
       completedAt
@@ -70,15 +68,15 @@ export const S_ON_UPDATE_WORKFLOW_EXECUTION = gql`
 
 /**
  * Subscribe to all workflow execution status changes
- * Can filter by workflowId and/or status
+ * Can filter by parentId and/or status
  * Use this for dashboard views showing multiple executions
  */
 export const S_ON_WORKFLOW_EXECUTION_STATUS_CHANGE = gql`
   subscription OnWorkflowExecutionStatusChange(
-    $workflowId: ID
+    $parentId: ID
     $status: WorkflowExecutionStatus
   ) {
-    onWorkflowExecutionStatusChange(workflowId: $workflowId, status: $status) {
+    onWorkflowExecutionStatusChange(parentId: $parentId, status: $status) {
       id
       entityType
       tenantId
@@ -87,7 +85,6 @@ export const S_ON_WORKFLOW_EXECUTION_STATUS_CHANGE = gql`
       updatedAt
       deletedAt
       parentId
-      workflowId
       status
       startedAt
       completedAt

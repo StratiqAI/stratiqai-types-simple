@@ -15,7 +15,6 @@ export const M_CREATE_WORKFLOW_NODE_EXECUTION = gql`
       updatedAt
       deletedAt
       parentId
-      workflowExecutionId
       nodeId
       nodeCategory
       nodeName
@@ -42,7 +41,6 @@ export const M_UPDATE_WORKFLOW_NODE_EXECUTION = gql`
       updatedAt
       deletedAt
       parentId
-      workflowExecutionId
       nodeId
       nodeCategory
       nodeName
@@ -69,7 +67,6 @@ export const M_START_WORKFLOW_NODE_EXECUTION = gql`
       updatedAt
       deletedAt
       parentId
-      workflowExecutionId
       nodeId
       nodeCategory
       nodeName
@@ -96,7 +93,6 @@ export const M_COMPLETE_WORKFLOW_NODE_EXECUTION = gql`
       updatedAt
       deletedAt
       parentId
-      workflowExecutionId
       nodeId
       nodeCategory
       nodeName
@@ -123,7 +119,6 @@ export const M_FAIL_WORKFLOW_NODE_EXECUTION = gql`
       updatedAt
       deletedAt
       parentId
-      workflowExecutionId
       nodeId
       nodeCategory
       nodeName
@@ -150,7 +145,6 @@ export const M_RETRY_WORKFLOW_NODE_EXECUTION = gql`
       updatedAt
       deletedAt
       parentId
-      workflowExecutionId
       nodeId
       nodeCategory
       nodeName
@@ -177,7 +171,6 @@ export const M_DELETE_WORKFLOW_NODE_EXECUTION = gql`
       updatedAt
       deletedAt
       parentId
-      workflowExecutionId
       nodeId
       nodeCategory
       nodeName

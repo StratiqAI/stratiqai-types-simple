@@ -554,8 +554,8 @@ type WorkflowNode
   id: ID!
   kind: WorkflowNodeKind!
   label: String
-  """Node configuration; shape depends on kind (ProcessNodeConfig, AINodeConfig, ToolsNodeConfig, EmptyNodeConfig)."""
-  configuration: WorkflowNodeConfig!
+  """Node configuration; shape depends on kind. Null when stored in legacy shape (processConfig/aiConfig/toolsConfig); client should normalize from those if present."""
+  configuration: WorkflowNodeConfig
   options: AWSJSON
 }
 
@@ -936,7 +936,7 @@ input WorkflowNodeInput {
   id: ID!
   kind: WorkflowNodeKind!
   label: String
-  configuration: AWSJSON!
+  configuration: AWSJSON
   options: AWSJSON
 }
 

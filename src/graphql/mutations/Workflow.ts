@@ -32,6 +32,9 @@ export const M_CREATE_WORKFLOW = gql`
               model
               topK
               systemPrompt
+              structuredOutputSchema {
+                jsonSchema
+              }
             }
             ... on ToolsNodeConfig {
               options
@@ -104,6 +107,9 @@ export const M_UPDATE_WORKFLOW = gql`
               model
               topK
               systemPrompt
+              structuredOutputSchema {
+                jsonSchema
+              }
             }
             ... on ToolsNodeConfig {
               options
@@ -176,6 +182,9 @@ export const M_DELETE_WORKFLOW = gql`
               model
               topK
               systemPrompt
+              structuredOutputSchema {
+                jsonSchema
+              }
             }
             ... on ToolsNodeConfig {
               options

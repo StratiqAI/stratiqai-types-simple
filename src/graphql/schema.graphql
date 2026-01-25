@@ -502,28 +502,43 @@ type WorkflowUI   @aws_iam
 }
 
 # JSON Schema document for structured output. Shared by Workflows, ValidateTopicStore, and dashboard widgets.
-type StructuredOutputSchema {
+type StructuredOutputSchema
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
   jsonSchema: AWSJSON!
 }
 
 # Workflow definition: nodes and edges (layout lives in Workflow.ui).
-type ProcessNodeConfig {
+# Auth on nested types so getWorkflow { definition { nodes, edges } } is allowed for same callers as Workflow.
+type ProcessNodeConfig
+  @aws_iam
+  @aws_cognito_user_pools {
   options: AWSJSON
   staticOutput: AWSJSON
 }
 
-type AINodeConfig {
+type AINodeConfig
+  @aws_iam
+  @aws_cognito_user_pools {
   prompt: String
   model: String
   topK: Int
   systemPrompt: String
+  """JSON Schema for structured output (e.g. responseFormat.type eq json_schema)."""
+  structuredOutputSchema: StructuredOutputSchema
 }
 
-type ToolsNodeConfig {
+type ToolsNodeConfig
+  @aws_iam
+  @aws_cognito_user_pools {
   options: AWSJSON
 }
 
-type EmptyNodeConfig {
+type EmptyNodeConfig
+  @aws_iam
+  @aws_cognito_user_pools {
   _empty: Boolean
 }
 
@@ -533,7 +548,9 @@ union WorkflowNodeConfig =
   | ToolsNodeConfig
   | EmptyNodeConfig
 
-type WorkflowNode {
+type WorkflowNode
+  @aws_iam
+  @aws_cognito_user_pools {
   id: ID!
   kind: WorkflowNodeKind!
   label: String
@@ -541,7 +558,9 @@ type WorkflowNode {
   options: AWSJSON
 }
 
-type WorkflowEdge {
+type WorkflowEdge
+  @aws_iam
+  @aws_cognito_user_pools {
   id: ID!
   sourceId: ID!
   targetId: ID!
@@ -549,7 +568,9 @@ type WorkflowEdge {
   targetPort: String
 }
 
-type WorkflowDefinition {
+type WorkflowDefinition
+  @aws_iam
+  @aws_cognito_user_pools {
   nodes: [WorkflowNode!]!
   edges: [WorkflowEdge!]!
 }
@@ -901,6 +922,8 @@ input AINodeConfigInput {
   model: String
   topK: Int
   systemPrompt: String
+  """JSON Schema for structured output (e.g. responseFormat.type eq json_schema)."""
+  structuredOutputSchema: StructuredOutputSchemaInput
 }
 
 input ToolsNodeConfigInput {

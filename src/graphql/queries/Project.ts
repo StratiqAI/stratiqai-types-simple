@@ -91,6 +91,9 @@ export const Q_GET_PROJECT = gql`
                   model
                   topK
                   systemPrompt
+                  structuredOutputSchema {
+                    jsonSchema
+                  }
                 }
                 ... on ToolsNodeConfig {
                   options

@@ -41,6 +41,9 @@ export const Q_GET_WORKFLOW_EXECUTION = gql`
                 model
                 topK
                 systemPrompt
+                structuredOutputSchema {
+                  jsonSchema
+                }
               }
               ... on ToolsNodeConfig {
                 options

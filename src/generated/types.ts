@@ -20,6 +20,8 @@ export type AiNodeConfig = {
   __typename?: 'AINodeConfig';
   model?: Maybe<Scalars['String']['output']>;
   prompt?: Maybe<Scalars['String']['output']>;
+  /** JSON Schema for structured output (e.g. responseFormat.type eq json_schema). */
+  structuredOutputSchema?: Maybe<StructuredOutputSchema>;
   systemPrompt?: Maybe<Scalars['String']['output']>;
   topK?: Maybe<Scalars['Int']['output']>;
 };
@@ -27,6 +29,8 @@ export type AiNodeConfig = {
 export type AiNodeConfigInput = {
   model?: InputMaybe<Scalars['String']['input']>;
   prompt?: InputMaybe<Scalars['String']['input']>;
+  /** JSON Schema for structured output (e.g. responseFormat.type eq json_schema). */
+  structuredOutputSchema?: InputMaybe<StructuredOutputSchemaInput>;
   systemPrompt?: InputMaybe<Scalars['String']['input']>;
   topK?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -1830,7 +1834,7 @@ export type CreateWorkflowMutationVariables = Exact<{
 
 
 export type CreateWorkflowMutation = { __typename?: 'Mutation', createWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, config?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined }
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
@@ -1843,7 +1847,7 @@ export type UpdateWorkflowMutationVariables = Exact<{
 
 
 export type UpdateWorkflowMutation = { __typename?: 'Mutation', updateWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, config?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined }
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
@@ -1855,7 +1859,7 @@ export type DeleteWorkflowMutationVariables = Exact<{
 
 
 export type DeleteWorkflowMutation = { __typename?: 'Mutation', deleteWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, config?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined }
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
@@ -2043,7 +2047,7 @@ export type GetProjectQueryVariables = Exact<{
 
 
 export type GetProjectQuery = { __typename?: 'Query', getProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus, accessList?: { __typename?: 'ResourceShareConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'ResourceShare', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, recipientUserId: string, permission: SharePermission, resourceTitle: string, resourceType: EntityType }> } | null | undefined, doclinks?: { __typename?: 'DoclinkConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, parentId: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, filename: string, status: DoclinkStatus, documentId: string, deletedAt?: string | null | undefined }> } | null | undefined, topics?: { __typename?: 'TopicConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Topic', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, parentId: string, name: string }> } | null | undefined, workflows?: { __typename?: 'WorkflowConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, config?:
-              | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined }
+              | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined }
               | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
               | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
               | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
@@ -2135,7 +2139,7 @@ export type GetWorkflowQueryVariables = Exact<{
 
 
 export type GetWorkflowQuery = { __typename?: 'Query', getWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, accessList?: { __typename?: 'ResourceShareConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'ResourceShare', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, recipientUserId: string, permission: SharePermission, resourceTitle: string, resourceType: EntityType }> } | null | undefined, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, config?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined }
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
@@ -2149,7 +2153,7 @@ export type ListWorkflowsQueryVariables = Exact<{
 
 
 export type ListWorkflowsQuery = { __typename?: 'Query', listWorkflows: { __typename?: 'WorkflowConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, config?:
-            | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined }
+            | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined }
             | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
             | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
             | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
@@ -2161,7 +2165,7 @@ export type GetWorkflowExecutionQueryVariables = Exact<{
 
 
 export type GetWorkflowExecutionQuery = { __typename?: 'Query', getWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined, workflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, config?:
-            | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined }
+            | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined }
             | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
             | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
             | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
@@ -2398,7 +2402,7 @@ export type OnCreateWorkflowSubscriptionVariables = Exact<{
 
 
 export type OnCreateWorkflowSubscription = { __typename?: 'Subscription', onCreateWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, config?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined }
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
@@ -2410,7 +2414,7 @@ export type OnUpdateWorkflowSubscriptionVariables = Exact<{
 
 
 export type OnUpdateWorkflowSubscription = { __typename?: 'Subscription', onUpdateWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, config?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined }
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
@@ -2422,7 +2426,7 @@ export type OnDeleteWorkflowSubscriptionVariables = Exact<{
 
 
 export type OnDeleteWorkflowSubscription = { __typename?: 'Subscription', onDeleteWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, config?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined }
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }

@@ -89,6 +89,15 @@ enum WorkflowNodeExecutionStatus {
   SKIPPED
 }
 
+enum WorkflowNodeKind {
+  INPUT
+  PROCESS
+  AI
+  TOOLS
+  OUTPUT
+  COMMENT
+}
+
 # ----------------------------------------------------------------------
 # 3. INTERFACES
 # ----------------------------------------------------------------------
@@ -492,6 +501,59 @@ type WorkflowUI   @aws_iam
   connections: [WorkflowUIConnection!]!
 }
 
+# JSON Schema document for structured output. Shared by Workflows, ValidateTopicStore, and dashboard widgets.
+type StructuredOutputSchema {
+  jsonSchema: AWSJSON!
+}
+
+# Workflow definition: nodes and edges (layout lives in Workflow.ui).
+type ProcessNodeConfig {
+  options: AWSJSON
+  staticOutput: AWSJSON
+}
+
+type AINodeConfig {
+  prompt: String
+  model: String
+  topK: Int
+  systemPrompt: String
+}
+
+type ToolsNodeConfig {
+  options: AWSJSON
+}
+
+type EmptyNodeConfig {
+  _empty: Boolean
+}
+
+union WorkflowNodeConfig =
+    ProcessNodeConfig
+  | AINodeConfig
+  | ToolsNodeConfig
+  | EmptyNodeConfig
+
+type WorkflowNode {
+  id: ID!
+  kind: WorkflowNodeKind!
+  label: String
+  config: WorkflowNodeConfig
+  options: AWSJSON
+}
+
+type WorkflowEdge {
+  id: ID!
+  sourceId: ID!
+  targetId: ID!
+  sourcePort: String
+  targetPort: String
+}
+
+type WorkflowDefinition {
+  nodes: [WorkflowNode!]!
+  edges: [WorkflowEdge!]!
+}
+
 type Workflow implements Node & Metadata & Shareable
   @aws_iam
   @aws_cognito_user_pools {
@@ -506,7 +568,8 @@ type Workflow implements Node & Metadata & Shareable
   accessList(limit: Int, nextToken: String): ResourceShareConnection
 
   name: String!
-  definition: AWSJSON!
+  definition: WorkflowDefinition!
+  structuredOutputSchema: StructuredOutputSchema
   ui: WorkflowUI
 
   # Parent Relationship
@@ -823,17 +886,63 @@ input WorkflowUIInput {
   connections: [WorkflowUIConnectionInput!]!
 }
 
+# Input for structured output schema (shared by Workflows, ValidateTopicStore, dashboard widgets).
+input StructuredOutputSchemaInput {
+  jsonSchema: AWSJSON!
+}
+
+input ProcessNodeConfigInput {
+  options: AWSJSON
+  staticOutput: AWSJSON
+}
+
+input AINodeConfigInput {
+  prompt: String
+  model: String
+  topK: Int
+  systemPrompt: String
+}
+
+input ToolsNodeConfigInput {
+  options: AWSJSON
+}
+
+input WorkflowNodeInput {
+  id: ID!
+  kind: WorkflowNodeKind!
+  label: String
+  processConfig: ProcessNodeConfigInput
+  aiConfig: AINodeConfigInput
+  toolsConfig: ToolsNodeConfigInput
+  options: AWSJSON
+}
+
+input WorkflowEdgeInput {
+  id: ID!
+  sourceId: ID!
+  targetId: ID!
+  sourcePort: String
+  targetPort: String
+}
+
+input WorkflowDefinitionInput {
+  nodes: [WorkflowNodeInput!]!
+  edges: [WorkflowEdgeInput!]!
+}
+
 input CreateWorkflowInput {
   # REQUIRED: To perform the Strongly Consistent Write to Main Table
   parentId: ID!
   name: String!
-  definition: AWSJSON!
+  definition: WorkflowDefinitionInput!
+  structuredOutputSchema: StructuredOutputSchemaInput
   ui: WorkflowUIInput
 }
 
 input UpdateWorkflowInput {
   name: String
-  definition: AWSJSON
+  definition: WorkflowDefinitionInput
+  structuredOutputSchema: StructuredOutputSchemaInput
   ui: WorkflowUIInput
 }
 

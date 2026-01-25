@@ -16,7 +16,42 @@ export const S_ON_CREATE_WORKFLOW = gql`
       deletedAt
       sharingMode
       name
-      definition
+      definition {
+        nodes {
+          id
+          kind
+          label
+          options
+          config {
+            ... on ProcessNodeConfig {
+              options
+              staticOutput
+            }
+            ... on AINodeConfig {
+              prompt
+              model
+              topK
+              systemPrompt
+            }
+            ... on ToolsNodeConfig {
+              options
+            }
+            ... on EmptyNodeConfig {
+              _empty
+            }
+          }
+        }
+        edges {
+          id
+          sourceId
+          targetId
+          sourcePort
+          targetPort
+        }
+      }
+      structuredOutputSchema {
+        jsonSchema
+      }
       parentId
       ui {
         elements {
@@ -53,7 +88,42 @@ export const S_ON_UPDATE_WORKFLOW = gql`
       deletedAt
       sharingMode
       name
-      definition
+      definition {
+        nodes {
+          id
+          kind
+          label
+          options
+          config {
+            ... on ProcessNodeConfig {
+              options
+              staticOutput
+            }
+            ... on AINodeConfig {
+              prompt
+              model
+              topK
+              systemPrompt
+            }
+            ... on ToolsNodeConfig {
+              options
+            }
+            ... on EmptyNodeConfig {
+              _empty
+            }
+          }
+        }
+        edges {
+          id
+          sourceId
+          targetId
+          sourcePort
+          targetPort
+        }
+      }
+      structuredOutputSchema {
+        jsonSchema
+      }
       parentId
       ui {
         elements {
@@ -90,7 +160,42 @@ export const S_ON_DELETE_WORKFLOW = gql`
       deletedAt
       sharingMode
       name
-      definition
+      definition {
+        nodes {
+          id
+          kind
+          label
+          options
+          config {
+            ... on ProcessNodeConfig {
+              options
+              staticOutput
+            }
+            ... on AINodeConfig {
+              prompt
+              model
+              topK
+              systemPrompt
+            }
+            ... on ToolsNodeConfig {
+              options
+            }
+            ... on EmptyNodeConfig {
+              _empty
+            }
+          }
+        }
+        edges {
+          id
+          sourceId
+          targetId
+          sourcePort
+          targetPort
+        }
+      }
+      structuredOutputSchema {
+        jsonSchema
+      }
       parentId
       ui {
         elements {

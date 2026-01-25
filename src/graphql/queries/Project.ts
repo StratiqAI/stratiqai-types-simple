@@ -75,7 +75,42 @@ export const Q_GET_PROJECT = gql`
           deletedAt
           sharingMode
           name
-          definition
+          definition {
+            nodes {
+              id
+              kind
+              label
+              options
+              config {
+                ... on ProcessNodeConfig {
+                  options
+                  staticOutput
+                }
+                ... on AINodeConfig {
+                  prompt
+                  model
+                  topK
+                  systemPrompt
+                }
+                ... on ToolsNodeConfig {
+                  options
+                }
+                ... on EmptyNodeConfig {
+                  _empty
+                }
+              }
+            }
+            edges {
+              id
+              sourceId
+              targetId
+              sourcePort
+              targetPort
+            }
+          }
+          structuredOutputSchema {
+            jsonSchema
+          }
           ui {
             elements {
               id

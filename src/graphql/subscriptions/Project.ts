@@ -54,3 +54,20 @@ export const S_ON_DELETE_PROJECT = gql`
     }
   }
 `;
+
+export const S_ON_RESTORE_PROJECT = gql`
+  subscription OnRestoreProject($id: ID!) {
+    onRestoreProject(id: $id) {
+      id
+      entityType
+      tenantId
+      ownerId
+      createdAt
+      updatedAt
+      sharingMode
+      name
+      description
+      status
+    }
+  }
+`;

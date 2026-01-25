@@ -25,7 +25,42 @@ export const Q_GET_WORKFLOW_EXECUTION = gql`
         deletedAt
         sharingMode
         name
-        definition
+        definition {
+          nodes {
+            id
+            kind
+            label
+            options
+            config {
+              ... on ProcessNodeConfig {
+                options
+                staticOutput
+              }
+              ... on AINodeConfig {
+                prompt
+                model
+                topK
+                systemPrompt
+              }
+              ... on ToolsNodeConfig {
+                options
+              }
+              ... on EmptyNodeConfig {
+                _empty
+              }
+            }
+          }
+          edges {
+            id
+            sourceId
+            targetId
+            sourcePort
+            targetPort
+          }
+        }
+        structuredOutputSchema {
+          jsonSchema
+        }
         ui {
           elements {
             id
@@ -110,7 +145,19 @@ export const Q_LIST_WORKFLOW_EXECUTIONS = gql`
         workflow {
           id
           name
-          definition
+          definition {
+            nodes {
+              id
+              kind
+              label
+              options
+            }
+            edges {
+              id
+              sourceId
+              targetId
+            }
+          }
         }
         status
         startedAt

@@ -37,7 +37,7 @@ export const Q_GET_WORKFLOW = gql`
           kind
           label
           options
-          config {
+          configuration {
             ... on ProcessNodeConfig {
               options
               staticOutput
@@ -113,7 +113,7 @@ export const Q_LIST_WORKFLOWS = gql`
             kind
             label
             options
-            config {
+            configuration {
               ... on ProcessNodeConfig {
                 options
                 staticOutput

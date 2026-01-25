@@ -22,7 +22,7 @@ export const M_CREATE_WORKFLOW = gql`
           kind
           label
           options
-          config {
+          configuration {
             ... on ProcessNodeConfig {
               options
               staticOutput
@@ -97,7 +97,7 @@ export const M_UPDATE_WORKFLOW = gql`
           kind
           label
           options
-          config {
+          configuration {
             ... on ProcessNodeConfig {
               options
               staticOutput
@@ -172,7 +172,7 @@ export const M_DELETE_WORKFLOW = gql`
           kind
           label
           options
-          config {
+          configuration {
             ... on ProcessNodeConfig {
               options
               staticOutput

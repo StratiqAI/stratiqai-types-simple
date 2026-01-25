@@ -81,7 +81,7 @@ export const Q_GET_PROJECT = gql`
               kind
               label
               options
-              config {
+              configuration {
                 ... on ProcessNodeConfig {
                   options
                   staticOutput

@@ -554,7 +554,8 @@ type WorkflowNode
   id: ID!
   kind: WorkflowNodeKind!
   label: String
-  config: WorkflowNodeConfig
+  """Node configuration; shape depends on kind (ProcessNodeConfig, AINodeConfig, ToolsNodeConfig, EmptyNodeConfig)."""
+  configuration: WorkflowNodeConfig!
   options: AWSJSON
 }
 
@@ -930,13 +931,12 @@ input ToolsNodeConfigInput {
   options: AWSJSON
 }
 
+"""Client sends the union variant per kind (same shape as WorkflowNodeConfig), including __typename. E.g. AI node: { __typename: \"AINodeConfig\", prompt, model, ... }."""
 input WorkflowNodeInput {
   id: ID!
   kind: WorkflowNodeKind!
   label: String
-  processConfig: ProcessNodeConfigInput
-  aiConfig: AINodeConfigInput
-  toolsConfig: ToolsNodeConfigInput
+  configuration: AWSJSON!
   options: AWSJSON
 }
 

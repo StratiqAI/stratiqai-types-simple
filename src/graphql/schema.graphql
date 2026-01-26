@@ -542,10 +542,19 @@ type EmptyNodeConfig
   _empty: Boolean
 }
 
+"""Trigger event for input nodes (e.g. EventBridge source/detailType)."""
+type InputNodeConfig
+  @aws_iam
+  @aws_cognito_user_pools {
+  source: String!
+  detailType: String!
+}
+
 union WorkflowNodeConfig =
     ProcessNodeConfig
   | AINodeConfig
   | ToolsNodeConfig
+  | InputNodeConfig
   | EmptyNodeConfig
 
 type WorkflowNode

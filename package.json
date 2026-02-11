@@ -1,5 +1,5 @@
 {
-  "name": "@stratiqai/types-simple",
+  "name": "@agnathan/types-simple",
   "version": "1.0.39",
   "description": "TypeScript types, GraphQL schema, and operations for StratiqAI",
   "license": "ISC",

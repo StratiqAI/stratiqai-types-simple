@@ -1,6 +1,6 @@
 {
-  "name": "@agnathan/types-simple",
-  "version": "1.0.39",
+  "name": "@stratiqai/types-simple",
+  "version": "1.0.40",
   "description": "TypeScript types, GraphQL schema, and operations for StratiqAI",
   "license": "ISC",
   "author": "",
@@ -19,11 +19,13 @@
     "./generated/types": {
       "types": "./src/generated/types.ts",
       "import": "./src/generated/types.ts"
-    }
+    },
+    "./schema": "./src/graphql/schema.graphql"
   },
   "files": [
     "dist",
-    "src/generated/types.ts"
+    "src/generated/types.ts",
+    "src/graphql/schema.graphql"
   ],
   "scripts": {
     "clean": "rimraf dist",

@@ -10,6 +10,7 @@ schema {
 
 scalar AWSDateTime
 scalar AWSJSON
+scalar AWSTimestamp
 
 directive @aws_iam on OBJECT | FIELD_DEFINITION
 directive @aws_cognito_user_pools(
@@ -34,24 +35,96 @@ enum EntityType {
   TABLE
   TEXT
   SCAN
-  PROMPT_TEMPLATE
+  PROMPT
+  STRUCTURED_OUTPUT_SCHEMA
+  AI_QUERY_EXECUTION
   WORKFLOW
   WORKFLOW_EXECUTION
   WORKFLOW_NODE_EXECUTION
+  AI_QUERY
+  ACCOUNT_CREDITS
+  USAGE_RECORD
+  BILLING_INVOICE
+  AUDIT_LOG_ENTRY
+  DEAL_ROOM_MEMBER
+  NDA_AGREEMENT
+  INVITATION
+  DEAL_TEMPLATE
+  QUESTION
+  ANNOUNCEMENT
+  INVESTOR_PROFILE
+  MICRO_INTERVIEW
+  MATCH_SCORE
+}
+
+enum AuditLogAction {
+  LOGIN
+  VIEW_DOCUMENT
+  DOWNLOAD
+  PRINT
+  LIST_DOCUMENTS
+  OTHER
+}
+
+enum DealRole {
+  BROKER_ADMIN
+  BUYER_PRINCIPAL
+  BUYER_LENDER
+  BUYER_ENVIRONMENTAL
+  BUYER_OTHER
+}
+
+enum NDAStatus {
+  PENDING
+  SIGNED
+}
+
+enum AIQueryStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum UsageUnit {
+  TOKENS
+  DURATION_SECONDS
+  API_CALLS
+}
+
+enum BillingPeriod {
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+}
+
+enum InvoiceStatus {
+  DRAFT
+  OPEN
+  PAID
+  VOID
+  UNCOLLECTIBLE
 }
 
 enum ProjectStatus {
   ACTIVE
   ARCHIVED
   DELETED
+  DRAFT
+  PUBLISHED
 }
 
 enum DoclinkStatus {
-  NOT_UPLOADED
-  UPLOADED
+  NOT_STARTED
   PROCESSING
   READY
   FAILED
+}
+
+enum DoclinkLinkType {
+  NONE
+  TEXT_EMBEDDINGS
+  IMAGE_EMBEDDINGS
 }
 
 enum SharingMode {
@@ -96,6 +169,24 @@ enum WorkflowNodeKind {
   TOOLS
   OUTPUT
   COMMENT
+}
+
+"""
+Supported Gemini models. Backend maps enum to API model ID
+(e.g. GEMINI_2_5_FLASH -> "gemini-2.5-flash").
+"""
+enum AIModel {
+  GEMINI_3_PRO_PREVIEW
+  GEMINI_3_FLASH_PREVIEW
+  GEMINI_2_5_FLASH
+  GEMINI_2_5_FLASH_LITE
+  GEMINI_2_5_PRO
+}
+
+"""Execution outcome for AIQueryExecution (distinct from AIQueryStatus)."""
+enum ExecutionStatus {
+  SUCCESS
+  ERROR
 }
 
 # ----------------------------------------------------------------------
@@ -190,9 +281,14 @@ type TopicConnection
   nextToken: String
 }
 
-type PromptTemplate implements Node & Metadata & Shareable
+"""
+AI Studio prompt (formerly PromptTemplate). Versioned instruction set for the AI.
+"""
+type Prompt implements Node & Metadata & Shareable
   @aws_iam
-  @aws_cognito_user_pools {
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
   id: ID!
   entityType: EntityType!
   tenantId: ID!
@@ -205,16 +301,65 @@ type PromptTemplate implements Node & Metadata & Shareable
 
   parentId: ID!
   name: String!
-  template: String!
   description: String
+  """Template with variable placeholders (e.g. \"Write a poem about {{topic}}\")."""
+  templateText: String!
+  """Variables detected in the template (e.g. [\"topic\"])."""
+  inputVariables: [String!]!
+  model: AIModel!
+  config: GeminiConfig!
+  version: Int!
+  isActive: Boolean!
+  """Structured output schema enforced for this prompt."""
+  outputSchema: StructuredOutputSchema!
 }
 
-type PromptTemplateConnection
+type PromptConnection
   @aws_iam
   @aws_cognito_user_pools(
     cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
   ) {
-  items: [PromptTemplate!]!
+  items: [Prompt!]!
+  nextToken: String
+}
+
+"""
+Immutable record of an AI prompt run and its result.
+"""
+type AIQueryExecution implements Node & Metadata
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  """The prompt version that was executed."""
+  prompt: Prompt!
+  executedAt: AWSDateTime!
+  durationMs: Int!
+  """Variable values passed (e.g. { \"topic\": \"Sunsets\" })."""
+  inputValues: AWSJSON!
+  rawOutput: String
+  """Parsed JSON when schema validation passed."""
+  structuredOutput: AWSJSON
+  promptTokenCount: Int
+  candidatesTokenCount: Int
+  totalTokenCount: Int
+  status: ExecutionStatus!
+  errorMessage: String
+}
+
+type AIQueryExecutionConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [AIQueryExecution!]!
   nextToken: String
 }
 
@@ -229,10 +374,262 @@ type Doclink implements Node & Metadata @aws_iam @aws_cognito_user_pools {
 
   parentId: ID!
   filename: String!
-  vectorStoreId: ID
-  openAIFileId: ID
   status: DoclinkStatus!
+  linkType: DoclinkLinkType!
   documentId: ID!
+  # Deal room: optional permission set tags (e.g. FINANCIALS, LEGAL). Empty = visible to all in deal.
+  permissionSetIds: [String!]
+  folderPath: String
+  displayOrder: String
+}
+
+type DealRoomMember implements Node & Metadata @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  parentId: ID! # dealId (Project ID)
+  userId: ID!
+  role: DealRole!
+  permissionSetIds: [String!] # Which permission sets this member can see (e.g. FINANCIALS, LEGAL)
+}
+
+type DealRoomMemberConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [DealRoomMember!]!
+  nextToken: String
+}
+
+type NDAAgreement implements Node & Metadata @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  parentId: ID! # dealId (Project ID)
+  userId: ID!
+  status: NDAStatus!
+  signedAt: AWSDateTime
+  signedDocumentId: ID # Document ID of the signed PDF
+}
+
+type NDAAgreementConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [NDAAgreement!]!
+  nextToken: String
+}
+
+enum InvitationStatus {
+  SENT
+  OPENED
+  REGISTERED
+  BOUNCED
+}
+
+type Invitation implements Node & Metadata @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  parentId: ID! # dealId (Project ID)
+  email: String!
+  status: InvitationStatus!
+  role: DealRole
+  sentAt: AWSDateTime
+  openedAt: AWSDateTime
+}
+
+type InvitationConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [Invitation!]!
+  nextToken: String
+}
+
+type DealTemplate implements Node & Metadata @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  name: String!
+  structure: AWSJSON
+}
+
+type DealTemplateConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [DealTemplate!]!
+  nextToken: String
+}
+
+# Full-text OCR search result (DynamoDB + FilterExpression, no OpenSearch)
+type DocumentSearchResult {
+  documentId: ID!
+  pageNum: Int!
+  snippet: String!
+}
+
+# Broker intelligence: aggregated per-buyer engagement (from AuditLogEntry)
+type BuyerEngagement {
+  dealId: ID!
+  userId: ID!
+  totalTimeSeconds: Int
+  documentViewCount: Int
+  downloadCount: Int
+  lastActiveAt: AWSDateTime
+}
+
+# Broker intelligence: per-document analytics
+type DocumentAnalytics {
+  dealId: ID!
+  documentId: ID!
+  viewCount: Int!
+  downloadCount: Int!
+  uniqueViewerCount: Int
+}
+
+type Question implements Node & Metadata @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  parentId: ID!
+  authorId: ID!
+  documentId: ID
+  questionText: String!
+  answerText: String
+  isPublic: Boolean!
+  answeredAt: AWSDateTime
+}
+
+type QuestionConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [Question!]!
+  nextToken: String
+}
+
+type Announcement implements Node & Metadata @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  parentId: ID!
+  body: String!
+}
+
+type AnnouncementConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [Announcement!]!
+  nextToken: String
+}
+
+# AI Investor Matching: Universal Investor Profile (explicit + implicit)
+type InvestorProfile implements Node & Metadata @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  explicitCriteria: AWSJSON
+  pastDealsViewed: AWSJSON
+  dealsDeclined: AWSJSON
+  averageDealSizeViewed: String
+  lastUpdated: AWSDateTime
+}
+
+type MicroInterview implements Node & Metadata @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  parentId: ID!
+  userId: ID!
+  questionId: String
+  questionText: String!
+  response: String
+  shownAt: AWSDateTime
+  respondedAt: AWSDateTime
+}
+
+type MicroInterviewConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [MicroInterview!]!
+  nextToken: String
+}
+
+type MatchScore implements Node & Metadata @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  parentId: ID!
+  userId: ID!
+  score: Float!
+  rationaleText: String
+  suggestedAction: String
+  computedAt: AWSDateTime!
+}
+
+type MatchScoreConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [MatchScore!]!
+  nextToken: String
 }
 
 type DoclinkConnection
@@ -264,6 +661,36 @@ type NotificationConnection
     cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
   ) {
   items: [Notification!]!
+  nextToken: String
+}
+
+# ----------------------------------------------------------------------
+# 5A. AUDIT LOG (Deal Room compliance)
+# ----------------------------------------------------------------------
+type AuditLogEntry implements Node & Metadata @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID! # actorId (user who performed the action)
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  parentId: ID! # dealId (Project ID)
+  action: AuditLogAction!
+  resourceType: EntityType
+  resourceId: ID
+  ip: String
+  userAgent: String
+  ttlExpiration: AWSTimestamp
+}
+
+type AuditLogEntryConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [AuditLogEntry!]!
   nextToken: String
 }
 
@@ -444,6 +871,18 @@ type Project implements Node & Metadata & Shareable
   name: String!
   description: String
   status: ProjectStatus!
+  # Deal room: staging and presentation
+  headline: String
+  summary: String
+  photoUrls: [String!]
+  mapEmbedUrl: String
+  brokerContactName: String
+  brokerContactEmail: String
+  brokerContactPhone: String
+  logoUrl: String
+  primaryColor: String
+  secondaryColor: String
+  dealTags: AWSJSON
 
   # ---------------------------------------------------------
   # Access Pattern: GSI 1 (The View)
@@ -452,9 +891,16 @@ type Project implements Node & Metadata & Shareable
   doclinks(limit: Int, nextToken: String): DoclinkConnection
   topics(limit: Int, nextToken: String): TopicConnection
   notifications(limit: Int, nextToken: String): NotificationConnection
-  prompttemplates(limit: Int, nextToken: String): PromptTemplateConnection
+  prompts(limit: Int, nextToken: String): PromptConnection
   workflows(limit: Int, nextToken: String): WorkflowConnection
-
+  auditlogentries(limit: Int, nextToken: String): AuditLogEntryConnection
+  dealroommembers(limit: Int, nextToken: String): DealRoomMemberConnection
+  ndagreements(limit: Int, nextToken: String): NDAAgreementConnection
+  invitations(limit: Int, nextToken: String): InvitationConnection
+  questions(limit: Int, nextToken: String): QuestionConnection
+  announcements(limit: Int, nextToken: String): AnnouncementConnection
+  microinterviews(limit: Int, nextToken: String): MicroInterviewConnection
+  matchscores(limit: Int, nextToken: String): MatchScoreConnection
 }
 
 type ProjectConnection
@@ -467,11 +913,11 @@ type ProjectConnection
 }
 
 # Workflow UI Types
-type WorkflowUIElement   @aws_iam
+type WorkflowUIElement
+  @aws_iam
   @aws_cognito_user_pools(
     cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
   ) {
-
   id: String!
   type: String!
   category: String!
@@ -482,7 +928,8 @@ type WorkflowUIElement   @aws_iam
   height: Float!
 }
 
-type WorkflowUIConnection   @aws_iam
+type WorkflowUIConnection
+  @aws_iam
   @aws_cognito_user_pools(
     cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
   ) {
@@ -493,7 +940,8 @@ type WorkflowUIConnection   @aws_iam
   toSide: String!
 }
 
-type WorkflowUI   @aws_iam
+type WorkflowUI
+  @aws_iam
   @aws_cognito_user_pools(
     cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
   ) {
@@ -502,7 +950,7 @@ type WorkflowUI   @aws_iam
 }
 
 # JSON Schema document for structured output. Shared by Workflows, ValidateTopicStore, and dashboard widgets.
-type StructuredOutputSchema
+type JsonSchemaValue
   @aws_iam
   @aws_cognito_user_pools(
     cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -510,67 +958,105 @@ type StructuredOutputSchema
   jsonSchema: AWSJSON!
 }
 
+"""
+Configuration for Google Gemini generation.
+"""
+type GeminiConfig
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  temperature: Float
+  topP: Float
+  topK: Int
+  maxOutputTokens: Int
+  stopSequences: [String!]
+}
+
+"""
+Persistable structured output schema (tenant-scoped). Defines the structure
+expected from the AI. Maps to Gemini responseSchema.
+"""
+type StructuredOutputSchema implements Node & Metadata
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  name: String!
+  description: String
+  """JSON Schema definition (OpenAPI 3.0 compatible). Used to validate AI output."""
+  schemaDefinition: AWSJSON!
+}
+
+type StructuredOutputSchemaConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [StructuredOutputSchema!]!
+  nextToken: String
+}
+
 # Workflow definition: nodes and edges (layout lives in Workflow.ui).
 # Auth on nested types so getWorkflow { definition { nodes, edges } } is allowed for same callers as Workflow.
-type ProcessNodeConfig
-  @aws_iam
-  @aws_cognito_user_pools {
+type ProcessNodeConfig @aws_iam @aws_cognito_user_pools {
   options: AWSJSON
   staticOutput: AWSJSON
 }
 
-type AINodeConfig
-  @aws_iam
-  @aws_cognito_user_pools {
+type AINodeConfig @aws_iam @aws_cognito_user_pools {
   prompt: String
   model: String
   topK: Int
   systemPrompt: String
-  """JSON Schema for structured output (e.g. responseFormat.type eq json_schema)."""
-  structuredOutputSchema: StructuredOutputSchema
+  """
+  JSON Schema for structured output (e.g. responseFormat.type eq json_schema).
+  """
+  structuredOutputSchema: JsonSchemaValue
 }
 
-type ToolsNodeConfig
-  @aws_iam
-  @aws_cognito_user_pools {
+type ToolsNodeConfig @aws_iam @aws_cognito_user_pools {
   options: AWSJSON
 }
 
-type EmptyNodeConfig
-  @aws_iam
-  @aws_cognito_user_pools {
+type EmptyNodeConfig @aws_iam @aws_cognito_user_pools {
   _empty: Boolean
 }
 
-"""Trigger event for input nodes (e.g. EventBridge source/detailType)."""
-type InputNodeConfig
-  @aws_iam
-  @aws_cognito_user_pools {
+"""
+Trigger event for input nodes (e.g. EventBridge source/detailType).
+"""
+type InputNodeConfig @aws_iam @aws_cognito_user_pools {
   source: String!
   detailType: String!
 }
 
 union WorkflowNodeConfig =
-    ProcessNodeConfig
+  | ProcessNodeConfig
   | AINodeConfig
   | ToolsNodeConfig
   | InputNodeConfig
   | EmptyNodeConfig
 
-type WorkflowNode
-  @aws_iam
-  @aws_cognito_user_pools {
+type WorkflowNode @aws_iam @aws_cognito_user_pools {
   id: ID!
   kind: WorkflowNodeKind!
   label: String
-  """Node configuration; shape depends on kind. Null when stored in legacy shape (processConfig/aiConfig/toolsConfig); client should normalize from those if present."""
+  """
+  Node configuration; shape depends on kind. Null when stored in legacy shape (processConfig/aiConfig/toolsConfig); client should normalize from those if present.
+  """
   configuration: WorkflowNodeConfig
   options: AWSJSON
 }
 
-type WorkflowEdge
-  @aws_iam
-  @aws_cognito_user_pools {
+type WorkflowEdge @aws_iam @aws_cognito_user_pools {
   id: ID!
   sourceId: ID!
   targetId: ID!
@@ -578,9 +1064,7 @@ type WorkflowEdge
   targetPort: String
 }
 
-type WorkflowDefinition
-  @aws_iam
-  @aws_cognito_user_pools {
+type WorkflowDefinition @aws_iam @aws_cognito_user_pools {
   nodes: [WorkflowNode!]!
   edges: [WorkflowEdge!]!
 }
@@ -600,7 +1084,7 @@ type Workflow implements Node & Metadata & Shareable
 
   name: String!
   definition: WorkflowDefinition!
-  structuredOutputSchema: StructuredOutputSchema
+  structuredOutputSchema: JsonSchemaValue
   ui: WorkflowUI
 
   # Parent Relationship
@@ -623,7 +1107,6 @@ type WorkflowConnection
 type WorkflowExecution implements Node & Metadata
   @aws_iam
   @aws_cognito_user_pools {
-
   # Metadata Fields
   id: ID!
   entityType: EntityType!
@@ -656,7 +1139,10 @@ type WorkflowExecution implements Node & Metadata
   currentNodeId: String
 
   # Node Executions
-  workflownodeexecutions(limit: Int, nextToken: String): WorkflowNodeExecutionConnection
+  workflownodeexecutions(
+    limit: Int
+    nextToken: String
+  ): WorkflowNodeExecutionConnection
 }
 
 type WorkflowExecutionConnection
@@ -702,7 +1188,6 @@ type WorkflowNodeExecution implements Node & Metadata
   outputData: AWSJSON
   errorMessage: String
   errorDetails: AWSJSON
-
 }
 
 type WorkflowNodeExecutionConnection
@@ -744,6 +1229,17 @@ input CreateProjectInput {
   description: String
   status: ProjectStatus = ACTIVE
   sharingMode: SharingMode = PRIVATE
+  headline: String
+  summary: String
+  photoUrls: [String!]
+  mapEmbedUrl: String
+  brokerContactName: String
+  brokerContactEmail: String
+  brokerContactPhone: String
+  logoUrl: String
+  primaryColor: String
+  secondaryColor: String
+  dealTags: AWSJSON
 }
 
 input UpdateProjectInput {
@@ -751,26 +1247,147 @@ input UpdateProjectInput {
   description: String
   status: ProjectStatus
   sharingMode: SharingMode
+  headline: String
+  summary: String
+  photoUrls: [String!]
+  mapEmbedUrl: String
+  brokerContactName: String
+  brokerContactEmail: String
+  brokerContactPhone: String
+  logoUrl: String
+  primaryColor: String
+  secondaryColor: String
+  dealTags: AWSJSON
 }
 
 # DOCLINK INPUTS
 input CreateDoclinkInput {
+  # Optional: deterministic id for doclink (e.g. documentId or documentId#textEmbeddings)
+  id: ID
   # REQUIRED: To perform the Strongly Consistent Write to Main Table
   parentId: ID!
 
-  vectorStoreId: ID
-  openAIFileId: ID
-
   documentId: ID!
   filename: String!
-  status: DoclinkStatus = NOT_UPLOADED
+  status: DoclinkStatus = NOT_STARTED
+  linkType: DoclinkLinkType = NONE
+  permissionSetIds: [String!]
+  folderPath: String
+  displayOrder: String
 }
 
 input UpdateDoclinkInput {
   filename: String
-  vectorStoreId: ID!
-  openAIFileId: ID!
   status: DoclinkStatus
+  linkType: DoclinkLinkType
+  permissionSetIds: [String!]
+  folderPath: String
+  displayOrder: String
+}
+
+input CreateDealRoomMemberInput {
+  parentId: ID!
+  userId: ID!
+  role: DealRole!
+  permissionSetIds: [String!]
+}
+
+input UpdateDealRoomMemberInput {
+  userId: ID
+  role: DealRole
+  permissionSetIds: [String!]
+}
+
+input CreateNDAAgreementInput {
+  parentId: ID!
+  userId: ID!
+  status: NDAStatus = PENDING
+}
+
+input UpdateNDAAgreementInput {
+  status: NDAStatus
+  signedAt: AWSDateTime
+  signedDocumentId: ID
+}
+
+input CreateInvitationInput {
+  parentId: ID!
+  email: String!
+  status: InvitationStatus = SENT
+  role: DealRole
+}
+
+input UpdateInvitationInput {
+  email: String
+  status: InvitationStatus
+  role: DealRole
+  sentAt: AWSDateTime
+  openedAt: AWSDateTime
+}
+
+input CreateDealTemplateInput {
+  name: String!
+  structure: AWSJSON
+}
+
+input UpdateDealTemplateInput {
+  name: String
+  structure: AWSJSON
+}
+
+input CreateQuestionInput {
+  parentId: ID!
+  authorId: ID
+  documentId: ID
+  questionText: String!
+  isPublic: Boolean = false
+}
+
+input UpdateQuestionInput {
+  answerText: String
+  isPublic: Boolean
+  answeredAt: AWSDateTime
+}
+
+input CreateAnnouncementInput {
+  parentId: ID!
+  body: String!
+}
+
+input UpdateAnnouncementInput {
+  body: String
+}
+
+input CreateMicroInterviewInput {
+  parentId: ID!
+  userId: ID!
+  questionId: String
+  questionText: String!
+}
+
+input UpdateMicroInterviewInput {
+  response: String
+  respondedAt: AWSDateTime
+}
+
+input CreateMatchScoreInput {
+  parentId: ID!
+  userId: ID!
+  score: Float!
+  rationaleText: String
+  suggestedAction: String
+}
+
+input CreateInvestorProfileInput {
+  id: ID
+  explicitCriteria: AWSJSON
+}
+
+input UpdateInvestorProfileInput {
+  explicitCriteria: AWSJSON
+  pastDealsViewed: AWSJSON
+  dealsDeclined: AWSJSON
+  averageDealSizeViewed: String
 }
 
 # NOTIFICATION INPUTS
@@ -787,22 +1404,61 @@ input UpdateNotificationInput {
   properties: AWSJSON
 }
 
-# PROMPT_TEMPLATE INPUTS
-input CreatePromptTemplateInput {
-  # REQUIRED: To perform the Strongly Consistent Write to Main Table
-  parentId: ID!
+# AUDIT LOG INPUTS (create-only; used by Lambda / pipeline for compliance)
+input CreateAuditLogEntryInput {
+  parentId: ID! # dealId (Project ID)
+  action: AuditLogAction!
+  resourceType: EntityType
+  resourceId: ID
+  ownerId: ID # actorId (defaults to SYSTEM if not provided)
+  ip: String
+  userAgent: String
+  ttlExpiration: Int # Optional epoch seconds for DynamoDB TTL
+}
 
+# AI STUDIO: Gemini config input
+input GeminiConfigInput {
+  temperature: Float = 0.7
+  topP: Float
+  topK: Int
+  maxOutputTokens: Int
+  stopSequences: [String!]
+}
+
+# AI STUDIO: Structured output schema (tenant-scoped entity)
+input CreateStructuredOutputSchemaInput {
   name: String!
-  template: String!
   description: String
+  schemaDefinition: AWSJSON!
+}
+
+# AI STUDIO: Prompt inputs
+input CreatePromptInput {
+  parentId: ID!
+  name: String!
+  description: String
+  templateText: String!
+  model: AIModel = GEMINI_2_5_FLASH
+  config: GeminiConfigInput
+  outputSchemaId: ID!
   sharingMode: SharingMode = PRIVATE
 }
 
-input UpdatePromptTemplateInput {
+input UpdatePromptInput {
   name: String
-  template: String
   description: String
+  templateText: String
+  model: AIModel
+  config: GeminiConfigInput
+  outputSchemaId: ID
   sharingMode: SharingMode
+}
+
+# AI STUDIO: Run prompt and persist execution
+input RunAIQueryInput {
+  promptId: ID!
+  parentId: ID!
+  variables: AWSJSON!
 }
 
 # IMAGE INPUTS
@@ -918,7 +1574,7 @@ input WorkflowUIInput {
 }
 
 # Input for structured output schema (shared by Workflows, ValidateTopicStore, dashboard widgets).
-input StructuredOutputSchemaInput {
+input JsonSchemaValueInput {
   jsonSchema: AWSJSON!
 }
 
@@ -932,15 +1588,19 @@ input AINodeConfigInput {
   model: String
   topK: Int
   systemPrompt: String
-  """JSON Schema for structured output (e.g. responseFormat.type eq json_schema)."""
-  structuredOutputSchema: StructuredOutputSchemaInput
+  """
+  JSON Schema for structured output (e.g. responseFormat.type eq json_schema).
+  """
+  structuredOutputSchema: JsonSchemaValueInput
 }
 
 input ToolsNodeConfigInput {
   options: AWSJSON
 }
 
-"""Client sends the union variant per kind (same shape as WorkflowNodeConfig), including __typename. E.g. AI node: { __typename: \"AINodeConfig\", prompt, model, ... }."""
+"""
+Client sends the union variant per kind (same shape as WorkflowNodeConfig), including __typename. E.g. AI node: { __typename: \"AINodeConfig\", prompt, model, ... }.
+"""
 input WorkflowNodeInput {
   id: ID!
   kind: WorkflowNodeKind!
@@ -967,14 +1627,14 @@ input CreateWorkflowInput {
   parentId: ID!
   name: String!
   definition: WorkflowDefinitionInput!
-  structuredOutputSchema: StructuredOutputSchemaInput
+  structuredOutputSchema: JsonSchemaValueInput
   ui: WorkflowUIInput
 }
 
 input UpdateWorkflowInput {
   name: String
   definition: WorkflowDefinitionInput
-  structuredOutputSchema: StructuredOutputSchemaInput
+  structuredOutputSchema: JsonSchemaValueInput
   ui: WorkflowUIInput
 }
 
@@ -1019,6 +1679,221 @@ input UpdateWorkflowNodeExecutionInput {
   startedAt: AWSDateTime
   completedAt: AWSDateTime
 }
+
+# ----------------------------------------------------------------------
+# AI QUERY, BILLING & CREDITS TYPES
+# ----------------------------------------------------------------------
+
+type AiQuery implements Node & Metadata @aws_iam @aws_cognito_user_pools {
+  # Metadata fields
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  status: AIQueryStatus!
+  requestPayload: AWSJSON
+  responseJsonSchema: AWSJSON!
+  responsePayload: AWSJSON
+  errorMessage: String
+  modelUsed: String
+  inputTokens: Int
+  outputTokens: Int
+  projectId: ID
+}
+
+type AiQueryConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [AiQuery!]!
+  nextToken: String
+}
+
+type AccountCredits implements Node & Metadata
+  @aws_iam
+  @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  balance: Int!
+  stripeCustomerId: String
+}
+
+type UsageRecord implements Node & Metadata @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  reportableObjectId: ID!
+  subscriptionId: ID
+  quantity: Int!
+  unit: UsageUnit!
+  metadata: AWSJSON
+  timestamp: AWSDateTime!
+  stripeMeterEventId: String
+}
+
+type UsageRecordConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [UsageRecord!]!
+  nextToken: String
+}
+
+type BillingSummary {
+  periodStart: AWSDateTime!
+  periodEnd: AWSDateTime!
+  totalQuantity: Int!
+  totalUnit: UsageUnit!
+  baseAmount: Float!
+  usageAmount: Float!
+  adjustments: Float!
+  totalAmount: Float!
+  projectedNextPeriod: Float
+}
+
+type InvoiceLineItem {
+  description: String!
+  quantity: Int!
+  unitAmount: Float!
+  total: Float!
+}
+
+type BillingInvoice implements Node & Metadata
+  @aws_iam
+  @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  subscriptionId: ID
+  periodStart: AWSDateTime!
+  periodEnd: AWSDateTime!
+  period: BillingPeriod!
+  status: InvoiceStatus!
+  amountDue: Float!
+  amountPaid: Float!
+  stripeInvoiceId: String
+  summary: BillingSummary!
+  lineItems: AWSJSON
+}
+
+type BillingInvoiceConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [BillingInvoice!]!
+  nextToken: String
+}
+
+type BillingInvoicePayload {
+  billingInvoice: BillingInvoice
+  userErrors: [UserError!]!
+}
+
+type UserError {
+  message: String!
+  code: String!
+  field: [String]
+}
+
+# AI Query inputs
+input CreateAiQueryInput {
+  tenantId: ID!
+  ownerId: ID!
+  requestPayload: AWSJSON
+  responseJsonSchema: AWSJSON!
+  projectId: ID
+}
+
+input UpdateAiQueryInput {
+  status: AIQueryStatus
+  responsePayload: AWSJSON
+  errorMessage: String
+  modelUsed: String
+  inputTokens: Int
+  outputTokens: Int
+}
+
+# AccountCredits: id is tenantId for root lookup
+input UpdateAccountCreditsInput {
+  balance: Int!
+  stripeCustomerId: String
+}
+
+# UsageRecord input (backend-only create)
+input CreateUsageRecordInput {
+  tenantId: ID!
+  ownerId: ID!
+  reportableObjectId: ID!
+  subscriptionId: ID
+  quantity: Int!
+  unit: UsageUnit!
+  metadata: AWSJSON
+  timestamp: AWSDateTime!
+}
+
+# BillingInvoice inputs
+input BillingSummaryInput {
+  periodStart: AWSDateTime!
+  periodEnd: AWSDateTime!
+  totalQuantity: Int!
+  totalUnit: UsageUnit!
+  baseAmount: Float!
+  usageAmount: Float!
+  adjustments: Float!
+  totalAmount: Float!
+  projectedNextPeriod: Float
+}
+
+input InvoiceLineItemInput {
+  description: String!
+  quantity: Int!
+  unitAmount: Float!
+  total: Float!
+}
+
+input CreateBillingInvoiceInput {
+  tenantId: ID!
+  ownerId: ID!
+  subscriptionId: ID
+  periodStart: AWSDateTime!
+  periodEnd: AWSDateTime!
+  period: BillingPeriod!
+  status: InvoiceStatus!
+  amountDue: Float!
+  amountPaid: Float!
+  stripeInvoiceId: String
+  summary: BillingSummaryInput!
+  lineItems: AWSJSON
+}
+
+input CreateInvoiceInput {
+  tenantId: ID!
+  periodStart: AWSDateTime!
+  periodEnd: AWSDateTime!
+  period: BillingPeriod
+  subscriptionId: ID
+}
+
 # ----------------------------------------------------------------------
 # 8. QUERIES
 # ----------------------------------------------------------------------
@@ -1085,22 +1960,248 @@ type Query {
   ): NotificationConnection!
 
   """
-  Get a single PromptTemplate. Requires composite key (ID + ParentID) for access.
+  Get a single AuditLogEntry. Requires composite key (ID + ParentID) for access.
   """
-  getPromptTemplate(key: CompositeKeyInput!): PromptTemplate
+  getAuditLogEntry(key: CompositeKeyInput!): AuditLogEntry
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
 
   """
-  List PromptTemplates for a specific Project. Uses GSI1 (The View).
+  List AuditLogEntries for a specific Deal (Project). For broker activity log / compliance.
   """
-  listPromptTemplates(
-    parentId: ID! # Required: Cannot list "all prompt templates in tenant" efficiently
+  listAuditLogEntrys(
+    parentId: ID!
     limit: Int
     nextToken: String
-  ): PromptTemplateConnection!
+  ): AuditLogEntryConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
+  Get a single DealRoomMember. Requires composite key (ID + ParentID) for access.
+  """
+  getDealRoomMember(key: CompositeKeyInput!): DealRoomMember
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
+  List DealRoomMembers for a specific Deal (Project).
+  """
+  listDealRoomMembers(
+    parentId: ID!
+    limit: Int
+    nextToken: String
+  ): DealRoomMemberConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
+  Get a single NDAAgreement. Requires composite key (ID + ParentID) for access.
+  """
+  getNDAAgreement(key: CompositeKeyInput!): NDAAgreement
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
+  List NDAAgreements for a specific Deal (Project). Used for NDA gate check.
+  """
+  listNDAAgreements(
+    parentId: ID!
+    limit: Int
+    nextToken: String
+  ): NDAAgreementConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
+  Get a single Invitation. Requires composite key (ID + ParentID) for access.
+  """
+  getInvitation(key: CompositeKeyInput!): Invitation
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
+  List Invitations for a specific Deal (Project).
+  """
+  listInvitations(
+    parentId: ID!
+    limit: Int
+    nextToken: String
+  ): InvitationConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  getDealTemplate(id: ID!): DealTemplate
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  listDealTemplates(limit: Int, nextToken: String): DealTemplateConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
+  Full-text search within a deal (OCR text in Text entities). DynamoDB + FilterExpression.
+  Implement via Lambda that queries Text by deal documentIds and filters by contains(text, query).
+  """
+  searchDocuments(
+    dealId: ID!
+    query: String!
+    limit: Int
+  ): [DocumentSearchResult!]!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
+  List buyer engagement scores for a deal (aggregated from AuditLogEntry). For broker heatmap/shortlist.
+  """
+  listBuyerEngagements(dealId: ID!): [BuyerEngagement!]!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
+  Per-document view/download analytics for a deal.
+  """
+  getDocumentAnalytics(dealId: ID!, documentId: ID!): DocumentAnalytics
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  getQuestion(key: CompositeKeyInput!): Question
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  listQuestions(
+    parentId: ID!
+    limit: Int
+    nextToken: String
+  ): QuestionConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  getAnnouncement(key: CompositeKeyInput!): Announcement
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  listAnnouncements(
+    parentId: ID!
+    limit: Int
+    nextToken: String
+  ): AnnouncementConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  getInvestorProfile(id: ID!): InvestorProfile
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  getMicroInterview(key: CompositeKeyInput!): MicroInterview
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  listMicroInterviews(
+    parentId: ID!
+    limit: Int
+    nextToken: String
+  ): MicroInterviewConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  getMatchScore(key: CompositeKeyInput!): MatchScore
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  listMatchScores(
+    parentId: ID!
+    limit: Int
+    nextToken: String
+  ): MatchScoreConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  # AI STUDIO: Structured output schemas (tenant-scoped)
+  getStructuredOutputSchema(id: ID!): StructuredOutputSchema
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  listStructuredOutputSchemas(
+    limit: Int
+    nextToken: String
+  ): StructuredOutputSchemaConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
+  Get a single Prompt. Requires composite key (ID + ParentID) for access.
+  """
+  getPrompt(key: CompositeKeyInput!): Prompt
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
+  List Prompts for a specific Project. Uses GSI1 (The View).
+  """
+  listPrompts(
+    parentId: ID!
+    limit: Int
+    nextToken: String
+  ): PromptConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
+  List AI execution history, optionally filtered by promptId.
+  """
+  getExecutionHistory(
+    promptId: ID
+    limit: Int
+    nextToken: String
+  ): AIQueryExecutionConnection!
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -1257,6 +2358,57 @@ type Query {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
+
+  # AI QUERY QUERIES
+  getAiQuery(id: ID!): AiQuery
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  listAiQuerys(
+    scope: ListScope = OWNED_BY_ME
+    limit: Int
+    nextToken: String
+  ): AiQueryConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  # ACCOUNT CREDITS (id = tenantId)
+  getAccountCredits(id: ID!): AccountCredits
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  # USAGE RECORDS (by tenant for billing)
+  listUsageRecords(
+    tenantId: ID!
+    limit: Int
+    nextToken: String
+  ): UsageRecordConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  # BILLING INVOICES
+  getBillingInvoice(id: ID!): BillingInvoice
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  listBillingInvoices(
+    scope: ListScope = OWNED_BY_ME
+    status: InvoiceStatus
+    limit: Int
+    nextToken: String
+  ): BillingInvoiceConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
 }
 
 # ----------------------------------------------------------------------
@@ -1319,6 +2471,156 @@ type Mutation {
   # Create: Uses parentId from input to write to Main Table
   createNotification(input: CreateNotificationInput!): Notification @aws_iam
 
+  # Audit log: create-only (Lambda / pipeline); no update/delete
+  createAuditLogEntry(input: CreateAuditLogEntryInput!): AuditLogEntry @aws_iam
+
+  # DEAL ROOM MEMBER OPERATIONS
+  createDealRoomMember(input: CreateDealRoomMemberInput!): DealRoomMember
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  updateDealRoomMember(
+    key: CompositeKeyInput!
+    input: UpdateDealRoomMemberInput!
+  ): DealRoomMember
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  deleteDealRoomMember(key: CompositeKeyInput!): DealRoomMember
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  # NDA OPERATIONS (gatekeeper: create when inviting; update when buyer signs)
+  createNDAAgreement(input: CreateNDAAgreementInput!): NDAAgreement
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  updateNDAAgreement(
+    key: CompositeKeyInput!
+    input: UpdateNDAAgreementInput!
+  ): NDAAgreement
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  deleteNDAAgreement(key: CompositeKeyInput!): NDAAgreement
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  createInvitation(input: CreateInvitationInput!): Invitation
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  updateInvitation(
+    key: CompositeKeyInput!
+    input: UpdateInvitationInput!
+  ): Invitation
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  deleteInvitation(key: CompositeKeyInput!): Invitation
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  createDealTemplate(input: CreateDealTemplateInput!): DealTemplate
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  updateDealTemplate(
+    id: ID!
+    input: UpdateDealTemplateInput!
+  ): DealTemplate
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  deleteDealTemplate(id: ID!): DealTemplate
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  createQuestion(input: CreateQuestionInput!): Question
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  updateQuestion(
+    key: CompositeKeyInput!
+    input: UpdateQuestionInput!
+  ): Question
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  deleteQuestion(key: CompositeKeyInput!): Question
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  createAnnouncement(input: CreateAnnouncementInput!): Announcement
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  updateAnnouncement(
+    key: CompositeKeyInput!
+    input: UpdateAnnouncementInput!
+  ): Announcement
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  deleteAnnouncement(key: CompositeKeyInput!): Announcement
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  createInvestorProfile(input: CreateInvestorProfileInput!): InvestorProfile
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  updateInvestorProfile(id: ID!, input: UpdateInvestorProfileInput!): InvestorProfile
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  createMicroInterview(input: CreateMicroInterviewInput!): MicroInterview
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  updateMicroInterview(
+    key: CompositeKeyInput!
+    input: UpdateMicroInterviewInput!
+  ): MicroInterview
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  createMatchScore(input: CreateMatchScoreInput!): MatchScore
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
   # Update: Uses Composite Key to access Main Table
   updateNotification(
     key: CompositeKeyInput!
@@ -1328,28 +2630,49 @@ type Mutation {
   # Delete: Uses Composite Key to access Main Table
   deleteNotification(key: CompositeKeyInput!): Notification @aws_iam
 
-  # PROMPT_TEMPLATE OPERATIONS
-  # Create: Uses parentId from input to write to Main Table
-  createPromptTemplate(input: CreatePromptTemplateInput!): PromptTemplate
-    @aws_iam # Allow system-level IAM roles to call this
+  # AI STUDIO: Structured output schema operations
+  createStructuredOutputSchema(input: CreateStructuredOutputSchemaInput!): StructuredOutputSchema
+    @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
-    ) # Allow system-level Cognito groups to call this
-  # Update: Uses Composite Key to access Main Table
-  updatePromptTemplate(
+    )
+  updateStructuredOutputSchema(
+    id: ID!
+    input: CreateStructuredOutputSchemaInput!
+  ): StructuredOutputSchema
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  # AI STUDIO: Prompt operations
+  createPrompt(input: CreatePromptInput!): Prompt
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  updatePrompt(
     key: CompositeKeyInput!
-    input: UpdatePromptTemplateInput!
-  ): PromptTemplate
-    @aws_iam # Allow system-level IAM roles to call this
+    input: UpdatePromptInput!
+  ): Prompt
+    @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
-    ) # Allow system-level Cognito groups to call this
-  # Delete: Uses Composite Key to access Main Table
-  deletePromptTemplate(key: CompositeKeyInput!): PromptTemplate
-    @aws_iam # Allow system-level IAM roles to call this
+    )
+  deletePrompt(key: CompositeKeyInput!): Prompt
+    @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
-    ) # Allow system-level Cognito groups to call this
+    )
+
+  """
+  Executes the prompt with Gemini, validates against schema, saves execution record, returns it.
+  """
+  runAIQuery(input: RunAIQueryInput!): AIQueryExecution!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
   # IMAGE OPERATIONS
   # Create: Uses parentId from input to write to Main Table
   createImage(input: CreateImageInput!): Image
@@ -1408,15 +2731,23 @@ type Mutation {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     ) # Allow system-level Cognito groups to call this
-  updateWorkflow(key: CompositeKeyInput!, input: UpdateWorkflowInput!): Workflow
+  updateWorkflow(
+    key: CompositeKeyInput!
+    input: UpdateWorkflowInput!
+  ): Workflow
     @aws_iam # Allow system-level IAM roles to call this
-    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]) # Allow system-level Cognito groups to call this
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    ) # Allow system-level Cognito groups to call this
   deleteWorkflow(key: CompositeKeyInput!): Workflow
     @aws_iam # Allow system-level IAM roles to call this
-    @aws_cognito_user_pools(cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]) # Allow system-level Cognito groups to call this
-
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    ) # Allow system-level Cognito groups to call this
   # WORKFLOW EXECUTION OPERATIONS
-  createWorkflowExecution(input: CreateWorkflowExecutionInput!): WorkflowExecution
+  createWorkflowExecution(
+    input: CreateWorkflowExecutionInput!
+  ): WorkflowExecution
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -1479,7 +2810,9 @@ type Mutation {
     )
 
   # WORKFLOW NODE EXECUTION OPERATIONS
-  createWorkflowNodeExecution(input: CreateWorkflowNodeExecutionInput!): WorkflowNodeExecution
+  createWorkflowNodeExecution(
+    input: CreateWorkflowNodeExecutionInput!
+  ): WorkflowNodeExecution
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -1530,6 +2863,52 @@ type Mutation {
     )
   # Delete: Uses Composite Key to access Main Table
   deleteWorkflowNodeExecution(key: CompositeKeyInput!): WorkflowNodeExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  # AI QUERY OPERATIONS
+  createAiQuery(input: CreateAiQueryInput!): AiQuery
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  updateAiQuery(id: ID!, input: UpdateAiQueryInput!): AiQuery
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  startAiQuery(key: CompositeKeyInput!): AiQuery
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  # USAGE RECORD (backend-only create)
+  createUsageRecord(input: CreateUsageRecordInput!): UsageRecord
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  # BILLING
+  createBillingInvoice(input: CreateBillingInvoiceInput!): BillingInvoice
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  createInvoice(input: CreateInvoiceInput!): BillingInvoicePayload
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  # ACCOUNT CREDITS (id = tenantId for get; update for deduct/add)
+  updateAccountCredits(
+    id: ID!
+    input: UpdateAccountCreditsInput!
+  ): AccountCredits
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -1596,18 +2975,14 @@ type Subscription {
     @aws_subscribe(mutations: ["deleteNotification"])
 
   """
-  PROMPT_TEMPLATE SUBSCRIPTIONS
+  AI STUDIO: Prompt subscriptions
   """
-  onCreatePromptTemplate(parentId: ID): PromptTemplate
-    @aws_subscribe(mutations: ["createPromptTemplate"])
-
-  # Triggered when a specific PromptTemplate is updated
-  onUpdatePromptTemplate(id: ID!): PromptTemplate
-    @aws_subscribe(mutations: ["updatePromptTemplate"])
-
-  # Triggered when a specific PromptTemplate is deleted
-  onDeletePromptTemplate(id: ID!): PromptTemplate
-    @aws_subscribe(mutations: ["deletePromptTemplate"])
+  onCreatePrompt(parentId: ID): Prompt
+    @aws_subscribe(mutations: ["createPrompt"])
+  onUpdatePrompt(id: ID!): Prompt
+    @aws_subscribe(mutations: ["updatePrompt"])
+  onDeletePrompt(id: ID!): Prompt
+    @aws_subscribe(mutations: ["deletePrompt"])
 
   """
   IMAGE SUBSCRIPTIONS
@@ -1676,14 +3051,33 @@ type Subscription {
 
   # Subscribe to updates for a specific workflow execution
   onUpdateWorkflowExecution(id: ID!): WorkflowExecution
-    @aws_subscribe(mutations: ["updateWorkflowExecution", "startWorkflowExecution", "completeWorkflowExecution", "failWorkflowExecution", "retryWorkflowExecution", "cancelWorkflowExecution"])
+    @aws_subscribe(
+      mutations: [
+        "updateWorkflowExecution"
+        "startWorkflowExecution"
+        "completeWorkflowExecution"
+        "failWorkflowExecution"
+        "retryWorkflowExecution"
+        "cancelWorkflowExecution"
+      ]
+    )
 
   # Subscribe to all workflow executions for a workflow (via parentId filter)
   onWorkflowExecutionStatusChange(
     parentId: ID
     status: WorkflowExecutionStatus
   ): WorkflowExecution
-    @aws_subscribe(mutations: ["createWorkflowExecution", "updateWorkflowExecution", "startWorkflowExecution", "completeWorkflowExecution", "failWorkflowExecution", "retryWorkflowExecution", "cancelWorkflowExecution"])
+    @aws_subscribe(
+      mutations: [
+        "createWorkflowExecution"
+        "updateWorkflowExecution"
+        "startWorkflowExecution"
+        "completeWorkflowExecution"
+        "failWorkflowExecution"
+        "retryWorkflowExecution"
+        "cancelWorkflowExecution"
+      ]
+    )
 
   """
   WORKFLOW NODE EXECUTION SUBSCRIPTIONS
@@ -1694,9 +3088,31 @@ type Subscription {
 
   # Subscribe to updates for a specific node execution
   onUpdateWorkflowNodeExecution(id: ID!): WorkflowNodeExecution
-    @aws_subscribe(mutations: ["updateWorkflowNodeExecution", "startWorkflowNodeExecution", "completeWorkflowNodeExecution", "failWorkflowNodeExecution", "retryWorkflowNodeExecution"])
+    @aws_subscribe(
+      mutations: [
+        "updateWorkflowNodeExecution"
+        "startWorkflowNodeExecution"
+        "completeWorkflowNodeExecution"
+        "failWorkflowNodeExecution"
+        "retryWorkflowNodeExecution"
+      ]
+    )
 
   # Subscribe to all node execution updates for a workflow execution
   onWorkflowNodeExecutionStatusChange(parentId: ID!): WorkflowNodeExecution
-    @aws_subscribe(mutations: ["createWorkflowNodeExecution", "updateWorkflowNodeExecution", "startWorkflowNodeExecution", "completeWorkflowNodeExecution", "failWorkflowNodeExecution", "retryWorkflowNodeExecution"])
+    @aws_subscribe(
+      mutations: [
+        "createWorkflowNodeExecution"
+        "updateWorkflowNodeExecution"
+        "startWorkflowNodeExecution"
+        "completeWorkflowNodeExecution"
+        "failWorkflowNodeExecution"
+        "retryWorkflowNodeExecution"
+      ]
+    )
+
+  """
+  AI QUERY SUBSCRIPTIONS
+  """
+  onUpdateAiQuery(id: ID!): AiQuery @aws_subscribe(mutations: ["updateAiQuery"])
 }

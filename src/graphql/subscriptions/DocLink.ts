@@ -16,9 +16,8 @@ export const S_ON_CREATE_DOCLINK = gql`
       deletedAt
       parentId
       filename
-      vectorStoreId
-      openAIFileId
       status
+      linkType
       documentId
     }
   }
@@ -36,9 +35,8 @@ export const S_ON_UPDATE_DOCLINK = gql`
       deletedAt
       parentId
       filename
-      vectorStoreId
-      openAIFileId
       status
+      linkType
       documentId
     }
   }
@@ -56,9 +54,8 @@ export const S_ON_DELETE_DOCLINK = gql`
       deletedAt
       parentId
       filename
-      vectorStoreId
-      openAIFileId
       status
+      linkType
       documentId
     }
   }

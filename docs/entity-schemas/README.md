@@ -1,6 +1,6 @@
 # Entity Schema Files
 
-This directory contains GraphQL schema files extracted from `schema7.graphql`, with each file containing a single `EntityType` and all of its dependencies.
+This directory contains GraphQL schema files extracted from `src/graphql/schema.graphql`, with each file containing a single `EntityType` and all of its dependencies.
 
 ## Overview
 
@@ -57,7 +57,7 @@ Each schema file is self-contained and includes all dependencies needed to under
 ## Extraction Script
 
 The files were generated using `extract-entity-schemas.js` which:
-- Parses `schema7.graphql`
+- Parses `src/graphql/schema.graphql`
 - Identifies the main type for each EntityType enum value
 - Recursively finds all dependencies (types, inputs, enums, interfaces)
 - Extracts related queries, mutations, and subscriptions

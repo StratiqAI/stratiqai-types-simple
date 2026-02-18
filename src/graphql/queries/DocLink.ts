@@ -16,9 +16,8 @@ export const Q_GET_DOCLINK = gql`
       deletedAt
       parentId
       filename
-      vectorStoreId
-      openAIFileId
       status
+      linkType
       documentId
     }
   }
@@ -41,9 +40,8 @@ export const Q_LIST_DOCLINKS = gql`
         deletedAt
         parentId
         filename
-        vectorStoreId
-        openAIFileId
         status
+        linkType
         documentId
       }
       nextToken

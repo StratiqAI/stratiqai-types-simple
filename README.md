@@ -1,12 +1,14 @@
 # StratiqAI Types Simple
 
-Central package for GraphQL schema, operations, and TypeScript types.
+Central package for GraphQL schema, operations, and TypeScript types. The schema at `src/graphql/schema.graphql` is the **canonical** source; Terraform and Magidoc reference it.
+
+Related docs: See `stratiqai-platform/docs-src/internal/types/` for GraphQL implementation tracker and workflow proposals.
 
 ## Workflow for Keeping Types in Sync
 
 ### 1. Update GraphQL Schema
 
-Edit `src/schema.graphql` when you need to change types, fields, or operations.
+Edit `src/graphql/schema.graphql` when you need to change types, fields, or operations.
 
 ### 2. Update GraphQL Operations
 

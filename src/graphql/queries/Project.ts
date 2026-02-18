@@ -41,10 +41,9 @@ export const Q_GET_PROJECT = gql`
           createdAt
           updatedAt
           parentId
-          vectorStoreId
-          openAIFileId
           filename
           status
+          linkType
           documentId
           deletedAt
         }
@@ -161,11 +160,11 @@ export const Q_LIST_PROJECTS = gql`
 `;
 
 /**
- * Query to get a project with its prompt templates
- * Used by the Library page to fetch templates for a selected project
+ * Query to get a project with its AI Studio prompts
+ * Used by the Library page to fetch prompts for a selected project
  */
-export const Q_GET_PROJECT_WITH_PROMPT_TEMPLATES = gql`
-  query GetProjectWithPromptTemplates($id: ID!) {
+export const Q_GET_PROJECT_WITH_PROMPTS = gql`
+  query GetProjectWithPrompts($id: ID!) {
     getProject(id: $id) {
       id
       entityType
@@ -177,7 +176,7 @@ export const Q_GET_PROJECT_WITH_PROMPT_TEMPLATES = gql`
       name
       description
       status
-      prompttemplates(limit: 100) {
+      prompts(limit: 100) {
         items {
           id
           entityType
@@ -189,8 +188,25 @@ export const Q_GET_PROJECT_WITH_PROMPT_TEMPLATES = gql`
           sharingMode
           parentId
           name
-          template
           description
+          templateText
+          inputVariables
+          model
+          config {
+            temperature
+            topP
+            topK
+            maxOutputTokens
+            stopSequences
+          }
+          version
+          isActive
+          outputSchema {
+            id
+            name
+            description
+            schemaDefinition
+          }
         }
         nextToken
       }

@@ -14,14 +14,26 @@ export type Scalars = {
   Float: { input: number; output: number; }
   AWSDateTime: { input: string; output: string; }
   AWSJSON: { input: any; output: any; }
+  AWSTimestamp: { input: any; output: any; }
 };
+
+/**
+ * Supported Gemini models. Backend maps enum to API model ID
+ * (e.g. GEMINI_2_5_FLASH -> "gemini-2.5-flash").
+ */
+export type AiModel =
+  | 'GEMINI_2_5_FLASH'
+  | 'GEMINI_2_5_FLASH_LITE'
+  | 'GEMINI_2_5_PRO'
+  | 'GEMINI_3_FLASH_PREVIEW'
+  | 'GEMINI_3_PRO_PREVIEW';
 
 export type AiNodeConfig = {
   __typename?: 'AINodeConfig';
   model?: Maybe<Scalars['String']['output']>;
   prompt?: Maybe<Scalars['String']['output']>;
   /** JSON Schema for structured output (e.g. responseFormat.type eq json_schema). */
-  structuredOutputSchema?: Maybe<StructuredOutputSchema>;
+  structuredOutputSchema?: Maybe<JsonSchemaValue>;
   systemPrompt?: Maybe<Scalars['String']['output']>;
   topK?: Maybe<Scalars['Int']['output']>;
 };
@@ -30,9 +42,210 @@ export type AiNodeConfigInput = {
   model?: InputMaybe<Scalars['String']['input']>;
   prompt?: InputMaybe<Scalars['String']['input']>;
   /** JSON Schema for structured output (e.g. responseFormat.type eq json_schema). */
-  structuredOutputSchema?: InputMaybe<StructuredOutputSchemaInput>;
+  structuredOutputSchema?: InputMaybe<JsonSchemaValueInput>;
   systemPrompt?: InputMaybe<Scalars['String']['input']>;
   topK?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** Immutable record of an AI prompt run and its result. */
+export type AiQueryExecution = Metadata & Node & {
+  __typename?: 'AIQueryExecution';
+  candidatesTokenCount?: Maybe<Scalars['Int']['output']>;
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  durationMs: Scalars['Int']['output'];
+  entityType: EntityType;
+  errorMessage?: Maybe<Scalars['String']['output']>;
+  executedAt: Scalars['AWSDateTime']['output'];
+  id: Scalars['ID']['output'];
+  /** Variable values passed (e.g. { \"topic\": \"Sunsets\" }). */
+  inputValues: Scalars['AWSJSON']['output'];
+  ownerId: Scalars['ID']['output'];
+  /** The prompt version that was executed. */
+  prompt: Prompt;
+  promptTokenCount?: Maybe<Scalars['Int']['output']>;
+  rawOutput?: Maybe<Scalars['String']['output']>;
+  status: ExecutionStatus;
+  /** Parsed JSON when schema validation passed. */
+  structuredOutput?: Maybe<Scalars['AWSJSON']['output']>;
+  tenantId: Scalars['ID']['output'];
+  totalTokenCount?: Maybe<Scalars['Int']['output']>;
+  updatedAt: Scalars['AWSDateTime']['output'];
+};
+
+export type AiQueryExecutionConnection = {
+  __typename?: 'AIQueryExecutionConnection';
+  items: Array<AiQueryExecution>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
+export type AiQueryStatus =
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'PENDING'
+  | 'PROCESSING';
+
+export type AccountCredits = Metadata & Node & {
+  __typename?: 'AccountCredits';
+  balance: Scalars['Int']['output'];
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  ownerId: Scalars['ID']['output'];
+  stripeCustomerId?: Maybe<Scalars['String']['output']>;
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+};
+
+export type AiQuery = Metadata & Node & {
+  __typename?: 'AiQuery';
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  entityType: EntityType;
+  errorMessage?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  inputTokens?: Maybe<Scalars['Int']['output']>;
+  modelUsed?: Maybe<Scalars['String']['output']>;
+  outputTokens?: Maybe<Scalars['Int']['output']>;
+  ownerId: Scalars['ID']['output'];
+  projectId?: Maybe<Scalars['ID']['output']>;
+  requestPayload?: Maybe<Scalars['AWSJSON']['output']>;
+  responseJsonSchema: Scalars['AWSJSON']['output'];
+  responsePayload?: Maybe<Scalars['AWSJSON']['output']>;
+  status: AiQueryStatus;
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+};
+
+export type AiQueryConnection = {
+  __typename?: 'AiQueryConnection';
+  items: Array<AiQuery>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
+export type Announcement = Metadata & Node & {
+  __typename?: 'Announcement';
+  body: Scalars['String']['output'];
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  ownerId: Scalars['ID']['output'];
+  parentId: Scalars['ID']['output'];
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+};
+
+export type AnnouncementConnection = {
+  __typename?: 'AnnouncementConnection';
+  items: Array<Announcement>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
+export type AuditLogAction =
+  | 'DOWNLOAD'
+  | 'LIST_DOCUMENTS'
+  | 'LOGIN'
+  | 'OTHER'
+  | 'PRINT'
+  | 'VIEW_DOCUMENT';
+
+export type AuditLogEntry = Metadata & Node & {
+  __typename?: 'AuditLogEntry';
+  action: AuditLogAction;
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  ip?: Maybe<Scalars['String']['output']>;
+  ownerId: Scalars['ID']['output'];
+  parentId: Scalars['ID']['output'];
+  resourceId?: Maybe<Scalars['ID']['output']>;
+  resourceType?: Maybe<EntityType>;
+  tenantId: Scalars['ID']['output'];
+  ttlExpiration?: Maybe<Scalars['AWSTimestamp']['output']>;
+  updatedAt: Scalars['AWSDateTime']['output'];
+  userAgent?: Maybe<Scalars['String']['output']>;
+};
+
+export type AuditLogEntryConnection = {
+  __typename?: 'AuditLogEntryConnection';
+  items: Array<AuditLogEntry>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
+export type BillingInvoice = Metadata & Node & {
+  __typename?: 'BillingInvoice';
+  amountDue: Scalars['Float']['output'];
+  amountPaid: Scalars['Float']['output'];
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  lineItems?: Maybe<Scalars['AWSJSON']['output']>;
+  ownerId: Scalars['ID']['output'];
+  period: BillingPeriod;
+  periodEnd: Scalars['AWSDateTime']['output'];
+  periodStart: Scalars['AWSDateTime']['output'];
+  status: InvoiceStatus;
+  stripeInvoiceId?: Maybe<Scalars['String']['output']>;
+  subscriptionId?: Maybe<Scalars['ID']['output']>;
+  summary: BillingSummary;
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+};
+
+export type BillingInvoiceConnection = {
+  __typename?: 'BillingInvoiceConnection';
+  items: Array<BillingInvoice>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
+export type BillingInvoicePayload = {
+  __typename?: 'BillingInvoicePayload';
+  billingInvoice?: Maybe<BillingInvoice>;
+  userErrors: Array<UserError>;
+};
+
+export type BillingPeriod =
+  | 'ANNUAL'
+  | 'MONTHLY'
+  | 'QUARTERLY';
+
+export type BillingSummary = {
+  __typename?: 'BillingSummary';
+  adjustments: Scalars['Float']['output'];
+  baseAmount: Scalars['Float']['output'];
+  periodEnd: Scalars['AWSDateTime']['output'];
+  periodStart: Scalars['AWSDateTime']['output'];
+  projectedNextPeriod?: Maybe<Scalars['Float']['output']>;
+  totalAmount: Scalars['Float']['output'];
+  totalQuantity: Scalars['Int']['output'];
+  totalUnit: UsageUnit;
+  usageAmount: Scalars['Float']['output'];
+};
+
+export type BillingSummaryInput = {
+  adjustments: Scalars['Float']['input'];
+  baseAmount: Scalars['Float']['input'];
+  periodEnd: Scalars['AWSDateTime']['input'];
+  periodStart: Scalars['AWSDateTime']['input'];
+  projectedNextPeriod?: InputMaybe<Scalars['Float']['input']>;
+  totalAmount: Scalars['Float']['input'];
+  totalQuantity: Scalars['Int']['input'];
+  totalUnit: UsageUnit;
+  usageAmount: Scalars['Float']['input'];
+};
+
+export type BuyerEngagement = {
+  __typename?: 'BuyerEngagement';
+  dealId: Scalars['ID']['output'];
+  documentViewCount?: Maybe<Scalars['Int']['output']>;
+  downloadCount?: Maybe<Scalars['Int']['output']>;
+  lastActiveAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  totalTimeSeconds?: Maybe<Scalars['Int']['output']>;
+  userId: Scalars['ID']['output'];
 };
 
 /**
@@ -45,13 +258,67 @@ export type CompositeKeyInput = {
   parentId: Scalars['ID']['input'];
 };
 
+export type CreateAiQueryInput = {
+  ownerId: Scalars['ID']['input'];
+  projectId?: InputMaybe<Scalars['ID']['input']>;
+  requestPayload?: InputMaybe<Scalars['AWSJSON']['input']>;
+  responseJsonSchema: Scalars['AWSJSON']['input'];
+  tenantId: Scalars['ID']['input'];
+};
+
+export type CreateAnnouncementInput = {
+  body: Scalars['String']['input'];
+  parentId: Scalars['ID']['input'];
+};
+
+export type CreateAuditLogEntryInput = {
+  action: AuditLogAction;
+  ip?: InputMaybe<Scalars['String']['input']>;
+  ownerId?: InputMaybe<Scalars['ID']['input']>;
+  parentId: Scalars['ID']['input'];
+  resourceId?: InputMaybe<Scalars['ID']['input']>;
+  resourceType?: InputMaybe<EntityType>;
+  ttlExpiration?: InputMaybe<Scalars['Int']['input']>;
+  userAgent?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CreateBillingInvoiceInput = {
+  amountDue: Scalars['Float']['input'];
+  amountPaid: Scalars['Float']['input'];
+  lineItems?: InputMaybe<Scalars['AWSJSON']['input']>;
+  ownerId: Scalars['ID']['input'];
+  period: BillingPeriod;
+  periodEnd: Scalars['AWSDateTime']['input'];
+  periodStart: Scalars['AWSDateTime']['input'];
+  status: InvoiceStatus;
+  stripeInvoiceId?: InputMaybe<Scalars['String']['input']>;
+  subscriptionId?: InputMaybe<Scalars['ID']['input']>;
+  summary: BillingSummaryInput;
+  tenantId: Scalars['ID']['input'];
+};
+
+export type CreateDealRoomMemberInput = {
+  parentId: Scalars['ID']['input'];
+  permissionSetIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  role: DealRole;
+  userId: Scalars['ID']['input'];
+};
+
+export type CreateDealTemplateInput = {
+  name: Scalars['String']['input'];
+  structure?: InputMaybe<Scalars['AWSJSON']['input']>;
+};
+
 export type CreateDoclinkInput = {
+  displayOrder?: InputMaybe<Scalars['String']['input']>;
   documentId: Scalars['ID']['input'];
   filename: Scalars['String']['input'];
-  openAIFileId?: InputMaybe<Scalars['ID']['input']>;
+  folderPath?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['ID']['input']>;
+  linkType?: InputMaybe<DoclinkLinkType>;
   parentId: Scalars['ID']['input'];
+  permissionSetIds?: InputMaybe<Array<Scalars['String']['input']>>;
   status?: InputMaybe<DoclinkStatus>;
-  vectorStoreId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 export type CreateDocumentInput = {
@@ -77,6 +344,47 @@ export type CreateImageInput = {
   topLeftY: Scalars['Int']['input'];
 };
 
+export type CreateInvestorProfileInput = {
+  explicitCriteria?: InputMaybe<Scalars['AWSJSON']['input']>;
+  id?: InputMaybe<Scalars['ID']['input']>;
+};
+
+export type CreateInvitationInput = {
+  email: Scalars['String']['input'];
+  parentId: Scalars['ID']['input'];
+  role?: InputMaybe<DealRole>;
+  status?: InputMaybe<InvitationStatus>;
+};
+
+export type CreateInvoiceInput = {
+  period?: InputMaybe<BillingPeriod>;
+  periodEnd: Scalars['AWSDateTime']['input'];
+  periodStart: Scalars['AWSDateTime']['input'];
+  subscriptionId?: InputMaybe<Scalars['ID']['input']>;
+  tenantId: Scalars['ID']['input'];
+};
+
+export type CreateMatchScoreInput = {
+  parentId: Scalars['ID']['input'];
+  rationaleText?: InputMaybe<Scalars['String']['input']>;
+  score: Scalars['Float']['input'];
+  suggestedAction?: InputMaybe<Scalars['String']['input']>;
+  userId: Scalars['ID']['input'];
+};
+
+export type CreateMicroInterviewInput = {
+  parentId: Scalars['ID']['input'];
+  questionId?: InputMaybe<Scalars['String']['input']>;
+  questionText: Scalars['String']['input'];
+  userId: Scalars['ID']['input'];
+};
+
+export type CreateNdaAgreementInput = {
+  parentId: Scalars['ID']['input'];
+  status?: InputMaybe<NdaStatus>;
+  userId: Scalars['ID']['input'];
+};
+
 export type CreateNotificationInput = {
   message: Scalars['String']['input'];
   parentId: Scalars['ID']['input'];
@@ -84,24 +392,52 @@ export type CreateNotificationInput = {
 };
 
 export type CreateProjectInput = {
+  brokerContactEmail?: InputMaybe<Scalars['String']['input']>;
+  brokerContactName?: InputMaybe<Scalars['String']['input']>;
+  brokerContactPhone?: InputMaybe<Scalars['String']['input']>;
+  dealTags?: InputMaybe<Scalars['AWSJSON']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
+  headline?: InputMaybe<Scalars['String']['input']>;
+  logoUrl?: InputMaybe<Scalars['String']['input']>;
+  mapEmbedUrl?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  photoUrls?: InputMaybe<Array<Scalars['String']['input']>>;
+  primaryColor?: InputMaybe<Scalars['String']['input']>;
+  secondaryColor?: InputMaybe<Scalars['String']['input']>;
   sharingMode?: InputMaybe<SharingMode>;
   status?: InputMaybe<ProjectStatus>;
+  summary?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type CreatePromptTemplateInput = {
+export type CreatePromptInput = {
+  config?: InputMaybe<GeminiConfigInput>;
   description?: InputMaybe<Scalars['String']['input']>;
+  model?: InputMaybe<AiModel>;
   name: Scalars['String']['input'];
+  outputSchemaId: Scalars['ID']['input'];
   parentId: Scalars['ID']['input'];
   sharingMode?: InputMaybe<SharingMode>;
-  template: Scalars['String']['input'];
+  templateText: Scalars['String']['input'];
+};
+
+export type CreateQuestionInput = {
+  authorId?: InputMaybe<Scalars['ID']['input']>;
+  documentId?: InputMaybe<Scalars['ID']['input']>;
+  isPublic?: InputMaybe<Scalars['Boolean']['input']>;
+  parentId: Scalars['ID']['input'];
+  questionText: Scalars['String']['input'];
 };
 
 export type CreateScanInput = {
   parentId: Scalars['ID']['input'];
   s3Bucket: Scalars['String']['input'];
   s3Key: Scalars['String']['input'];
+};
+
+export type CreateStructuredOutputSchemaInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+  schemaDefinition: Scalars['AWSJSON']['input'];
 };
 
 export type CreateTableInput = {
@@ -116,6 +452,17 @@ export type CreateTextInput = {
   text: Scalars['String']['input'];
 };
 
+export type CreateUsageRecordInput = {
+  metadata?: InputMaybe<Scalars['AWSJSON']['input']>;
+  ownerId: Scalars['ID']['input'];
+  quantity: Scalars['Int']['input'];
+  reportableObjectId: Scalars['ID']['input'];
+  subscriptionId?: InputMaybe<Scalars['ID']['input']>;
+  tenantId: Scalars['ID']['input'];
+  timestamp: Scalars['AWSDateTime']['input'];
+  unit: UsageUnit;
+};
+
 export type CreateWorkflowExecutionInput = {
   inputData?: InputMaybe<Scalars['AWSJSON']['input']>;
   parentId: Scalars['ID']['input'];
@@ -126,7 +473,7 @@ export type CreateWorkflowInput = {
   definition: WorkflowDefinitionInput;
   name: Scalars['String']['input'];
   parentId: Scalars['ID']['input'];
-  structuredOutputSchema?: InputMaybe<StructuredOutputSchemaInput>;
+  structuredOutputSchema?: InputMaybe<JsonSchemaValueInput>;
   ui?: InputMaybe<WorkflowUiInput>;
 };
 
@@ -139,6 +486,53 @@ export type CreateWorkflowNodeExecutionInput = {
   parentId: Scalars['ID']['input'];
 };
 
+export type DealRole =
+  | 'BROKER_ADMIN'
+  | 'BUYER_ENVIRONMENTAL'
+  | 'BUYER_LENDER'
+  | 'BUYER_OTHER'
+  | 'BUYER_PRINCIPAL';
+
+export type DealRoomMember = Metadata & Node & {
+  __typename?: 'DealRoomMember';
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  ownerId: Scalars['ID']['output'];
+  parentId: Scalars['ID']['output'];
+  permissionSetIds?: Maybe<Array<Scalars['String']['output']>>;
+  role: DealRole;
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+  userId: Scalars['ID']['output'];
+};
+
+export type DealRoomMemberConnection = {
+  __typename?: 'DealRoomMemberConnection';
+  items: Array<DealRoomMember>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
+export type DealTemplate = Metadata & Node & {
+  __typename?: 'DealTemplate';
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  ownerId: Scalars['ID']['output'];
+  structure?: Maybe<Scalars['AWSJSON']['output']>;
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+};
+
+export type DealTemplateConnection = {
+  __typename?: 'DealTemplateConnection';
+  items: Array<DealTemplate>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
 export type DeleteDocumentInput = {
   id: Scalars['ID']['input'];
 };
@@ -147,17 +541,19 @@ export type Doclink = Metadata & Node & {
   __typename?: 'Doclink';
   createdAt: Scalars['AWSDateTime']['output'];
   deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  displayOrder?: Maybe<Scalars['String']['output']>;
   documentId: Scalars['ID']['output'];
   entityType: EntityType;
   filename: Scalars['String']['output'];
+  folderPath?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
-  openAIFileId?: Maybe<Scalars['ID']['output']>;
+  linkType: DoclinkLinkType;
   ownerId: Scalars['ID']['output'];
   parentId: Scalars['ID']['output'];
+  permissionSetIds?: Maybe<Array<Scalars['String']['output']>>;
   status: DoclinkStatus;
   tenantId: Scalars['ID']['output'];
   updatedAt: Scalars['AWSDateTime']['output'];
-  vectorStoreId?: Maybe<Scalars['ID']['output']>;
 };
 
 export type DoclinkConnection = {
@@ -166,12 +562,16 @@ export type DoclinkConnection = {
   nextToken?: Maybe<Scalars['String']['output']>;
 };
 
+export type DoclinkLinkType =
+  | 'IMAGE_EMBEDDINGS'
+  | 'NONE'
+  | 'TEXT_EMBEDDINGS';
+
 export type DoclinkStatus =
   | 'FAILED'
-  | 'NOT_UPLOADED'
+  | 'NOT_STARTED'
   | 'PROCESSING'
-  | 'READY'
-  | 'UPLOADED';
+  | 'READY';
 
 export type Document = Metadata & Node & Storable & {
   __typename?: 'Document';
@@ -217,10 +617,26 @@ export type DocumentTextsArgs = {
   nextToken?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type DocumentAnalytics = {
+  __typename?: 'DocumentAnalytics';
+  dealId: Scalars['ID']['output'];
+  documentId: Scalars['ID']['output'];
+  downloadCount: Scalars['Int']['output'];
+  uniqueViewerCount?: Maybe<Scalars['Int']['output']>;
+  viewCount: Scalars['Int']['output'];
+};
+
 export type DocumentConnection = {
   __typename?: 'DocumentConnection';
   items: Array<Document>;
   nextToken?: Maybe<Scalars['String']['output']>;
+};
+
+export type DocumentSearchResult = {
+  __typename?: 'DocumentSearchResult';
+  documentId: Scalars['ID']['output'];
+  pageNum: Scalars['Int']['output'];
+  snippet: Scalars['String']['output'];
 };
 
 export type EmptyNodeConfig = {
@@ -229,20 +645,59 @@ export type EmptyNodeConfig = {
 };
 
 export type EntityType =
+  | 'ACCOUNT_CREDITS'
+  | 'AI_QUERY'
+  | 'AI_QUERY_EXECUTION'
+  | 'ANNOUNCEMENT'
+  | 'AUDIT_LOG_ENTRY'
+  | 'BILLING_INVOICE'
+  | 'DEAL_ROOM_MEMBER'
+  | 'DEAL_TEMPLATE'
   | 'DOCLINK'
   | 'DOCUMENT'
   | 'IMAGE'
+  | 'INVESTOR_PROFILE'
+  | 'INVITATION'
+  | 'MATCH_SCORE'
+  | 'MICRO_INTERVIEW'
+  | 'NDA_AGREEMENT'
   | 'NOTIFICATION'
   | 'PROJECT'
-  | 'PROMPT_TEMPLATE'
+  | 'PROMPT'
+  | 'QUESTION'
   | 'RESOURCE_SHARE'
   | 'SCAN'
+  | 'STRUCTURED_OUTPUT_SCHEMA'
   | 'TABLE'
   | 'TEXT'
   | 'TOPIC'
+  | 'USAGE_RECORD'
   | 'WORKFLOW'
   | 'WORKFLOW_EXECUTION'
   | 'WORKFLOW_NODE_EXECUTION';
+
+/** Execution outcome for AIQueryExecution (distinct from AIQueryStatus). */
+export type ExecutionStatus =
+  | 'ERROR'
+  | 'SUCCESS';
+
+/** Configuration for Google Gemini generation. */
+export type GeminiConfig = {
+  __typename?: 'GeminiConfig';
+  maxOutputTokens?: Maybe<Scalars['Int']['output']>;
+  stopSequences?: Maybe<Array<Scalars['String']['output']>>;
+  temperature?: Maybe<Scalars['Float']['output']>;
+  topK?: Maybe<Scalars['Int']['output']>;
+  topP?: Maybe<Scalars['Float']['output']>;
+};
+
+export type GeminiConfigInput = {
+  maxOutputTokens?: InputMaybe<Scalars['Int']['input']>;
+  stopSequences?: InputMaybe<Array<Scalars['String']['input']>>;
+  temperature?: InputMaybe<Scalars['Float']['input']>;
+  topK?: InputMaybe<Scalars['Int']['input']>;
+  topP?: InputMaybe<Scalars['Float']['input']>;
+};
 
 export type Image = Metadata & Node & Storable & {
   __typename?: 'Image';
@@ -280,10 +735,109 @@ export type InputNodeConfig = {
   source: Scalars['String']['output'];
 };
 
+export type InvestorProfile = Metadata & Node & {
+  __typename?: 'InvestorProfile';
+  averageDealSizeViewed?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['AWSDateTime']['output'];
+  dealsDeclined?: Maybe<Scalars['AWSJSON']['output']>;
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  entityType: EntityType;
+  explicitCriteria?: Maybe<Scalars['AWSJSON']['output']>;
+  id: Scalars['ID']['output'];
+  lastUpdated?: Maybe<Scalars['AWSDateTime']['output']>;
+  ownerId: Scalars['ID']['output'];
+  pastDealsViewed?: Maybe<Scalars['AWSJSON']['output']>;
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+};
+
+export type Invitation = Metadata & Node & {
+  __typename?: 'Invitation';
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  email: Scalars['String']['output'];
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  openedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  ownerId: Scalars['ID']['output'];
+  parentId: Scalars['ID']['output'];
+  role?: Maybe<DealRole>;
+  sentAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  status: InvitationStatus;
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+};
+
+export type InvitationConnection = {
+  __typename?: 'InvitationConnection';
+  items: Array<Invitation>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
+export type InvitationStatus =
+  | 'BOUNCED'
+  | 'OPENED'
+  | 'REGISTERED'
+  | 'SENT';
+
+export type InvoiceLineItem = {
+  __typename?: 'InvoiceLineItem';
+  description: Scalars['String']['output'];
+  quantity: Scalars['Int']['output'];
+  total: Scalars['Float']['output'];
+  unitAmount: Scalars['Float']['output'];
+};
+
+export type InvoiceLineItemInput = {
+  description: Scalars['String']['input'];
+  quantity: Scalars['Int']['input'];
+  total: Scalars['Float']['input'];
+  unitAmount: Scalars['Float']['input'];
+};
+
+export type InvoiceStatus =
+  | 'DRAFT'
+  | 'OPEN'
+  | 'PAID'
+  | 'UNCOLLECTIBLE'
+  | 'VOID';
+
+export type JsonSchemaValue = {
+  __typename?: 'JsonSchemaValue';
+  jsonSchema: Scalars['AWSJSON']['output'];
+};
+
+export type JsonSchemaValueInput = {
+  jsonSchema: Scalars['AWSJSON']['input'];
+};
+
 export type ListScope =
   | 'ALL_TENANT'
   | 'OWNED_BY_ME'
   | 'SHARED_WITH_ME';
+
+export type MatchScore = Metadata & Node & {
+  __typename?: 'MatchScore';
+  computedAt: Scalars['AWSDateTime']['output'];
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  ownerId: Scalars['ID']['output'];
+  parentId: Scalars['ID']['output'];
+  rationaleText?: Maybe<Scalars['String']['output']>;
+  score: Scalars['Float']['output'];
+  suggestedAction?: Maybe<Scalars['String']['output']>;
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+  userId: Scalars['ID']['output'];
+};
+
+export type MatchScoreConnection = {
+  __typename?: 'MatchScoreConnection';
+  items: Array<MatchScore>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
 
 export type Metadata = {
   createdAt: Scalars['AWSDateTime']['output'];
@@ -295,29 +849,74 @@ export type Metadata = {
   updatedAt: Scalars['AWSDateTime']['output'];
 };
 
+export type MicroInterview = Metadata & Node & {
+  __typename?: 'MicroInterview';
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  ownerId: Scalars['ID']['output'];
+  parentId: Scalars['ID']['output'];
+  questionId?: Maybe<Scalars['String']['output']>;
+  questionText: Scalars['String']['output'];
+  respondedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  response?: Maybe<Scalars['String']['output']>;
+  shownAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+  userId: Scalars['ID']['output'];
+};
+
+export type MicroInterviewConnection = {
+  __typename?: 'MicroInterviewConnection';
+  items: Array<MicroInterview>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   cancelWorkflowExecution?: Maybe<WorkflowExecution>;
   completeWorkflowExecution?: Maybe<WorkflowExecution>;
   completeWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
+  createAiQuery?: Maybe<AiQuery>;
+  createAnnouncement?: Maybe<Announcement>;
+  createAuditLogEntry?: Maybe<AuditLogEntry>;
+  createBillingInvoice?: Maybe<BillingInvoice>;
+  createDealRoomMember?: Maybe<DealRoomMember>;
+  createDealTemplate?: Maybe<DealTemplate>;
   createDoclink?: Maybe<Doclink>;
   createDocument?: Maybe<Document>;
   createImage?: Maybe<Image>;
+  createInvestorProfile?: Maybe<InvestorProfile>;
+  createInvitation?: Maybe<Invitation>;
+  createInvoice?: Maybe<BillingInvoicePayload>;
+  createMatchScore?: Maybe<MatchScore>;
+  createMicroInterview?: Maybe<MicroInterview>;
+  createNDAAgreement?: Maybe<NdaAgreement>;
   createNotification?: Maybe<Notification>;
   createProject?: Maybe<Project>;
-  createPromptTemplate?: Maybe<PromptTemplate>;
+  createPrompt?: Maybe<Prompt>;
+  createQuestion?: Maybe<Question>;
   createScan?: Maybe<Scan>;
+  createStructuredOutputSchema?: Maybe<StructuredOutputSchema>;
   createTable?: Maybe<Table>;
   createText?: Maybe<Text>;
+  createUsageRecord?: Maybe<UsageRecord>;
   createWorkflow?: Maybe<Workflow>;
   createWorkflowExecution?: Maybe<WorkflowExecution>;
   createWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
+  deleteAnnouncement?: Maybe<Announcement>;
+  deleteDealRoomMember?: Maybe<DealRoomMember>;
+  deleteDealTemplate?: Maybe<DealTemplate>;
   deleteDoclink?: Maybe<Doclink>;
   deleteDocument?: Maybe<Document>;
   deleteImage?: Maybe<Image>;
+  deleteInvitation?: Maybe<Invitation>;
+  deleteNDAAgreement?: Maybe<NdaAgreement>;
   deleteNotification?: Maybe<Notification>;
   deleteProject?: Maybe<Project>;
-  deletePromptTemplate?: Maybe<PromptTemplate>;
+  deletePrompt?: Maybe<Prompt>;
+  deleteQuestion?: Maybe<Question>;
   deleteScan?: Maybe<Scan>;
   deleteTable?: Maybe<Table>;
   deleteText?: Maybe<Text>;
@@ -329,15 +928,29 @@ export type Mutation = {
   restoreProject?: Maybe<Project>;
   retryWorkflowExecution?: Maybe<WorkflowExecution>;
   retryWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
+  /** Executes the prompt with Gemini, validates against schema, saves execution record, returns it. */
+  runAIQuery: AiQueryExecution;
+  startAiQuery?: Maybe<AiQuery>;
   startWorkflowExecution?: Maybe<WorkflowExecution>;
   startWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
+  updateAccountCredits?: Maybe<AccountCredits>;
+  updateAiQuery?: Maybe<AiQuery>;
+  updateAnnouncement?: Maybe<Announcement>;
+  updateDealRoomMember?: Maybe<DealRoomMember>;
+  updateDealTemplate?: Maybe<DealTemplate>;
   updateDoclink?: Maybe<Doclink>;
   updateDocument?: Maybe<Document>;
   updateImage?: Maybe<Image>;
+  updateInvestorProfile?: Maybe<InvestorProfile>;
+  updateInvitation?: Maybe<Invitation>;
+  updateMicroInterview?: Maybe<MicroInterview>;
+  updateNDAAgreement?: Maybe<NdaAgreement>;
   updateNotification?: Maybe<Notification>;
   updateProject?: Maybe<Project>;
-  updatePromptTemplate?: Maybe<PromptTemplate>;
+  updatePrompt?: Maybe<Prompt>;
+  updateQuestion?: Maybe<Question>;
   updateScan?: Maybe<Scan>;
+  updateStructuredOutputSchema?: Maybe<StructuredOutputSchema>;
   updateTable?: Maybe<Table>;
   updateText?: Maybe<Text>;
   updateWorkflow?: Maybe<Workflow>;
@@ -363,6 +976,36 @@ export type MutationCompleteWorkflowNodeExecutionArgs = {
 };
 
 
+export type MutationCreateAiQueryArgs = {
+  input: CreateAiQueryInput;
+};
+
+
+export type MutationCreateAnnouncementArgs = {
+  input: CreateAnnouncementInput;
+};
+
+
+export type MutationCreateAuditLogEntryArgs = {
+  input: CreateAuditLogEntryInput;
+};
+
+
+export type MutationCreateBillingInvoiceArgs = {
+  input: CreateBillingInvoiceInput;
+};
+
+
+export type MutationCreateDealRoomMemberArgs = {
+  input: CreateDealRoomMemberInput;
+};
+
+
+export type MutationCreateDealTemplateArgs = {
+  input: CreateDealTemplateInput;
+};
+
+
 export type MutationCreateDoclinkArgs = {
   input: CreateDoclinkInput;
 };
@@ -378,6 +1021,36 @@ export type MutationCreateImageArgs = {
 };
 
 
+export type MutationCreateInvestorProfileArgs = {
+  input: CreateInvestorProfileInput;
+};
+
+
+export type MutationCreateInvitationArgs = {
+  input: CreateInvitationInput;
+};
+
+
+export type MutationCreateInvoiceArgs = {
+  input: CreateInvoiceInput;
+};
+
+
+export type MutationCreateMatchScoreArgs = {
+  input: CreateMatchScoreInput;
+};
+
+
+export type MutationCreateMicroInterviewArgs = {
+  input: CreateMicroInterviewInput;
+};
+
+
+export type MutationCreateNdaAgreementArgs = {
+  input: CreateNdaAgreementInput;
+};
+
+
 export type MutationCreateNotificationArgs = {
   input: CreateNotificationInput;
 };
@@ -388,13 +1061,23 @@ export type MutationCreateProjectArgs = {
 };
 
 
-export type MutationCreatePromptTemplateArgs = {
-  input: CreatePromptTemplateInput;
+export type MutationCreatePromptArgs = {
+  input: CreatePromptInput;
+};
+
+
+export type MutationCreateQuestionArgs = {
+  input: CreateQuestionInput;
 };
 
 
 export type MutationCreateScanArgs = {
   input: CreateScanInput;
+};
+
+
+export type MutationCreateStructuredOutputSchemaArgs = {
+  input: CreateStructuredOutputSchemaInput;
 };
 
 
@@ -405,6 +1088,11 @@ export type MutationCreateTableArgs = {
 
 export type MutationCreateTextArgs = {
   input: CreateTextInput;
+};
+
+
+export type MutationCreateUsageRecordArgs = {
+  input: CreateUsageRecordInput;
 };
 
 
@@ -423,6 +1111,21 @@ export type MutationCreateWorkflowNodeExecutionArgs = {
 };
 
 
+export type MutationDeleteAnnouncementArgs = {
+  key: CompositeKeyInput;
+};
+
+
+export type MutationDeleteDealRoomMemberArgs = {
+  key: CompositeKeyInput;
+};
+
+
+export type MutationDeleteDealTemplateArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationDeleteDoclinkArgs = {
   key: CompositeKeyInput;
 };
@@ -438,6 +1141,16 @@ export type MutationDeleteImageArgs = {
 };
 
 
+export type MutationDeleteInvitationArgs = {
+  key: CompositeKeyInput;
+};
+
+
+export type MutationDeleteNdaAgreementArgs = {
+  key: CompositeKeyInput;
+};
+
+
 export type MutationDeleteNotificationArgs = {
   key: CompositeKeyInput;
 };
@@ -448,7 +1161,12 @@ export type MutationDeleteProjectArgs = {
 };
 
 
-export type MutationDeletePromptTemplateArgs = {
+export type MutationDeletePromptArgs = {
+  key: CompositeKeyInput;
+};
+
+
+export type MutationDeleteQuestionArgs = {
   key: CompositeKeyInput;
 };
 
@@ -512,6 +1230,16 @@ export type MutationRetryWorkflowNodeExecutionArgs = {
 };
 
 
+export type MutationRunAiQueryArgs = {
+  input: RunAiQueryInput;
+};
+
+
+export type MutationStartAiQueryArgs = {
+  key: CompositeKeyInput;
+};
+
+
 export type MutationStartWorkflowExecutionArgs = {
   key: CompositeKeyInput;
 };
@@ -519,6 +1247,36 @@ export type MutationStartWorkflowExecutionArgs = {
 
 export type MutationStartWorkflowNodeExecutionArgs = {
   key: CompositeKeyInput;
+};
+
+
+export type MutationUpdateAccountCreditsArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateAccountCreditsInput;
+};
+
+
+export type MutationUpdateAiQueryArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateAiQueryInput;
+};
+
+
+export type MutationUpdateAnnouncementArgs = {
+  input: UpdateAnnouncementInput;
+  key: CompositeKeyInput;
+};
+
+
+export type MutationUpdateDealRoomMemberArgs = {
+  input: UpdateDealRoomMemberInput;
+  key: CompositeKeyInput;
+};
+
+
+export type MutationUpdateDealTemplateArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateDealTemplateInput;
 };
 
 
@@ -540,6 +1298,30 @@ export type MutationUpdateImageArgs = {
 };
 
 
+export type MutationUpdateInvestorProfileArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateInvestorProfileInput;
+};
+
+
+export type MutationUpdateInvitationArgs = {
+  input: UpdateInvitationInput;
+  key: CompositeKeyInput;
+};
+
+
+export type MutationUpdateMicroInterviewArgs = {
+  input: UpdateMicroInterviewInput;
+  key: CompositeKeyInput;
+};
+
+
+export type MutationUpdateNdaAgreementArgs = {
+  input: UpdateNdaAgreementInput;
+  key: CompositeKeyInput;
+};
+
+
 export type MutationUpdateNotificationArgs = {
   input: UpdateNotificationInput;
   key: CompositeKeyInput;
@@ -552,8 +1334,14 @@ export type MutationUpdateProjectArgs = {
 };
 
 
-export type MutationUpdatePromptTemplateArgs = {
-  input: UpdatePromptTemplateInput;
+export type MutationUpdatePromptArgs = {
+  input: UpdatePromptInput;
+  key: CompositeKeyInput;
+};
+
+
+export type MutationUpdateQuestionArgs = {
+  input: UpdateQuestionInput;
   key: CompositeKeyInput;
 };
 
@@ -561,6 +1349,12 @@ export type MutationUpdatePromptTemplateArgs = {
 export type MutationUpdateScanArgs = {
   input: UpdateScanInput;
   key: CompositeKeyInput;
+};
+
+
+export type MutationUpdateStructuredOutputSchemaArgs = {
+  id: Scalars['ID']['input'];
+  input: CreateStructuredOutputSchemaInput;
 };
 
 
@@ -592,6 +1386,32 @@ export type MutationUpdateWorkflowNodeExecutionArgs = {
   input: UpdateWorkflowNodeExecutionInput;
   key: CompositeKeyInput;
 };
+
+export type NdaAgreement = Metadata & Node & {
+  __typename?: 'NDAAgreement';
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  ownerId: Scalars['ID']['output'];
+  parentId: Scalars['ID']['output'];
+  signedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  signedDocumentId?: Maybe<Scalars['ID']['output']>;
+  status: NdaStatus;
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+  userId: Scalars['ID']['output'];
+};
+
+export type NdaAgreementConnection = {
+  __typename?: 'NDAAgreementConnection';
+  items: Array<NdaAgreement>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
+export type NdaStatus =
+  | 'PENDING'
+  | 'SIGNED';
 
 export type Node = {
   id: Scalars['ID']['output'];
@@ -631,18 +1451,37 @@ export type ProcessNodeConfigInput = {
 export type Project = Metadata & Node & Shareable & {
   __typename?: 'Project';
   accessList?: Maybe<ResourceShareConnection>;
+  announcements?: Maybe<AnnouncementConnection>;
+  auditlogentries?: Maybe<AuditLogEntryConnection>;
+  brokerContactEmail?: Maybe<Scalars['String']['output']>;
+  brokerContactName?: Maybe<Scalars['String']['output']>;
+  brokerContactPhone?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['AWSDateTime']['output'];
+  dealTags?: Maybe<Scalars['AWSJSON']['output']>;
+  dealroommembers?: Maybe<DealRoomMemberConnection>;
   deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   doclinks?: Maybe<DoclinkConnection>;
   entityType: EntityType;
+  headline?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
+  invitations?: Maybe<InvitationConnection>;
+  logoUrl?: Maybe<Scalars['String']['output']>;
+  mapEmbedUrl?: Maybe<Scalars['String']['output']>;
+  matchscores?: Maybe<MatchScoreConnection>;
+  microinterviews?: Maybe<MicroInterviewConnection>;
   name: Scalars['String']['output'];
+  ndagreements?: Maybe<NdaAgreementConnection>;
   notifications?: Maybe<NotificationConnection>;
   ownerId: Scalars['ID']['output'];
-  prompttemplates?: Maybe<PromptTemplateConnection>;
+  photoUrls?: Maybe<Array<Scalars['String']['output']>>;
+  primaryColor?: Maybe<Scalars['String']['output']>;
+  prompts?: Maybe<PromptConnection>;
+  questions?: Maybe<QuestionConnection>;
+  secondaryColor?: Maybe<Scalars['String']['output']>;
   sharingMode: SharingMode;
   status: ProjectStatus;
+  summary?: Maybe<Scalars['String']['output']>;
   tenantId: Scalars['ID']['output'];
   topics?: Maybe<TopicConnection>;
   updatedAt: Scalars['AWSDateTime']['output'];
@@ -656,7 +1495,49 @@ export type ProjectAccessListArgs = {
 };
 
 
+export type ProjectAnnouncementsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type ProjectAuditlogentriesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type ProjectDealroommembersArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type ProjectDoclinksArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type ProjectInvitationsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type ProjectMatchscoresArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type ProjectMicrointerviewsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type ProjectNdagreementsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
 };
@@ -668,7 +1549,13 @@ export type ProjectNotificationsArgs = {
 };
 
 
-export type ProjectPrompttemplatesArgs = {
+export type ProjectPromptsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type ProjectQuestionsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
 };
@@ -694,51 +1581,86 @@ export type ProjectConnection = {
 export type ProjectStatus =
   | 'ACTIVE'
   | 'ARCHIVED'
-  | 'DELETED';
+  | 'DELETED'
+  | 'DRAFT'
+  | 'PUBLISHED';
 
-export type PromptTemplate = Metadata & Node & Shareable & {
-  __typename?: 'PromptTemplate';
+/** AI Studio prompt (formerly PromptTemplate). Versioned instruction set for the AI. */
+export type Prompt = Metadata & Node & Shareable & {
+  __typename?: 'Prompt';
   accessList?: Maybe<ResourceShareConnection>;
+  config: GeminiConfig;
   createdAt: Scalars['AWSDateTime']['output'];
   deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   entityType: EntityType;
   id: Scalars['ID']['output'];
+  /** Variables detected in the template (e.g. [\"topic\"]). */
+  inputVariables: Array<Scalars['String']['output']>;
+  isActive: Scalars['Boolean']['output'];
+  model: AiModel;
   name: Scalars['String']['output'];
+  /** Structured output schema enforced for this prompt. */
+  outputSchema: StructuredOutputSchema;
   ownerId: Scalars['ID']['output'];
   parentId: Scalars['ID']['output'];
   sharingMode: SharingMode;
-  template: Scalars['String']['output'];
+  /** Template with variable placeholders (e.g. \"Write a poem about {{topic}}\"). */
+  templateText: Scalars['String']['output'];
   tenantId: Scalars['ID']['output'];
   updatedAt: Scalars['AWSDateTime']['output'];
+  version: Scalars['Int']['output'];
 };
 
 
-export type PromptTemplateAccessListArgs = {
+/** AI Studio prompt (formerly PromptTemplate). Versioned instruction set for the AI. */
+export type PromptAccessListArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type PromptTemplateConnection = {
-  __typename?: 'PromptTemplateConnection';
-  items: Array<PromptTemplate>;
+export type PromptConnection = {
+  __typename?: 'PromptConnection';
+  items: Array<Prompt>;
   nextToken?: Maybe<Scalars['String']['output']>;
 };
 
 export type Query = {
   __typename?: 'Query';
+  getAccountCredits?: Maybe<AccountCredits>;
+  getAiQuery?: Maybe<AiQuery>;
+  getAnnouncement?: Maybe<Announcement>;
+  /** Get a single AuditLogEntry. Requires composite key (ID + ParentID) for access. */
+  getAuditLogEntry?: Maybe<AuditLogEntry>;
+  getBillingInvoice?: Maybe<BillingInvoice>;
+  /** Get a single DealRoomMember. Requires composite key (ID + ParentID) for access. */
+  getDealRoomMember?: Maybe<DealRoomMember>;
+  getDealTemplate?: Maybe<DealTemplate>;
   /** Get a single Doclink. Requires composite key (ID + ParentID) for access. */
   getDoclink?: Maybe<Doclink>;
   getDocument?: Maybe<Document>;
+  /** Per-document view/download analytics for a deal. */
+  getDocumentAnalytics?: Maybe<DocumentAnalytics>;
+  /** List AI execution history, optionally filtered by promptId. */
+  getExecutionHistory: AiQueryExecutionConnection;
   /** Get a single Image. Requires composite key (ID + ParentID) for access. */
   getImage?: Maybe<Image>;
+  getInvestorProfile?: Maybe<InvestorProfile>;
+  /** Get a single Invitation. Requires composite key (ID + ParentID) for access. */
+  getInvitation?: Maybe<Invitation>;
+  getMatchScore?: Maybe<MatchScore>;
+  getMicroInterview?: Maybe<MicroInterview>;
+  /** Get a single NDAAgreement. Requires composite key (ID + ParentID) for access. */
+  getNDAAgreement?: Maybe<NdaAgreement>;
   /** Get a single Notification. Requires composite key (ID + ParentID) for access. */
   getNotification?: Maybe<Notification>;
   getProject?: Maybe<Project>;
-  /** Get a single PromptTemplate. Requires composite key (ID + ParentID) for access. */
-  getPromptTemplate?: Maybe<PromptTemplate>;
+  /** Get a single Prompt. Requires composite key (ID + ParentID) for access. */
+  getPrompt?: Maybe<Prompt>;
+  getQuestion?: Maybe<Question>;
   /** Get a single Scan. Requires composite key (ID + ParentID) for access. */
   getScan?: Maybe<Scan>;
+  getStructuredOutputSchema?: Maybe<StructuredOutputSchema>;
   /** Get a single Table. Requires composite key (ID + ParentID) for access. */
   getTable?: Maybe<Table>;
   /** Get a single Text. Requires composite key (ID + ParentID) for access. */
@@ -749,28 +1671,87 @@ export type Query = {
   getWorkflowExecution?: Maybe<WorkflowExecution>;
   /** Get a single WorkflowNodeExecution. Requires composite key (ID + ParentID) for access. */
   getWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
+  listAiQuerys: AiQueryConnection;
+  listAnnouncements: AnnouncementConnection;
+  /** List AuditLogEntries for a specific Deal (Project). For broker activity log / compliance. */
+  listAuditLogEntrys: AuditLogEntryConnection;
+  listBillingInvoices: BillingInvoiceConnection;
+  /** List buyer engagement scores for a deal (aggregated from AuditLogEntry). For broker heatmap/shortlist. */
+  listBuyerEngagements: Array<BuyerEngagement>;
+  /** List DealRoomMembers for a specific Deal (Project). */
+  listDealRoomMembers: DealRoomMemberConnection;
+  listDealTemplates: DealTemplateConnection;
   /** List Doclinks for a specific Project. Uses GSI1 (The View). */
   listDoclinks: DoclinkConnection;
   listDocuments: DocumentConnection;
   /** List Images for a specific Document. Uses GSI1 (The View). */
   listImages: ImageConnection;
+  /** List Invitations for a specific Deal (Project). */
+  listInvitations: InvitationConnection;
+  listMatchScores: MatchScoreConnection;
+  listMicroInterviews: MicroInterviewConnection;
+  /** List NDAAgreements for a specific Deal (Project). Used for NDA gate check. */
+  listNDAAgreements: NdaAgreementConnection;
   /** List Notifications for a specific Project. Uses GSI1 (The View). */
   listNotifications: NotificationConnection;
   listProjects: ProjectConnection;
-  /** List PromptTemplates for a specific Project. Uses GSI1 (The View). */
-  listPromptTemplates: PromptTemplateConnection;
+  /** List Prompts for a specific Project. Uses GSI1 (The View). */
+  listPrompts: PromptConnection;
+  listQuestions: QuestionConnection;
   /** List Scans for a specific Document. Uses GSI1 (The View). */
   listScans: ScanConnection;
+  listStructuredOutputSchemas: StructuredOutputSchemaConnection;
   /** List Tables for a specific Document. Uses GSI1 (The View). */
   listTables: TableConnection;
   /** List Texts for a specific Document. Uses GSI1 (The View). */
   listTexts: TextConnection;
+  listUsageRecords: UsageRecordConnection;
   /** List WorkflowExecutions for a specific Workflow. Uses main table query. */
   listWorkflowExecutions: WorkflowExecutionConnection;
   /** List WorkflowNodeExecutions for a specific WorkflowExecution. Uses main table query. */
   listWorkflowNodeExecutions: WorkflowNodeExecutionConnection;
   /** List Workflows for a specific Project. Uses main table query. */
   listWorkflows: WorkflowConnection;
+  /**
+   * Full-text search within a deal (OCR text in Text entities). DynamoDB + FilterExpression.
+   * Implement via Lambda that queries Text by deal documentIds and filters by contains(text, query).
+   */
+  searchDocuments: Array<DocumentSearchResult>;
+};
+
+
+export type QueryGetAccountCreditsArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryGetAiQueryArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryGetAnnouncementArgs = {
+  key: CompositeKeyInput;
+};
+
+
+export type QueryGetAuditLogEntryArgs = {
+  key: CompositeKeyInput;
+};
+
+
+export type QueryGetBillingInvoiceArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryGetDealRoomMemberArgs = {
+  key: CompositeKeyInput;
+};
+
+
+export type QueryGetDealTemplateArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -784,7 +1765,45 @@ export type QueryGetDocumentArgs = {
 };
 
 
+export type QueryGetDocumentAnalyticsArgs = {
+  dealId: Scalars['ID']['input'];
+  documentId: Scalars['ID']['input'];
+};
+
+
+export type QueryGetExecutionHistoryArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  promptId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
 export type QueryGetImageArgs = {
+  key: CompositeKeyInput;
+};
+
+
+export type QueryGetInvestorProfileArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryGetInvitationArgs = {
+  key: CompositeKeyInput;
+};
+
+
+export type QueryGetMatchScoreArgs = {
+  key: CompositeKeyInput;
+};
+
+
+export type QueryGetMicroInterviewArgs = {
+  key: CompositeKeyInput;
+};
+
+
+export type QueryGetNdaAgreementArgs = {
   key: CompositeKeyInput;
 };
 
@@ -799,13 +1818,23 @@ export type QueryGetProjectArgs = {
 };
 
 
-export type QueryGetPromptTemplateArgs = {
+export type QueryGetPromptArgs = {
+  key: CompositeKeyInput;
+};
+
+
+export type QueryGetQuestionArgs = {
   key: CompositeKeyInput;
 };
 
 
 export type QueryGetScanArgs = {
   key: CompositeKeyInput;
+};
+
+
+export type QueryGetStructuredOutputSchemaArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -834,6 +1863,53 @@ export type QueryGetWorkflowNodeExecutionArgs = {
 };
 
 
+export type QueryListAiQuerysArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  scope?: InputMaybe<ListScope>;
+};
+
+
+export type QueryListAnnouncementsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  parentId: Scalars['ID']['input'];
+};
+
+
+export type QueryListAuditLogEntrysArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  parentId: Scalars['ID']['input'];
+};
+
+
+export type QueryListBillingInvoicesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  scope?: InputMaybe<ListScope>;
+  status?: InputMaybe<InvoiceStatus>;
+};
+
+
+export type QueryListBuyerEngagementsArgs = {
+  dealId: Scalars['ID']['input'];
+};
+
+
+export type QueryListDealRoomMembersArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  parentId: Scalars['ID']['input'];
+};
+
+
+export type QueryListDealTemplatesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryListDoclinksArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
@@ -854,6 +1930,34 @@ export type QueryListImagesArgs = {
 };
 
 
+export type QueryListInvitationsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  parentId: Scalars['ID']['input'];
+};
+
+
+export type QueryListMatchScoresArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  parentId: Scalars['ID']['input'];
+};
+
+
+export type QueryListMicroInterviewsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  parentId: Scalars['ID']['input'];
+};
+
+
+export type QueryListNdaAgreementsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  parentId: Scalars['ID']['input'];
+};
+
+
 export type QueryListNotificationsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
@@ -868,7 +1972,14 @@ export type QueryListProjectsArgs = {
 };
 
 
-export type QueryListPromptTemplatesArgs = {
+export type QueryListPromptsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  parentId: Scalars['ID']['input'];
+};
+
+
+export type QueryListQuestionsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
   parentId: Scalars['ID']['input'];
@@ -879,6 +1990,12 @@ export type QueryListScansArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
   parentId: Scalars['ID']['input'];
+};
+
+
+export type QueryListStructuredOutputSchemasArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -893,6 +2010,13 @@ export type QueryListTextsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
   parentId: Scalars['ID']['input'];
+};
+
+
+export type QueryListUsageRecordsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  tenantId: Scalars['ID']['input'];
 };
 
 
@@ -918,6 +2042,37 @@ export type QueryListWorkflowsArgs = {
   parentId: Scalars['ID']['input'];
 };
 
+
+export type QuerySearchDocumentsArgs = {
+  dealId: Scalars['ID']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  query: Scalars['String']['input'];
+};
+
+export type Question = Metadata & Node & {
+  __typename?: 'Question';
+  answerText?: Maybe<Scalars['String']['output']>;
+  answeredAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  authorId: Scalars['ID']['output'];
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  documentId?: Maybe<Scalars['ID']['output']>;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  isPublic: Scalars['Boolean']['output'];
+  ownerId: Scalars['ID']['output'];
+  parentId: Scalars['ID']['output'];
+  questionText: Scalars['String']['output'];
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+};
+
+export type QuestionConnection = {
+  __typename?: 'QuestionConnection';
+  items: Array<Question>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
 export type ResourceShare = Metadata & Node & {
   __typename?: 'ResourceShare';
   createdAt: Scalars['AWSDateTime']['output'];
@@ -937,6 +2092,12 @@ export type ResourceShareConnection = {
   __typename?: 'ResourceShareConnection';
   items: Array<ResourceShare>;
   nextToken?: Maybe<Scalars['String']['output']>;
+};
+
+export type RunAiQueryInput = {
+  parentId: Scalars['ID']['input'];
+  promptId: Scalars['ID']['input'];
+  variables: Scalars['AWSJSON']['input'];
 };
 
 export type Scan = Metadata & Node & Storable & {
@@ -986,13 +2147,29 @@ export type Storable = {
   s3Key: Scalars['String']['output'];
 };
 
-export type StructuredOutputSchema = {
+/**
+ * Persistable structured output schema (tenant-scoped). Defines the structure
+ * expected from the AI. Maps to Gemini responseSchema.
+ */
+export type StructuredOutputSchema = Metadata & Node & {
   __typename?: 'StructuredOutputSchema';
-  jsonSchema: Scalars['AWSJSON']['output'];
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  ownerId: Scalars['ID']['output'];
+  /** JSON Schema definition (OpenAPI 3.0 compatible). Used to validate AI output. */
+  schemaDefinition: Scalars['AWSJSON']['output'];
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
 };
 
-export type StructuredOutputSchemaInput = {
-  jsonSchema: Scalars['AWSJSON']['input'];
+export type StructuredOutputSchemaConnection = {
+  __typename?: 'StructuredOutputSchemaConnection';
+  items: Array<StructuredOutputSchema>;
+  nextToken?: Maybe<Scalars['String']['output']>;
 };
 
 export type Subscription = {
@@ -1007,8 +2184,8 @@ export type Subscription = {
   onCreateNotification?: Maybe<Notification>;
   /** PROJECT SUBSCRIPTIONS */
   onCreateProject?: Maybe<Project>;
-  /** PROMPT_TEMPLATE SUBSCRIPTIONS */
-  onCreatePromptTemplate?: Maybe<PromptTemplate>;
+  /** AI STUDIO: Prompt subscriptions */
+  onCreatePrompt?: Maybe<Prompt>;
   /** SCAN SUBSCRIPTIONS */
   onCreateScan?: Maybe<Scan>;
   /** TABLE SUBSCRIPTIONS */
@@ -1026,18 +2203,20 @@ export type Subscription = {
   onDeleteImage?: Maybe<Image>;
   onDeleteNotification?: Maybe<Notification>;
   onDeleteProject?: Maybe<Project>;
-  onDeletePromptTemplate?: Maybe<PromptTemplate>;
+  onDeletePrompt?: Maybe<Prompt>;
   onDeleteScan?: Maybe<Scan>;
   onDeleteTable?: Maybe<Table>;
   onDeleteText?: Maybe<Text>;
   onDeleteWorkflow?: Maybe<Workflow>;
   onRestoreProject?: Maybe<Project>;
+  /** AI QUERY SUBSCRIPTIONS */
+  onUpdateAiQuery?: Maybe<AiQuery>;
   onUpdateDoclink?: Maybe<Doclink>;
   onUpdateDocument?: Maybe<Document>;
   onUpdateImage?: Maybe<Image>;
   onUpdateNotification?: Maybe<Notification>;
   onUpdateProject?: Maybe<Project>;
-  onUpdatePromptTemplate?: Maybe<PromptTemplate>;
+  onUpdatePrompt?: Maybe<Prompt>;
   onUpdateScan?: Maybe<Scan>;
   onUpdateTable?: Maybe<Table>;
   onUpdateText?: Maybe<Text>;
@@ -1076,7 +2255,7 @@ export type SubscriptionOnCreateProjectArgs = {
 };
 
 
-export type SubscriptionOnCreatePromptTemplateArgs = {
+export type SubscriptionOnCreatePromptArgs = {
   parentId?: InputMaybe<Scalars['ID']['input']>;
 };
 
@@ -1136,7 +2315,7 @@ export type SubscriptionOnDeleteProjectArgs = {
 };
 
 
-export type SubscriptionOnDeletePromptTemplateArgs = {
+export type SubscriptionOnDeletePromptArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -1166,6 +2345,11 @@ export type SubscriptionOnRestoreProjectArgs = {
 };
 
 
+export type SubscriptionOnUpdateAiQueryArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type SubscriptionOnUpdateDoclinkArgs = {
   id: Scalars['ID']['input'];
 };
@@ -1191,7 +2375,7 @@ export type SubscriptionOnUpdateProjectArgs = {
 };
 
 
-export type SubscriptionOnUpdatePromptTemplateArgs = {
+export type SubscriptionOnUpdatePromptArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -1312,11 +2496,42 @@ export type TopicConnection = {
   nextToken?: Maybe<Scalars['String']['output']>;
 };
 
+export type UpdateAccountCreditsInput = {
+  balance: Scalars['Int']['input'];
+  stripeCustomerId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateAiQueryInput = {
+  errorMessage?: InputMaybe<Scalars['String']['input']>;
+  inputTokens?: InputMaybe<Scalars['Int']['input']>;
+  modelUsed?: InputMaybe<Scalars['String']['input']>;
+  outputTokens?: InputMaybe<Scalars['Int']['input']>;
+  responsePayload?: InputMaybe<Scalars['AWSJSON']['input']>;
+  status?: InputMaybe<AiQueryStatus>;
+};
+
+export type UpdateAnnouncementInput = {
+  body?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateDealRoomMemberInput = {
+  permissionSetIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  role?: InputMaybe<DealRole>;
+  userId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+export type UpdateDealTemplateInput = {
+  name?: InputMaybe<Scalars['String']['input']>;
+  structure?: InputMaybe<Scalars['AWSJSON']['input']>;
+};
+
 export type UpdateDoclinkInput = {
+  displayOrder?: InputMaybe<Scalars['String']['input']>;
   filename?: InputMaybe<Scalars['String']['input']>;
-  openAIFileId: Scalars['ID']['input'];
+  folderPath?: InputMaybe<Scalars['String']['input']>;
+  linkType?: InputMaybe<DoclinkLinkType>;
+  permissionSetIds?: InputMaybe<Array<Scalars['String']['input']>>;
   status?: InputMaybe<DoclinkStatus>;
-  vectorStoreId: Scalars['ID']['input'];
 };
 
 export type UpdateDocumentInput = {
@@ -1341,23 +2556,69 @@ export type UpdateImageInput = {
   topLeftY?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type UpdateInvestorProfileInput = {
+  averageDealSizeViewed?: InputMaybe<Scalars['String']['input']>;
+  dealsDeclined?: InputMaybe<Scalars['AWSJSON']['input']>;
+  explicitCriteria?: InputMaybe<Scalars['AWSJSON']['input']>;
+  pastDealsViewed?: InputMaybe<Scalars['AWSJSON']['input']>;
+};
+
+export type UpdateInvitationInput = {
+  email?: InputMaybe<Scalars['String']['input']>;
+  openedAt?: InputMaybe<Scalars['AWSDateTime']['input']>;
+  role?: InputMaybe<DealRole>;
+  sentAt?: InputMaybe<Scalars['AWSDateTime']['input']>;
+  status?: InputMaybe<InvitationStatus>;
+};
+
+export type UpdateMicroInterviewInput = {
+  respondedAt?: InputMaybe<Scalars['AWSDateTime']['input']>;
+  response?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateNdaAgreementInput = {
+  signedAt?: InputMaybe<Scalars['AWSDateTime']['input']>;
+  signedDocumentId?: InputMaybe<Scalars['ID']['input']>;
+  status?: InputMaybe<NdaStatus>;
+};
+
 export type UpdateNotificationInput = {
   message?: InputMaybe<Scalars['String']['input']>;
   properties?: InputMaybe<Scalars['AWSJSON']['input']>;
 };
 
 export type UpdateProjectInput = {
+  brokerContactEmail?: InputMaybe<Scalars['String']['input']>;
+  brokerContactName?: InputMaybe<Scalars['String']['input']>;
+  brokerContactPhone?: InputMaybe<Scalars['String']['input']>;
+  dealTags?: InputMaybe<Scalars['AWSJSON']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
+  headline?: InputMaybe<Scalars['String']['input']>;
+  logoUrl?: InputMaybe<Scalars['String']['input']>;
+  mapEmbedUrl?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  photoUrls?: InputMaybe<Array<Scalars['String']['input']>>;
+  primaryColor?: InputMaybe<Scalars['String']['input']>;
+  secondaryColor?: InputMaybe<Scalars['String']['input']>;
   sharingMode?: InputMaybe<SharingMode>;
   status?: InputMaybe<ProjectStatus>;
+  summary?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type UpdatePromptTemplateInput = {
+export type UpdatePromptInput = {
+  config?: InputMaybe<GeminiConfigInput>;
   description?: InputMaybe<Scalars['String']['input']>;
+  model?: InputMaybe<AiModel>;
   name?: InputMaybe<Scalars['String']['input']>;
+  outputSchemaId?: InputMaybe<Scalars['ID']['input']>;
   sharingMode?: InputMaybe<SharingMode>;
-  template?: InputMaybe<Scalars['String']['input']>;
+  templateText?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateQuestionInput = {
+  answerText?: InputMaybe<Scalars['String']['input']>;
+  answeredAt?: InputMaybe<Scalars['AWSDateTime']['input']>;
+  isPublic?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type UpdateScanInput = {
@@ -1389,7 +2650,7 @@ export type UpdateWorkflowExecutionInput = {
 export type UpdateWorkflowInput = {
   definition?: InputMaybe<WorkflowDefinitionInput>;
   name?: InputMaybe<Scalars['String']['input']>;
-  structuredOutputSchema?: InputMaybe<StructuredOutputSchemaInput>;
+  structuredOutputSchema?: InputMaybe<JsonSchemaValueInput>;
   ui?: InputMaybe<WorkflowUiInput>;
 };
 
@@ -1400,6 +2661,42 @@ export type UpdateWorkflowNodeExecutionInput = {
   outputData?: InputMaybe<Scalars['AWSJSON']['input']>;
   startedAt?: InputMaybe<Scalars['AWSDateTime']['input']>;
   status?: InputMaybe<WorkflowNodeExecutionStatus>;
+};
+
+export type UsageRecord = Metadata & Node & {
+  __typename?: 'UsageRecord';
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  metadata?: Maybe<Scalars['AWSJSON']['output']>;
+  ownerId: Scalars['ID']['output'];
+  quantity: Scalars['Int']['output'];
+  reportableObjectId: Scalars['ID']['output'];
+  stripeMeterEventId?: Maybe<Scalars['String']['output']>;
+  subscriptionId?: Maybe<Scalars['ID']['output']>;
+  tenantId: Scalars['ID']['output'];
+  timestamp: Scalars['AWSDateTime']['output'];
+  unit: UsageUnit;
+  updatedAt: Scalars['AWSDateTime']['output'];
+};
+
+export type UsageRecordConnection = {
+  __typename?: 'UsageRecordConnection';
+  items: Array<UsageRecord>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
+export type UsageUnit =
+  | 'API_CALLS'
+  | 'DURATION_SECONDS'
+  | 'TOKENS';
+
+export type UserError = {
+  __typename?: 'UserError';
+  code: Scalars['String']['output'];
+  field?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  message: Scalars['String']['output'];
 };
 
 export type Workflow = Metadata & Node & Shareable & {
@@ -1415,7 +2712,7 @@ export type Workflow = Metadata & Node & Shareable & {
   parentId: Scalars['ID']['output'];
   project?: Maybe<Project>;
   sharingMode: SharingMode;
-  structuredOutputSchema?: Maybe<StructuredOutputSchema>;
+  structuredOutputSchema?: Maybe<JsonSchemaValue>;
   tenantId: Scalars['ID']['output'];
   ui?: Maybe<WorkflowUi>;
   updatedAt: Scalars['AWSDateTime']['output'];
@@ -1635,7 +2932,7 @@ export type CreateDoclinkMutationVariables = Exact<{
 }>;
 
 
-export type CreateDoclinkMutation = { __typename?: 'Mutation', createDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, status: DoclinkStatus, documentId: string } | null | undefined };
+export type CreateDoclinkMutation = { __typename?: 'Mutation', createDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string } | null | undefined };
 
 export type UpdateDoclinkMutationVariables = Exact<{
   key: CompositeKeyInput;
@@ -1643,14 +2940,14 @@ export type UpdateDoclinkMutationVariables = Exact<{
 }>;
 
 
-export type UpdateDoclinkMutation = { __typename?: 'Mutation', updateDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, status: DoclinkStatus, documentId: string } | null | undefined };
+export type UpdateDoclinkMutation = { __typename?: 'Mutation', updateDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string } | null | undefined };
 
 export type DeleteDoclinkMutationVariables = Exact<{
   key: CompositeKeyInput;
 }>;
 
 
-export type DeleteDoclinkMutation = { __typename?: 'Mutation', deleteDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, status: DoclinkStatus, documentId: string } | null | undefined };
+export type DeleteDoclinkMutation = { __typename?: 'Mutation', deleteDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string } | null | undefined };
 
 export type CreateDocumentMutationVariables = Exact<{
   input: CreateDocumentInput;
@@ -1747,27 +3044,34 @@ export type RestoreProjectMutationVariables = Exact<{
 
 export type RestoreProjectMutation = { __typename?: 'Mutation', restoreProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus } | null | undefined };
 
-export type CreatePromptTemplateMutationVariables = Exact<{
-  input: CreatePromptTemplateInput;
+export type CreatePromptMutationVariables = Exact<{
+  input: CreatePromptInput;
 }>;
 
 
-export type CreatePromptTemplateMutation = { __typename?: 'Mutation', createPromptTemplate?: { __typename?: 'PromptTemplate', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, template: string, description?: string | null | undefined } | null | undefined };
+export type CreatePromptMutation = { __typename?: 'Mutation', createPrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, description?: string | null | undefined, templateText: string, inputVariables: Array<string>, model: AiModel, version: number, isActive: boolean, config: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined }, outputSchema: { __typename?: 'StructuredOutputSchema', id: string, name: string, description?: string | null | undefined, schemaDefinition: any } } | null | undefined };
 
-export type UpdatePromptTemplateMutationVariables = Exact<{
+export type UpdatePromptMutationVariables = Exact<{
   key: CompositeKeyInput;
-  input: UpdatePromptTemplateInput;
+  input: UpdatePromptInput;
 }>;
 
 
-export type UpdatePromptTemplateMutation = { __typename?: 'Mutation', updatePromptTemplate?: { __typename?: 'PromptTemplate', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, template: string, description?: string | null | undefined } | null | undefined };
+export type UpdatePromptMutation = { __typename?: 'Mutation', updatePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, description?: string | null | undefined, templateText: string, inputVariables: Array<string>, model: AiModel, version: number, isActive: boolean, config: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined }, outputSchema: { __typename?: 'StructuredOutputSchema', id: string, name: string, description?: string | null | undefined, schemaDefinition: any } } | null | undefined };
 
-export type DeletePromptTemplateMutationVariables = Exact<{
+export type DeletePromptMutationVariables = Exact<{
   key: CompositeKeyInput;
 }>;
 
 
-export type DeletePromptTemplateMutation = { __typename?: 'Mutation', deletePromptTemplate?: { __typename?: 'PromptTemplate', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, template: string, description?: string | null | undefined } | null | undefined };
+export type DeletePromptMutation = { __typename?: 'Mutation', deletePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, description?: string | null | undefined, templateText: string, inputVariables: Array<string>, model: AiModel, version: number, isActive: boolean } | null | undefined };
+
+export type RunAiQueryMutationVariables = Exact<{
+  input: RunAiQueryInput;
+}>;
+
+
+export type RunAiQueryMutation = { __typename?: 'Mutation', runAIQuery: { __typename?: 'AIQueryExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, executedAt: string, durationMs: number, inputValues: any, rawOutput?: string | null | undefined, structuredOutput?: any | null | undefined, promptTokenCount?: number | null | undefined, candidatesTokenCount?: number | null | undefined, totalTokenCount?: number | null | undefined, status: ExecutionStatus, errorMessage?: string | null | undefined, prompt: { __typename?: 'Prompt', id: string, name: string, version: number, parentId: string } } };
 
 export type CreateScanMutationVariables = Exact<{
   input: CreateScanInput;
@@ -1790,6 +3094,21 @@ export type DeleteScanMutationVariables = Exact<{
 
 
 export type DeleteScanMutation = { __typename?: 'Mutation', deleteScan?: { __typename?: 'Scan', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, parentId: string } | null | undefined };
+
+export type CreateStructuredOutputSchemaMutationVariables = Exact<{
+  input: CreateStructuredOutputSchemaInput;
+}>;
+
+
+export type CreateStructuredOutputSchemaMutation = { __typename?: 'Mutation', createStructuredOutputSchema?: { __typename?: 'StructuredOutputSchema', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, name: string, description?: string | null | undefined, schemaDefinition: any } | null | undefined };
+
+export type UpdateStructuredOutputSchemaMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: CreateStructuredOutputSchemaInput;
+}>;
+
+
+export type UpdateStructuredOutputSchemaMutation = { __typename?: 'Mutation', updateStructuredOutputSchema?: { __typename?: 'StructuredOutputSchema', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, name: string, description?: string | null | undefined, schemaDefinition: any } | null | undefined };
 
 export type CreateTableMutationVariables = Exact<{
   input: CreateTableInput;
@@ -1841,12 +3160,12 @@ export type CreateWorkflowMutationVariables = Exact<{
 
 
 export type CreateWorkflowMutation = { __typename?: 'Mutation', createWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined }
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'InputNodeConfig' }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
-         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
+         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
 
 export type UpdateWorkflowMutationVariables = Exact<{
   key: CompositeKeyInput;
@@ -1855,12 +3174,12 @@ export type UpdateWorkflowMutationVariables = Exact<{
 
 
 export type UpdateWorkflowMutation = { __typename?: 'Mutation', updateWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined }
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'InputNodeConfig' }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
-         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
+         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
 
 export type DeleteWorkflowMutationVariables = Exact<{
   key: CompositeKeyInput;
@@ -1868,12 +3187,12 @@ export type DeleteWorkflowMutationVariables = Exact<{
 
 
 export type DeleteWorkflowMutation = { __typename?: 'Mutation', deleteWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined }
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'InputNodeConfig' }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
-         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
+         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
 
 export type CreateWorkflowExecutionMutationVariables = Exact<{
   input: CreateWorkflowExecutionInput;
@@ -1988,12 +3307,21 @@ export type DeleteWorkflowNodeExecutionMutationVariables = Exact<{
 
 export type DeleteWorkflowNodeExecutionMutation = { __typename?: 'Mutation', deleteWorkflowNodeExecution?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined } | null | undefined };
 
+export type GetExecutionHistoryQueryVariables = Exact<{
+  promptId?: InputMaybe<Scalars['ID']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type GetExecutionHistoryQuery = { __typename?: 'Query', getExecutionHistory: { __typename?: 'AIQueryExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'AIQueryExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, executedAt: string, durationMs: number, inputValues: any, rawOutput?: string | null | undefined, structuredOutput?: any | null | undefined, promptTokenCount?: number | null | undefined, candidatesTokenCount?: number | null | undefined, totalTokenCount?: number | null | undefined, status: ExecutionStatus, errorMessage?: string | null | undefined, prompt: { __typename?: 'Prompt', id: string, name: string, version: number, parentId: string } }> } };
+
 export type GetDoclinkQueryVariables = Exact<{
   key: CompositeKeyInput;
 }>;
 
 
-export type GetDoclinkQuery = { __typename?: 'Query', getDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, status: DoclinkStatus, documentId: string } | null | undefined };
+export type GetDoclinkQuery = { __typename?: 'Query', getDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string } | null | undefined };
 
 export type ListDoclinksQueryVariables = Exact<{
   parentId: Scalars['ID']['input'];
@@ -2002,7 +3330,7 @@ export type ListDoclinksQueryVariables = Exact<{
 }>;
 
 
-export type ListDoclinksQuery = { __typename?: 'Query', listDoclinks: { __typename?: 'DoclinkConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, status: DoclinkStatus, documentId: string }> } };
+export type ListDoclinksQuery = { __typename?: 'Query', listDoclinks: { __typename?: 'DoclinkConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string }> } };
 
 export type GetDocumentQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -2056,13 +3384,13 @@ export type GetProjectQueryVariables = Exact<{
 }>;
 
 
-export type GetProjectQuery = { __typename?: 'Query', getProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus, accessList?: { __typename?: 'ResourceShareConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'ResourceShare', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, recipientUserId: string, permission: SharePermission, resourceTitle: string, resourceType: EntityType }> } | null | undefined, doclinks?: { __typename?: 'DoclinkConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, parentId: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, filename: string, status: DoclinkStatus, documentId: string, deletedAt?: string | null | undefined }> } | null | undefined, topics?: { __typename?: 'TopicConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Topic', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, parentId: string, name: string }> } | null | undefined, workflows?: { __typename?: 'WorkflowConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
-              | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined }
+export type GetProjectQuery = { __typename?: 'Query', getProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus, accessList?: { __typename?: 'ResourceShareConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'ResourceShare', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, recipientUserId: string, permission: SharePermission, resourceTitle: string, resourceType: EntityType }> } | null | undefined, doclinks?: { __typename?: 'DoclinkConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string, deletedAt?: string | null | undefined }> } | null | undefined, topics?: { __typename?: 'TopicConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Topic', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, parentId: string, name: string }> } | null | undefined, workflows?: { __typename?: 'WorkflowConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
+              | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined }
               | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
               | { __typename?: 'InputNodeConfig' }
               | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
               | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
-             | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined }> } | null | undefined } | null | undefined };
+             | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined }> } | null | undefined } | null | undefined };
 
 export type ListProjectsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -2073,28 +3401,28 @@ export type ListProjectsQueryVariables = Exact<{
 
 export type ListProjectsQuery = { __typename?: 'Query', listProjects: { __typename?: 'ProjectConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus }> } };
 
-export type GetProjectWithPromptTemplatesQueryVariables = Exact<{
+export type GetProjectWithPromptsQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type GetProjectWithPromptTemplatesQuery = { __typename?: 'Query', getProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus, prompttemplates?: { __typename?: 'PromptTemplateConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'PromptTemplate', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, template: string, description?: string | null | undefined }> } | null | undefined } | null | undefined };
+export type GetProjectWithPromptsQuery = { __typename?: 'Query', getProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus, prompts?: { __typename?: 'PromptConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, description?: string | null | undefined, templateText: string, inputVariables: Array<string>, model: AiModel, version: number, isActive: boolean, config: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined }, outputSchema: { __typename?: 'StructuredOutputSchema', id: string, name: string, description?: string | null | undefined, schemaDefinition: any } }> } | null | undefined } | null | undefined };
 
-export type GetPromptTemplateQueryVariables = Exact<{
+export type GetPromptQueryVariables = Exact<{
   key: CompositeKeyInput;
 }>;
 
 
-export type GetPromptTemplateQuery = { __typename?: 'Query', getPromptTemplate?: { __typename?: 'PromptTemplate', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, template: string, description?: string | null | undefined } | null | undefined };
+export type GetPromptQuery = { __typename?: 'Query', getPrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, description?: string | null | undefined, templateText: string, inputVariables: Array<string>, model: AiModel, version: number, isActive: boolean, config: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined }, outputSchema: { __typename?: 'StructuredOutputSchema', id: string, name: string, description?: string | null | undefined, schemaDefinition: any } } | null | undefined };
 
-export type ListPromptTemplatesQueryVariables = Exact<{
+export type ListPromptsQueryVariables = Exact<{
   parentId: Scalars['ID']['input'];
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type ListPromptTemplatesQuery = { __typename?: 'Query', listPromptTemplates: { __typename?: 'PromptTemplateConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'PromptTemplate', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, template: string, description?: string | null | undefined }> } };
+export type ListPromptsQuery = { __typename?: 'Query', listPrompts: { __typename?: 'PromptConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, description?: string | null | undefined, templateText: string, inputVariables: Array<string>, model: AiModel, version: number, isActive: boolean, config: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined }, outputSchema: { __typename?: 'StructuredOutputSchema', id: string, name: string, description?: string | null | undefined, schemaDefinition: any } }> } };
 
 export type GetScanQueryVariables = Exact<{
   key: CompositeKeyInput;
@@ -2111,6 +3439,21 @@ export type ListScansQueryVariables = Exact<{
 
 
 export type ListScansQuery = { __typename?: 'Query', listScans: { __typename?: 'ScanConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Scan', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, parentId: string }> } };
+
+export type GetStructuredOutputSchemaQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetStructuredOutputSchemaQuery = { __typename?: 'Query', getStructuredOutputSchema?: { __typename?: 'StructuredOutputSchema', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, name: string, description?: string | null | undefined, schemaDefinition: any } | null | undefined };
+
+export type ListStructuredOutputSchemasQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ListStructuredOutputSchemasQuery = { __typename?: 'Query', listStructuredOutputSchemas: { __typename?: 'StructuredOutputSchemaConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'StructuredOutputSchema', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, name: string, description?: string | null | undefined, schemaDefinition: any }> } };
 
 export type GetTableQueryVariables = Exact<{
   key: CompositeKeyInput;
@@ -2150,12 +3493,12 @@ export type GetWorkflowQueryVariables = Exact<{
 
 
 export type GetWorkflowQuery = { __typename?: 'Query', getWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, accessList?: { __typename?: 'ResourceShareConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'ResourceShare', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, recipientUserId: string, permission: SharePermission, resourceTitle: string, resourceType: EntityType }> } | null | undefined, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined }
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'InputNodeConfig' }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
-         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
+         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
 
 export type ListWorkflowsQueryVariables = Exact<{
   parentId: Scalars['ID']['input'];
@@ -2165,12 +3508,12 @@ export type ListWorkflowsQueryVariables = Exact<{
 
 
 export type ListWorkflowsQuery = { __typename?: 'Query', listWorkflows: { __typename?: 'WorkflowConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
-            | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined }
+            | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined }
             | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
             | { __typename?: 'InputNodeConfig' }
             | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
             | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
-           | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined }> } };
+           | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined }> } };
 
 export type GetWorkflowExecutionQueryVariables = Exact<{
   key: CompositeKeyInput;
@@ -2178,12 +3521,12 @@ export type GetWorkflowExecutionQueryVariables = Exact<{
 
 
 export type GetWorkflowExecutionQuery = { __typename?: 'Query', getWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined, workflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
-            | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined }
+            | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined }
             | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
             | { __typename?: 'InputNodeConfig' }
             | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
             | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
-           | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined, workflownodeexecutions?: { __typename?: 'WorkflowNodeExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined }> } | null | undefined } | null | undefined };
+           | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined, workflownodeexecutions?: { __typename?: 'WorkflowNodeExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined }> } | null | undefined } | null | undefined };
 
 export type ListWorkflowExecutionsQueryVariables = Exact<{
   parentId: Scalars['ID']['input'];
@@ -2217,21 +3560,21 @@ export type OnCreateDoclinkSubscriptionVariables = Exact<{
 }>;
 
 
-export type OnCreateDoclinkSubscription = { __typename?: 'Subscription', onCreateDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, status: DoclinkStatus, documentId: string } | null | undefined };
+export type OnCreateDoclinkSubscription = { __typename?: 'Subscription', onCreateDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string } | null | undefined };
 
 export type OnUpdateDoclinkSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnUpdateDoclinkSubscription = { __typename?: 'Subscription', onUpdateDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, status: DoclinkStatus, documentId: string } | null | undefined };
+export type OnUpdateDoclinkSubscription = { __typename?: 'Subscription', onUpdateDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string } | null | undefined };
 
 export type OnDeleteDoclinkSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnDeleteDoclinkSubscription = { __typename?: 'Subscription', onDeleteDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, vectorStoreId?: string | null | undefined, openAIFileId?: string | null | undefined, status: DoclinkStatus, documentId: string } | null | undefined };
+export type OnDeleteDoclinkSubscription = { __typename?: 'Subscription', onDeleteDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string } | null | undefined };
 
 export type OnCreateDocumentSubscriptionVariables = Exact<{
   ownerId?: InputMaybe<Scalars['ID']['input']>;
@@ -2326,26 +3669,26 @@ export type OnRestoreProjectSubscriptionVariables = Exact<{
 
 export type OnRestoreProjectSubscription = { __typename?: 'Subscription', onRestoreProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus } | null | undefined };
 
-export type OnCreatePromptTemplateSubscriptionVariables = Exact<{
+export type OnCreatePromptSubscriptionVariables = Exact<{
   parentId?: InputMaybe<Scalars['ID']['input']>;
 }>;
 
 
-export type OnCreatePromptTemplateSubscription = { __typename?: 'Subscription', onCreatePromptTemplate?: { __typename?: 'PromptTemplate', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, template: string, description?: string | null | undefined } | null | undefined };
+export type OnCreatePromptSubscription = { __typename?: 'Subscription', onCreatePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, description?: string | null | undefined, templateText: string, inputVariables: Array<string>, model: AiModel, version: number, isActive: boolean, config: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined }, outputSchema: { __typename?: 'StructuredOutputSchema', id: string, name: string } } | null | undefined };
 
-export type OnUpdatePromptTemplateSubscriptionVariables = Exact<{
+export type OnUpdatePromptSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnUpdatePromptTemplateSubscription = { __typename?: 'Subscription', onUpdatePromptTemplate?: { __typename?: 'PromptTemplate', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, template: string, description?: string | null | undefined } | null | undefined };
+export type OnUpdatePromptSubscription = { __typename?: 'Subscription', onUpdatePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, description?: string | null | undefined, templateText: string, inputVariables: Array<string>, model: AiModel, version: number, isActive: boolean, config: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined }, outputSchema: { __typename?: 'StructuredOutputSchema', id: string, name: string } } | null | undefined };
 
-export type OnDeletePromptTemplateSubscriptionVariables = Exact<{
+export type OnDeletePromptSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnDeletePromptTemplateSubscription = { __typename?: 'Subscription', onDeletePromptTemplate?: { __typename?: 'PromptTemplate', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, template: string, description?: string | null | undefined } | null | undefined };
+export type OnDeletePromptSubscription = { __typename?: 'Subscription', onDeletePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, parentId: string, name: string, description?: string | null | undefined, templateText: string, version: number, isActive: boolean } | null | undefined };
 
 export type OnCreateScanSubscriptionVariables = Exact<{
   parentId?: InputMaybe<Scalars['ID']['input']>;
@@ -2416,12 +3759,12 @@ export type OnCreateWorkflowSubscriptionVariables = Exact<{
 
 
 export type OnCreateWorkflowSubscription = { __typename?: 'Subscription', onCreateWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined }
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'InputNodeConfig' }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
-         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
+         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
 
 export type OnUpdateWorkflowSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -2429,12 +3772,12 @@ export type OnUpdateWorkflowSubscriptionVariables = Exact<{
 
 
 export type OnUpdateWorkflowSubscription = { __typename?: 'Subscription', onUpdateWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined }
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'InputNodeConfig' }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
-         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
+         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
 
 export type OnDeleteWorkflowSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -2442,12 +3785,12 @@ export type OnDeleteWorkflowSubscriptionVariables = Exact<{
 
 
 export type OnDeleteWorkflowSubscription = { __typename?: 'Subscription', onDeleteWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined }
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'InputNodeConfig' }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
-         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'StructuredOutputSchema', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
+         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
 
 export type OnCreateWorkflowExecutionSubscriptionVariables = Exact<{
   parentId: Scalars['ID']['input'];
@@ -2508,12 +3851,15 @@ export declare const CreateProject: import("graphql").DocumentNode;
 export declare const UpdateProject: import("graphql").DocumentNode;
 export declare const DeleteProject: import("graphql").DocumentNode;
 export declare const RestoreProject: import("graphql").DocumentNode;
-export declare const CreatePromptTemplate: import("graphql").DocumentNode;
-export declare const UpdatePromptTemplate: import("graphql").DocumentNode;
-export declare const DeletePromptTemplate: import("graphql").DocumentNode;
+export declare const CreatePrompt: import("graphql").DocumentNode;
+export declare const UpdatePrompt: import("graphql").DocumentNode;
+export declare const DeletePrompt: import("graphql").DocumentNode;
+export declare const RunAIQuery: import("graphql").DocumentNode;
 export declare const CreateScan: import("graphql").DocumentNode;
 export declare const UpdateScan: import("graphql").DocumentNode;
 export declare const DeleteScan: import("graphql").DocumentNode;
+export declare const CreateStructuredOutputSchema: import("graphql").DocumentNode;
+export declare const UpdateStructuredOutputSchema: import("graphql").DocumentNode;
 export declare const CreateTable: import("graphql").DocumentNode;
 export declare const UpdateTable: import("graphql").DocumentNode;
 export declare const DeleteTable: import("graphql").DocumentNode;
@@ -2538,6 +3884,7 @@ export declare const CompleteWorkflowNodeExecution: import("graphql").DocumentNo
 export declare const FailWorkflowNodeExecution: import("graphql").DocumentNode;
 export declare const RetryWorkflowNodeExecution: import("graphql").DocumentNode;
 export declare const DeleteWorkflowNodeExecution: import("graphql").DocumentNode;
+export declare const GetExecutionHistory: import("graphql").DocumentNode;
 export declare const GetDoclink: import("graphql").DocumentNode;
 export declare const ListDoclinks: import("graphql").DocumentNode;
 export declare const GetDocument: import("graphql").DocumentNode;
@@ -2548,11 +3895,13 @@ export declare const GetNotification: import("graphql").DocumentNode;
 export declare const ListNotifications: import("graphql").DocumentNode;
 export declare const GetProject: import("graphql").DocumentNode;
 export declare const ListProjects: import("graphql").DocumentNode;
-export declare const GetProjectWithPromptTemplates: import("graphql").DocumentNode;
-export declare const GetPromptTemplate: import("graphql").DocumentNode;
-export declare const ListPromptTemplates: import("graphql").DocumentNode;
+export declare const GetProjectWithPrompts: import("graphql").DocumentNode;
+export declare const GetPrompt: import("graphql").DocumentNode;
+export declare const ListPrompts: import("graphql").DocumentNode;
 export declare const GetScan: import("graphql").DocumentNode;
 export declare const ListScans: import("graphql").DocumentNode;
+export declare const GetStructuredOutputSchema: import("graphql").DocumentNode;
+export declare const ListStructuredOutputSchemas: import("graphql").DocumentNode;
 export declare const GetTable: import("graphql").DocumentNode;
 export declare const ListTables: import("graphql").DocumentNode;
 export declare const GetText: import("graphql").DocumentNode;
@@ -2579,9 +3928,9 @@ export declare const OnCreateProject: import("graphql").DocumentNode;
 export declare const OnUpdateProject: import("graphql").DocumentNode;
 export declare const OnDeleteProject: import("graphql").DocumentNode;
 export declare const OnRestoreProject: import("graphql").DocumentNode;
-export declare const OnCreatePromptTemplate: import("graphql").DocumentNode;
-export declare const OnUpdatePromptTemplate: import("graphql").DocumentNode;
-export declare const OnDeletePromptTemplate: import("graphql").DocumentNode;
+export declare const OnCreatePrompt: import("graphql").DocumentNode;
+export declare const OnUpdatePrompt: import("graphql").DocumentNode;
+export declare const OnDeletePrompt: import("graphql").DocumentNode;
 export declare const OnCreateScan: import("graphql").DocumentNode;
 export declare const OnUpdateScan: import("graphql").DocumentNode;
 export declare const OnDeleteScan: import("graphql").DocumentNode;

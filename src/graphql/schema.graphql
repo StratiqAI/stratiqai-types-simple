@@ -185,6 +185,8 @@ enum AIModel {
 
 """Execution outcome for AIQueryExecution (distinct from AIQueryStatus)."""
 enum ExecutionStatus {
+  PENDING
+  PROCESSING
   SUCCESS
   ERROR
 }
@@ -310,8 +312,9 @@ type Prompt implements Node & Metadata & Shareable
   config: GeminiConfig!
   version: Int!
   isActive: Boolean!
-  """Structured output schema enforced for this prompt."""
-  outputSchema: StructuredOutputSchema!
+  """Structured output schema enforced for this prompt. Resolved from outputSchemaId."""
+  outputSchemaId: ID
+  outputSchema: StructuredOutputSchema
 }
 
 type PromptConnection
@@ -340,8 +343,10 @@ type AIQueryExecution implements Node & Metadata
   deletedAt: AWSDateTime
   """The prompt version that was executed."""
   prompt: Prompt!
-  executedAt: AWSDateTime!
-  durationMs: Int!
+  """Set when execution completes (null while PENDING/PROCESSING)."""
+  executedAt: AWSDateTime
+  """Duration in ms when execution completes (null while PENDING/PROCESSING)."""
+  durationMs: Int
   """Variable values passed (e.g. { \"topic\": \"Sunsets\" })."""
   inputValues: AWSJSON!
   rawOutput: String
@@ -1459,6 +1464,19 @@ input RunAIQueryInput {
   promptId: ID!
   parentId: ID!
   variables: AWSJSON!
+}
+
+# AI STUDIO: Worker updates execution result (status, output, tokens, etc.)
+input UpdateAIQueryExecutionInput {
+  status: ExecutionStatus
+  rawOutput: String
+  structuredOutput: AWSJSON
+  promptTokenCount: Int
+  candidatesTokenCount: Int
+  totalTokenCount: Int
+  errorMessage: String
+  executedAt: AWSDateTime
+  durationMs: Int
 }
 
 # IMAGE INPUTS
@@ -2673,6 +2691,14 @@ type Mutation {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
+  """
+  Updates an AIQueryExecution (used by worker after Gemini completes). Returns immediately with status PENDING; subscribe to onUpdateAIQueryExecution(id) for result.
+  """
+  updateAIQueryExecution(id: ID!, input: UpdateAIQueryExecutionInput!): AIQueryExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
   # IMAGE OPERATIONS
   # Create: Uses parentId from input to write to Main Table
   createImage(input: CreateImageInput!): Image
@@ -2983,6 +3009,12 @@ type Subscription {
     @aws_subscribe(mutations: ["updatePrompt"])
   onDeletePrompt(id: ID!): Prompt
     @aws_subscribe(mutations: ["deletePrompt"])
+
+  """
+  AI STUDIO: Subscribe to execution updates (PROCESSING / SUCCESS / ERROR). Use id from runAIQuery response.
+  """
+  onUpdateAIQueryExecution(id: ID!): AIQueryExecution
+    @aws_subscribe(mutations: ["updateAIQueryExecution"])
 
   """
   IMAGE SUBSCRIPTIONS

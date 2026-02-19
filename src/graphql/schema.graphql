@@ -183,7 +183,9 @@ enum AIModel {
   GEMINI_2_5_PRO
 }
 
-"""Execution outcome for AIQueryExecution (distinct from AIQueryStatus)."""
+"""
+Execution outcome for AIQueryExecution (distinct from AIQueryStatus).
+"""
 enum ExecutionStatus {
   PENDING
   PROCESSING
@@ -304,15 +306,21 @@ type Prompt implements Node & Metadata & Shareable
   parentId: ID!
   name: String!
   description: String
-  """Template with variable placeholders (e.g. \"Write a poem about {{topic}}\")."""
+  """
+  Template with variable placeholders (e.g. \"Write a poem about {{topic}}\").
+  """
   templateText: String!
-  """Variables detected in the template (e.g. [\"topic\"])."""
+  """
+  Variables detected in the template (e.g. [\"topic\"]).
+  """
   inputVariables: [String!]!
   model: AIModel!
   config: GeminiConfig!
   version: Int!
   isActive: Boolean!
-  """Structured output schema enforced for this prompt. Resolved from outputSchemaId."""
+  """
+  Structured output schema enforced for this prompt. Resolved from outputSchemaId.
+  """
   outputSchemaId: ID
   outputSchema: StructuredOutputSchema
 }
@@ -341,16 +349,26 @@ type AIQueryExecution implements Node & Metadata
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
   deletedAt: AWSDateTime
-  """The prompt version that was executed."""
+  """
+  The prompt version that was executed.
+  """
   prompt: Prompt!
-  """Set when execution completes (null while PENDING/PROCESSING)."""
+  """
+  Set when execution completes (null while PENDING/PROCESSING).
+  """
   executedAt: AWSDateTime
-  """Duration in ms when execution completes (null while PENDING/PROCESSING)."""
+  """
+  Duration in ms when execution completes (null while PENDING/PROCESSING).
+  """
   durationMs: Int
-  """Variable values passed (e.g. { \"topic\": \"Sunsets\" })."""
+  """
+  Variable values passed (e.g. { \"topic\": \"Sunsets\" }).
+  """
   inputValues: AWSJSON!
   rawOutput: String
-  """Parsed JSON when schema validation passed."""
+  """
+  Parsed JSON when schema validation passed.
+  """
   structuredOutput: AWSJSON
   promptTokenCount: Int
   candidatesTokenCount: Int
@@ -388,7 +406,9 @@ type Doclink implements Node & Metadata @aws_iam @aws_cognito_user_pools {
   displayOrder: String
 }
 
-type DealRoomMember implements Node & Metadata @aws_iam @aws_cognito_user_pools {
+type DealRoomMember implements Node & Metadata
+  @aws_iam
+  @aws_cognito_user_pools {
   id: ID!
   entityType: EntityType!
   tenantId: ID!
@@ -568,7 +588,9 @@ type AnnouncementConnection
 }
 
 # AI Investor Matching: Universal Investor Profile (explicit + implicit)
-type InvestorProfile implements Node & Metadata @aws_iam @aws_cognito_user_pools {
+type InvestorProfile implements Node & Metadata
+  @aws_iam
+  @aws_cognito_user_pools {
   id: ID!
   entityType: EntityType!
   tenantId: ID!
@@ -584,7 +606,9 @@ type InvestorProfile implements Node & Metadata @aws_iam @aws_cognito_user_pools
   lastUpdated: AWSDateTime
 }
 
-type MicroInterview implements Node & Metadata @aws_iam @aws_cognito_user_pools {
+type MicroInterview implements Node & Metadata
+  @aws_iam
+  @aws_cognito_user_pools {
   id: ID!
   entityType: EntityType!
   tenantId: ID!
@@ -996,7 +1020,9 @@ type StructuredOutputSchema implements Node & Metadata
   deletedAt: AWSDateTime
   name: String!
   description: String
-  """JSON Schema definition (OpenAPI 3.0 compatible). Used to validate AI output."""
+  """
+  JSON Schema definition (OpenAPI 3.0 compatible). Used to validate AI output.
+  """
   schemaDefinition: AWSJSON!
 }
 
@@ -2202,11 +2228,7 @@ type Query {
   """
   List Prompts for a specific Project. Uses GSI1 (The View).
   """
-  listPrompts(
-    parentId: ID!
-    limit: Int
-    nextToken: String
-  ): PromptConnection!
+  listPrompts(parentId: ID!, limit: Int, nextToken: String): PromptConnection!
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -2556,10 +2578,7 @@ type Mutation {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
-  updateDealTemplate(
-    id: ID!
-    input: UpdateDealTemplateInput!
-  ): DealTemplate
+  updateDealTemplate(id: ID!, input: UpdateDealTemplateInput!): DealTemplate
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -2613,7 +2632,10 @@ type Mutation {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
-  updateInvestorProfile(id: ID!, input: UpdateInvestorProfileInput!): InvestorProfile
+  updateInvestorProfile(
+    id: ID!
+    input: UpdateInvestorProfileInput!
+  ): InvestorProfile
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -2649,7 +2671,9 @@ type Mutation {
   deleteNotification(key: CompositeKeyInput!): Notification @aws_iam
 
   # AI STUDIO: Structured output schema operations
-  createStructuredOutputSchema(input: CreateStructuredOutputSchemaInput!): StructuredOutputSchema
+  createStructuredOutputSchema(
+    input: CreateStructuredOutputSchemaInput!
+  ): StructuredOutputSchema
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -2669,10 +2693,7 @@ type Mutation {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
-  updatePrompt(
-    key: CompositeKeyInput!
-    input: UpdatePromptInput!
-  ): Prompt
+  updatePrompt(key: CompositeKeyInput!, input: UpdatePromptInput!): Prompt
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -2694,7 +2715,10 @@ type Mutation {
   """
   Updates an AIQueryExecution (used by worker after Gemini completes). Returns immediately with status PENDING; subscribe to onUpdateAIQueryExecution(id) for result.
   """
-  updateAIQueryExecution(id: ID!, input: UpdateAIQueryExecutionInput!): AIQueryExecution
+  updateAIQueryExecution(
+    id: ID!
+    input: UpdateAIQueryExecutionInput!
+  ): AIQueryExecution
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -3005,10 +3029,8 @@ type Subscription {
   """
   onCreatePrompt(parentId: ID): Prompt
     @aws_subscribe(mutations: ["createPrompt"])
-  onUpdatePrompt(id: ID!): Prompt
-    @aws_subscribe(mutations: ["updatePrompt"])
-  onDeletePrompt(id: ID!): Prompt
-    @aws_subscribe(mutations: ["deletePrompt"])
+  onUpdatePrompt(id: ID!): Prompt @aws_subscribe(mutations: ["updatePrompt"])
+  onDeletePrompt(id: ID!): Prompt @aws_subscribe(mutations: ["deletePrompt"])
 
   """
   AI STUDIO: Subscribe to execution updates (PROCESSING / SUCCESS / ERROR). Use id from runAIQuery response.

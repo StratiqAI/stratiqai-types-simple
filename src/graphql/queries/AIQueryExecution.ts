@@ -28,7 +28,7 @@ export const Q_GET_EXECUTION_HISTORY = gql`
           id
           name
           version
-          parentId
+          sourcePromptId
         }
       }
       nextToken

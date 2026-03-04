@@ -1,7 +1,7 @@
 import { gql } from 'graphql-tag';
 
 /**
- * GraphQL Mutations for AI Studio Prompt
+ * GraphQL Mutations for AI Studio Prompt (root entity)
  */
 
 export const M_CREATE_PROMPT = gql`
@@ -15,7 +15,7 @@ export const M_CREATE_PROMPT = gql`
       updatedAt
       deletedAt
       sharingMode
-      parentId
+      sourcePromptId
       name
       description
       templateText
@@ -41,8 +41,8 @@ export const M_CREATE_PROMPT = gql`
 `;
 
 export const M_UPDATE_PROMPT = gql`
-  mutation UpdatePrompt($key: CompositeKeyInput!, $input: UpdatePromptInput!) {
-    updatePrompt(key: $key, input: $input) {
+  mutation UpdatePrompt($id: ID!, $input: UpdatePromptInput!) {
+    updatePrompt(id: $id, input: $input) {
       id
       entityType
       tenantId
@@ -51,7 +51,7 @@ export const M_UPDATE_PROMPT = gql`
       updatedAt
       deletedAt
       sharingMode
-      parentId
+      sourcePromptId
       name
       description
       templateText
@@ -77,8 +77,8 @@ export const M_UPDATE_PROMPT = gql`
 `;
 
 export const M_DELETE_PROMPT = gql`
-  mutation DeletePrompt($key: CompositeKeyInput!) {
-    deletePrompt(key: $key) {
+  mutation DeletePrompt($id: ID!) {
+    deletePrompt(id: $id) {
       id
       entityType
       tenantId
@@ -87,7 +87,7 @@ export const M_DELETE_PROMPT = gql`
       updatedAt
       deletedAt
       sharingMode
-      parentId
+      sourcePromptId
       name
       description
       templateText
@@ -95,6 +95,42 @@ export const M_DELETE_PROMPT = gql`
       model
       version
       isActive
+    }
+  }
+`;
+
+export const M_FORK_PROMPT = gql`
+  mutation ForkPrompt($sourcePromptId: ID!) {
+    forkPrompt(sourcePromptId: $sourcePromptId) {
+      id
+      entityType
+      tenantId
+      ownerId
+      createdAt
+      updatedAt
+      deletedAt
+      sharingMode
+      sourcePromptId
+      name
+      description
+      templateText
+      inputVariables
+      model
+      config {
+        temperature
+        topP
+        topK
+        maxOutputTokens
+        stopSequences
+      }
+      version
+      isActive
+      outputSchema {
+        id
+        name
+        description
+        schemaDefinition
+      }
     }
   }
 `;
@@ -122,7 +158,7 @@ export const M_RUN_AI_QUERY = gql`
         id
         name
         version
-        parentId
+        sourcePromptId
       }
     }
   }

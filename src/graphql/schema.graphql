@@ -287,6 +287,7 @@ type TopicConnection
 
 """
 AI Studio prompt (formerly PromptTemplate). Versioned instruction set for the AI.
+Root entity: accessible by any project and any user. User-owned copies link via sourcePromptId.
 """
 type Prompt implements Node & Metadata & Shareable
   @aws_iam
@@ -303,7 +304,10 @@ type Prompt implements Node & Metadata & Shareable
   sharingMode: SharingMode!
   accessList(limit: Int, nextToken: String): ResourceShareConnection
 
-  parentId: ID!
+  """
+  When set, this prompt is a user-owned copy forked from another (the original remains shared).
+  """
+  sourcePromptId: ID
   name: String!
   description: String
   """
@@ -313,11 +317,11 @@ type Prompt implements Node & Metadata & Shareable
   """
   Variables detected in the template (e.g. [\"topic\"]).
   """
-  inputVariables: [String!]!
+  inputVariables: [String!]
   model: AIModel!
-  config: GeminiConfig!
-  version: Int!
-  isActive: Boolean!
+  config: GeminiConfig
+  version: Int
+  isActive: Boolean
   """
   Structured output schema enforced for this prompt. Resolved from outputSchemaId.
   """
@@ -517,6 +521,21 @@ type DocumentSearchResult {
   documentId: ID!
   pageNum: Int!
   snippet: String!
+}
+
+# Vision RAG: query Pinecone by documentId namespaces (from Project doclinks), then Gemini with images
+input DocumentVisionQueryInput {
+  documentIds: [ID!]!
+  question: String!
+  responseJsonSchema: AWSJSON
+  topK: Int
+  topKPerNs: Int
+}
+
+type DocumentVisionQueryResult {
+  answer: String!
+  structuredOutput: AWSJSON
+  matchCount: Int!
 }
 
 # Broker intelligence: aggregated per-buyer engagement (from AuditLogEntry)
@@ -920,7 +939,6 @@ type Project implements Node & Metadata & Shareable
   doclinks(limit: Int, nextToken: String): DoclinkConnection
   topics(limit: Int, nextToken: String): TopicConnection
   notifications(limit: Int, nextToken: String): NotificationConnection
-  prompts(limit: Int, nextToken: String): PromptConnection
   workflows(limit: Int, nextToken: String): WorkflowConnection
   auditlogentries(limit: Int, nextToken: String): AuditLogEntryConnection
   dealroommembers(limit: Int, nextToken: String): DealRoomMemberConnection
@@ -1463,9 +1481,8 @@ input CreateStructuredOutputSchemaInput {
   schemaDefinition: AWSJSON!
 }
 
-# AI STUDIO: Prompt inputs
+# AI STUDIO: Prompt inputs (root entity; owner from auth)
 input CreatePromptInput {
-  parentId: ID!
   name: String!
   description: String
   templateText: String!
@@ -1473,6 +1490,8 @@ input CreatePromptInput {
   config: GeminiConfigInput
   outputSchemaId: ID!
   sharingMode: SharingMode = PRIVATE
+  """Set when forking: ID of the prompt this copy was created from."""
+  sourcePromptId: ID
 }
 
 input UpdatePromptInput {
@@ -1486,9 +1505,12 @@ input UpdatePromptInput {
 }
 
 # AI STUDIO: Run prompt and persist execution
+# Optional executionId: if provided, use it so client can subscribe first, then run.
+# Optional projectId: execution context (e.g. which project this run belongs to).
 input RunAIQueryInput {
+  executionId: ID
   promptId: ID!
-  parentId: ID!
+  projectId: ID
   variables: AWSJSON!
 }
 
@@ -2118,6 +2140,15 @@ type Query {
     )
 
   """
+  Vision RAG: query Pinecone for relevant images by documentIds (from Project doclinks), then Gemini. Returns answer and optional structured output.
+  """
+  documentVisionQuery(input: DocumentVisionQueryInput!): DocumentVisionQueryResult!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
   List buyer engagement scores for a deal (aggregated from AuditLogEntry). For broker heatmap/shortlist.
   """
   listBuyerEngagements(dealId: ID!): [BuyerEngagement!]!
@@ -2217,18 +2248,22 @@ type Query {
     )
 
   """
-  Get a single Prompt. Requires composite key (ID + ParentID) for access.
+  Get a single Prompt by ID (root entity).
   """
-  getPrompt(key: CompositeKeyInput!): Prompt
+  getPrompt(id: ID!): Prompt
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
 
   """
-  List Prompts for a specific Project. Uses GSI1 (The View).
+  List Prompts by scope (OWNED_BY_ME, SHARED_WITH_ME, ALL_TENANT).
   """
-  listPrompts(parentId: ID!, limit: Int, nextToken: String): PromptConnection!
+  listPrompts(
+    scope: ListScope = OWNED_BY_ME
+    limit: Int
+    nextToken: String
+  ): PromptConnection!
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -2687,18 +2722,26 @@ type Mutation {
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
 
-  # AI STUDIO: Prompt operations
+  # AI STUDIO: Prompt operations (root entity)
   createPrompt(input: CreatePromptInput!): Prompt
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
-  updatePrompt(key: CompositeKeyInput!, input: UpdatePromptInput!): Prompt
+  updatePrompt(id: ID!, input: UpdatePromptInput!): Prompt
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
-  deletePrompt(key: CompositeKeyInput!): Prompt
+  deletePrompt(id: ID!): Prompt
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  """
+  Create a user-owned copy of a prompt (fork). Original remains shared; the copy is owned by the current user.
+  """
+  forkPrompt(sourcePromptId: ID!): Prompt!
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -3027,8 +3070,7 @@ type Subscription {
   """
   AI STUDIO: Prompt subscriptions
   """
-  onCreatePrompt(parentId: ID): Prompt
-    @aws_subscribe(mutations: ["createPrompt"])
+  onCreatePrompt: Prompt @aws_subscribe(mutations: ["createPrompt"])
   onUpdatePrompt(id: ID!): Prompt @aws_subscribe(mutations: ["updatePrompt"])
   onDeletePrompt(id: ID!): Prompt @aws_subscribe(mutations: ["deletePrompt"])
 

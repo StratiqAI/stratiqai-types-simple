@@ -1,12 +1,12 @@
 import { gql } from 'graphql-tag';
 
 /**
- * GraphQL Subscriptions for AI Studio Prompt
+ * GraphQL Subscriptions for AI Studio Prompt (root entity)
  */
 
 export const S_ON_CREATE_PROMPT = gql`
-  subscription OnCreatePrompt($parentId: ID) {
-    onCreatePrompt(parentId: $parentId) {
+  subscription OnCreatePrompt {
+    onCreatePrompt {
       id
       entityType
       tenantId
@@ -15,7 +15,7 @@ export const S_ON_CREATE_PROMPT = gql`
       updatedAt
       deletedAt
       sharingMode
-      parentId
+      sourcePromptId
       name
       description
       templateText
@@ -49,7 +49,7 @@ export const S_ON_UPDATE_PROMPT = gql`
       updatedAt
       deletedAt
       sharingMode
-      parentId
+      sourcePromptId
       name
       description
       templateText
@@ -83,7 +83,7 @@ export const S_ON_DELETE_PROMPT = gql`
       updatedAt
       deletedAt
       sharingMode
-      parentId
+      sourcePromptId
       name
       description
       templateText

@@ -28,7 +28,7 @@ export const S_ON_UPDATE_AI_QUERY_EXECUTION = gql`
         id
         name
         version
-        parentId
+        sourcePromptId
       }
     }
   }

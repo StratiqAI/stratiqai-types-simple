@@ -160,8 +160,8 @@ export const Q_LIST_PROJECTS = gql`
 `;
 
 /**
- * Query to get a project with its AI Studio prompts
- * Used by the Library page to fetch prompts for a selected project
+ * Query to get a project by ID.
+ * Prompts are no longer scoped to a project; use listPrompts(scope) to fetch prompts.
  */
 export const Q_GET_PROJECT_WITH_PROMPTS = gql`
   query GetProjectWithPrompts($id: ID!) {
@@ -176,40 +176,6 @@ export const Q_GET_PROJECT_WITH_PROMPTS = gql`
       name
       description
       status
-      prompts(limit: 100) {
-        items {
-          id
-          entityType
-          tenantId
-          ownerId
-          createdAt
-          updatedAt
-          deletedAt
-          sharingMode
-          parentId
-          name
-          description
-          templateText
-          inputVariables
-          model
-          config {
-            temperature
-            topP
-            topK
-            maxOutputTokens
-            stopSequences
-          }
-          version
-          isActive
-          outputSchema {
-            id
-            name
-            description
-            schemaDefinition
-          }
-        }
-        nextToken
-      }
     }
   }
 `;

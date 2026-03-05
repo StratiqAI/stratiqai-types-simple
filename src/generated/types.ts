@@ -68,8 +68,6 @@ export type AiQueryExecution = Metadata & Node & {
   promptTokenCount?: Maybe<Scalars['Int']['output']>;
   rawOutput?: Maybe<Scalars['String']['output']>;
   status: ExecutionStatus;
-  /** Parsed JSON when schema validation passed. */
-  structuredOutput?: Maybe<Scalars['AWSJSON']['output']>;
   tenantId: Scalars['ID']['output'];
   totalTokenCount?: Maybe<Scalars['Int']['output']>;
   updatedAt: Scalars['AWSDateTime']['output'];
@@ -98,32 +96,6 @@ export type AccountCredits = Metadata & Node & {
   stripeCustomerId?: Maybe<Scalars['String']['output']>;
   tenantId: Scalars['ID']['output'];
   updatedAt: Scalars['AWSDateTime']['output'];
-};
-
-export type AiQuery = Metadata & Node & {
-  __typename?: 'AiQuery';
-  createdAt: Scalars['AWSDateTime']['output'];
-  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
-  entityType: EntityType;
-  errorMessage?: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  inputTokens?: Maybe<Scalars['Int']['output']>;
-  modelUsed?: Maybe<Scalars['String']['output']>;
-  outputTokens?: Maybe<Scalars['Int']['output']>;
-  ownerId: Scalars['ID']['output'];
-  projectId?: Maybe<Scalars['ID']['output']>;
-  requestPayload?: Maybe<Scalars['AWSJSON']['output']>;
-  responseJsonSchema: Scalars['AWSJSON']['output'];
-  responsePayload?: Maybe<Scalars['AWSJSON']['output']>;
-  status: AiQueryStatus;
-  tenantId: Scalars['ID']['output'];
-  updatedAt: Scalars['AWSDateTime']['output'];
-};
-
-export type AiQueryConnection = {
-  __typename?: 'AiQueryConnection';
-  items: Array<AiQuery>;
-  nextToken?: Maybe<Scalars['String']['output']>;
 };
 
 export type Announcement = Metadata & Node & {
@@ -258,6 +230,14 @@ export type BuyerEngagement = {
 export type CompositeKeyInput = {
   id: Scalars['ID']['input'];
   parentId: Scalars['ID']['input'];
+};
+
+export type CreateAiQueryExecutionInput = {
+  /** Optional idempotency key; if omitted a new id is generated. */
+  executionId?: InputMaybe<Scalars['ID']['input']>;
+  inputValues: Scalars['AWSJSON']['input'];
+  projectId?: InputMaybe<Scalars['ID']['input']>;
+  promptId: Scalars['ID']['input'];
 };
 
 export type CreateAiQueryInput = {
@@ -898,7 +878,7 @@ export type Mutation = {
   cancelWorkflowExecution?: Maybe<WorkflowExecution>;
   completeWorkflowExecution?: Maybe<WorkflowExecution>;
   completeWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
-  createAiQuery?: Maybe<AiQuery>;
+  createAIQueryExecution: AiQueryExecution;
   createAnnouncement?: Maybe<Announcement>;
   createAuditLogEntry?: Maybe<AuditLogEntry>;
   createBillingInvoice?: Maybe<BillingInvoice>;
@@ -925,6 +905,7 @@ export type Mutation = {
   createWorkflow?: Maybe<Workflow>;
   createWorkflowExecution?: Maybe<WorkflowExecution>;
   createWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
+  deleteAIQueryExecution?: Maybe<AiQueryExecution>;
   deleteAnnouncement?: Maybe<Announcement>;
   deleteDealRoomMember?: Maybe<DealRoomMember>;
   deleteDealTemplate?: Maybe<DealTemplate>;
@@ -952,13 +933,11 @@ export type Mutation = {
   retryWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
   /** Executes the prompt with Gemini, validates against schema, saves execution record, returns it. */
   runAIQuery: AiQueryExecution;
-  startAiQuery?: Maybe<AiQuery>;
   startWorkflowExecution?: Maybe<WorkflowExecution>;
   startWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
   /** Updates an AIQueryExecution (used by worker after Gemini completes). Returns immediately with status PENDING; subscribe to onUpdateAIQueryExecution(id) for result. */
   updateAIQueryExecution?: Maybe<AiQueryExecution>;
   updateAccountCredits?: Maybe<AccountCredits>;
-  updateAiQuery?: Maybe<AiQuery>;
   updateAnnouncement?: Maybe<Announcement>;
   updateDealRoomMember?: Maybe<DealRoomMember>;
   updateDealTemplate?: Maybe<DealTemplate>;
@@ -1000,8 +979,8 @@ export type MutationCompleteWorkflowNodeExecutionArgs = {
 };
 
 
-export type MutationCreateAiQueryArgs = {
-  input: CreateAiQueryInput;
+export type MutationCreateAiQueryExecutionArgs = {
+  input: CreateAiQueryExecutionInput;
 };
 
 
@@ -1135,6 +1114,11 @@ export type MutationCreateWorkflowNodeExecutionArgs = {
 };
 
 
+export type MutationDeleteAiQueryExecutionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationDeleteAnnouncementArgs = {
   key: CompositeKeyInput;
 };
@@ -1264,11 +1248,6 @@ export type MutationRunAiQueryArgs = {
 };
 
 
-export type MutationStartAiQueryArgs = {
-  key: CompositeKeyInput;
-};
-
-
 export type MutationStartWorkflowExecutionArgs = {
   key: CompositeKeyInput;
 };
@@ -1288,12 +1267,6 @@ export type MutationUpdateAiQueryExecutionArgs = {
 export type MutationUpdateAccountCreditsArgs = {
   id: Scalars['ID']['input'];
   input: UpdateAccountCreditsInput;
-};
-
-
-export type MutationUpdateAiQueryArgs = {
-  id: Scalars['ID']['input'];
-  input: UpdateAiQueryInput;
 };
 
 
@@ -1665,8 +1638,9 @@ export type Query = {
   __typename?: 'Query';
   /** Vision RAG: query Pinecone for relevant images by documentIds (from Project doclinks), then Gemini. Returns answer and optional structured output. */
   documentVisionQuery: DocumentVisionQueryResult;
+  /** Get a single AIQueryExecution by id. */
+  getAIQueryExecution?: Maybe<AiQueryExecution>;
   getAccountCredits?: Maybe<AccountCredits>;
-  getAiQuery?: Maybe<AiQuery>;
   getAnnouncement?: Maybe<Announcement>;
   /** Get a single AuditLogEntry. Requires composite key (ID + ParentID) for access. */
   getAuditLogEntry?: Maybe<AuditLogEntry>;
@@ -1679,8 +1653,6 @@ export type Query = {
   getDocument?: Maybe<Document>;
   /** Per-document view/download analytics for a deal. */
   getDocumentAnalytics?: Maybe<DocumentAnalytics>;
-  /** List AI execution history, optionally filtered by promptId. */
-  getExecutionHistory: AiQueryExecutionConnection;
   /** Get a single Image. Requires composite key (ID + ParentID) for access. */
   getImage?: Maybe<Image>;
   getInvestorProfile?: Maybe<InvestorProfile>;
@@ -1709,7 +1681,8 @@ export type Query = {
   getWorkflowExecution?: Maybe<WorkflowExecution>;
   /** Get a single WorkflowNodeExecution. Requires composite key (ID + ParentID) for access. */
   getWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
-  listAiQuerys: AiQueryConnection;
+  /** List AI execution history, optionally filtered by promptId. */
+  listAIQueryExecutions: AiQueryExecutionConnection;
   listAnnouncements: AnnouncementConnection;
   /** List AuditLogEntries for a specific Deal (Project). For broker activity log / compliance. */
   listAuditLogEntrys: AuditLogEntryConnection;
@@ -1763,12 +1736,12 @@ export type QueryDocumentVisionQueryArgs = {
 };
 
 
-export type QueryGetAccountCreditsArgs = {
+export type QueryGetAiQueryExecutionArgs = {
   id: Scalars['ID']['input'];
 };
 
 
-export type QueryGetAiQueryArgs = {
+export type QueryGetAccountCreditsArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -1811,13 +1784,6 @@ export type QueryGetDocumentArgs = {
 export type QueryGetDocumentAnalyticsArgs = {
   dealId: Scalars['ID']['input'];
   documentId: Scalars['ID']['input'];
-};
-
-
-export type QueryGetExecutionHistoryArgs = {
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  nextToken?: InputMaybe<Scalars['String']['input']>;
-  promptId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -1906,10 +1872,10 @@ export type QueryGetWorkflowNodeExecutionArgs = {
 };
 
 
-export type QueryListAiQuerysArgs = {
+export type QueryListAiQueryExecutionsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
-  scope?: InputMaybe<ListScope>;
+  promptId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -2218,6 +2184,8 @@ export type StructuredOutputSchemaConnection = {
 
 export type Subscription = {
   __typename?: 'Subscription';
+  /** AI STUDIO: AIQueryExecution subscriptions (standard Node pattern). */
+  onCreateAIQueryExecution?: Maybe<AiQueryExecution>;
   /** DOCLINK SUBSCRIPTIONS */
   onCreateDoclink?: Maybe<Doclink>;
   /** DOCUMENT SUBSCRIPTIONS */
@@ -2242,6 +2210,7 @@ export type Subscription = {
   onCreateWorkflowExecution?: Maybe<WorkflowExecution>;
   /** WORKFLOW NODE EXECUTION SUBSCRIPTIONS */
   onCreateWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
+  onDeleteAIQueryExecution?: Maybe<AiQueryExecution>;
   onDeleteDoclink?: Maybe<Doclink>;
   onDeleteDocument?: Maybe<Document>;
   onDeleteImage?: Maybe<Image>;
@@ -2253,10 +2222,7 @@ export type Subscription = {
   onDeleteText?: Maybe<Text>;
   onDeleteWorkflow?: Maybe<Workflow>;
   onRestoreProject?: Maybe<Project>;
-  /** AI STUDIO: Subscribe to execution updates (PROCESSING / SUCCESS / ERROR). Use id from runAIQuery response. */
   onUpdateAIQueryExecution?: Maybe<AiQueryExecution>;
-  /** AI QUERY SUBSCRIPTIONS */
-  onUpdateAiQuery?: Maybe<AiQuery>;
   onUpdateDoclink?: Maybe<Doclink>;
   onUpdateDocument?: Maybe<Document>;
   onUpdateImage?: Maybe<Image>;
@@ -2271,6 +2237,11 @@ export type Subscription = {
   onUpdateWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
   onWorkflowExecutionStatusChange?: Maybe<WorkflowExecution>;
   onWorkflowNodeExecutionStatusChange?: Maybe<WorkflowNodeExecution>;
+};
+
+
+export type SubscriptionOnCreateAiQueryExecutionArgs = {
+  promptId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -2331,6 +2302,11 @@ export type SubscriptionOnCreateWorkflowNodeExecutionArgs = {
 };
 
 
+export type SubscriptionOnDeleteAiQueryExecutionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type SubscriptionOnDeleteDoclinkArgs = {
   id: Scalars['ID']['input'];
 };
@@ -2387,11 +2363,6 @@ export type SubscriptionOnRestoreProjectArgs = {
 
 
 export type SubscriptionOnUpdateAiQueryExecutionArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type SubscriptionOnUpdateAiQueryArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -2550,7 +2521,6 @@ export type UpdateAiQueryExecutionInput = {
   promptTokenCount?: InputMaybe<Scalars['Int']['input']>;
   rawOutput?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<ExecutionStatus>;
-  structuredOutput?: InputMaybe<Scalars['AWSJSON']['input']>;
   totalTokenCount?: InputMaybe<Scalars['Int']['input']>;
 };
 
@@ -2985,14 +2955,6 @@ export type WorkflowUiInput = {
   elements: Array<WorkflowUiElementInput>;
 };
 
-export type UpdateAiQueryExecutionMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-  input: UpdateAiQueryExecutionInput;
-}>;
-
-
-export type UpdateAiQueryExecutionMutation = { __typename?: 'Mutation', updateAIQueryExecution?: { __typename?: 'AIQueryExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, executedAt?: string | null | undefined, durationMs?: number | null | undefined, inputValues: any, rawOutput?: string | null | undefined, structuredOutput?: any | null | undefined, promptTokenCount?: number | null | undefined, candidatesTokenCount?: number | null | undefined, totalTokenCount?: number | null | undefined, status: ExecutionStatus, errorMessage?: string | null | undefined, prompt: { __typename?: 'Prompt', id: string, name: string, version?: number | null | undefined, sourcePromptId?: string | null | undefined } } | null | undefined };
-
 export type CreateDoclinkMutationVariables = Exact<{
   input: CreateDoclinkInput;
 }>;
@@ -3144,7 +3106,7 @@ export type RunAiQueryMutationVariables = Exact<{
 }>;
 
 
-export type RunAiQueryMutation = { __typename?: 'Mutation', runAIQuery: { __typename?: 'AIQueryExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, executedAt?: string | null | undefined, durationMs?: number | null | undefined, inputValues: any, rawOutput?: string | null | undefined, structuredOutput?: any | null | undefined, promptTokenCount?: number | null | undefined, candidatesTokenCount?: number | null | undefined, totalTokenCount?: number | null | undefined, status: ExecutionStatus, errorMessage?: string | null | undefined, prompt: { __typename?: 'Prompt', id: string, name: string, version?: number | null | undefined, sourcePromptId?: string | null | undefined } } };
+export type RunAiQueryMutation = { __typename?: 'Mutation', runAIQuery: { __typename?: 'AIQueryExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, executedAt?: string | null | undefined, durationMs?: number | null | undefined, inputValues: any, rawOutput?: string | null | undefined, promptTokenCount?: number | null | undefined, candidatesTokenCount?: number | null | undefined, totalTokenCount?: number | null | undefined, status: ExecutionStatus, errorMessage?: string | null | undefined, prompt: { __typename?: 'Prompt', id: string, name: string, version?: number | null | undefined, sourcePromptId?: string | null | undefined } } };
 
 export type CreateScanMutationVariables = Exact<{
   input: CreateScanInput;
@@ -3379,15 +3341,6 @@ export type DeleteWorkflowNodeExecutionMutationVariables = Exact<{
 
 
 export type DeleteWorkflowNodeExecutionMutation = { __typename?: 'Mutation', deleteWorkflowNodeExecution?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined } | null | undefined };
-
-export type GetExecutionHistoryQueryVariables = Exact<{
-  promptId?: InputMaybe<Scalars['ID']['input']>;
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  nextToken?: InputMaybe<Scalars['String']['input']>;
-}>;
-
-
-export type GetExecutionHistoryQuery = { __typename?: 'Query', getExecutionHistory: { __typename?: 'AIQueryExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'AIQueryExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, executedAt?: string | null | undefined, durationMs?: number | null | undefined, inputValues: any, rawOutput?: string | null | undefined, structuredOutput?: any | null | undefined, promptTokenCount?: number | null | undefined, candidatesTokenCount?: number | null | undefined, totalTokenCount?: number | null | undefined, status: ExecutionStatus, errorMessage?: string | null | undefined, prompt: { __typename?: 'Prompt', id: string, name: string, version?: number | null | undefined, sourcePromptId?: string | null | undefined } }> } };
 
 export type GetDoclinkQueryVariables = Exact<{
   key: CompositeKeyInput;
@@ -3634,13 +3587,6 @@ export type ListWorkflowNodeExecutionsQueryVariables = Exact<{
 
 
 export type ListWorkflowNodeExecutionsQuery = { __typename?: 'Query', listWorkflowNodeExecutions: { __typename?: 'WorkflowNodeExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined }> } };
-
-export type OnUpdateAiQueryExecutionSubscriptionVariables = Exact<{
-  id: Scalars['ID']['input'];
-}>;
-
-
-export type OnUpdateAiQueryExecutionSubscription = { __typename?: 'Subscription', onUpdateAIQueryExecution?: { __typename?: 'AIQueryExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, executedAt?: string | null | undefined, durationMs?: number | null | undefined, inputValues: any, rawOutput?: string | null | undefined, structuredOutput?: any | null | undefined, promptTokenCount?: number | null | undefined, candidatesTokenCount?: number | null | undefined, totalTokenCount?: number | null | undefined, status: ExecutionStatus, errorMessage?: string | null | undefined, prompt: { __typename?: 'Prompt', id: string, name: string, version?: number | null | undefined, sourcePromptId?: string | null | undefined } } | null | undefined };
 
 export type OnCreateDoclinkSubscriptionVariables = Exact<{
   parentId?: InputMaybe<Scalars['ID']['input']>;
@@ -3920,7 +3866,6 @@ export type OnWorkflowNodeExecutionStatusChangeSubscriptionVariables = Exact<{
 
 export type OnWorkflowNodeExecutionStatusChangeSubscription = { __typename?: 'Subscription', onWorkflowNodeExecutionStatusChange?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined } | null | undefined };
 
-export declare const UpdateAIQueryExecution: import("graphql").DocumentNode;
 export declare const CreateDoclink: import("graphql").DocumentNode;
 export declare const UpdateDoclink: import("graphql").DocumentNode;
 export declare const DeleteDoclink: import("graphql").DocumentNode;
@@ -3971,7 +3916,6 @@ export declare const CompleteWorkflowNodeExecution: import("graphql").DocumentNo
 export declare const FailWorkflowNodeExecution: import("graphql").DocumentNode;
 export declare const RetryWorkflowNodeExecution: import("graphql").DocumentNode;
 export declare const DeleteWorkflowNodeExecution: import("graphql").DocumentNode;
-export declare const GetExecutionHistory: import("graphql").DocumentNode;
 export declare const GetDoclink: import("graphql").DocumentNode;
 export declare const ListDoclinks: import("graphql").DocumentNode;
 export declare const GetDocument: import("graphql").DocumentNode;
@@ -4000,7 +3944,6 @@ export declare const GetWorkflowExecution: import("graphql").DocumentNode;
 export declare const ListWorkflowExecutions: import("graphql").DocumentNode;
 export declare const GetWorkflowNodeExecution: import("graphql").DocumentNode;
 export declare const ListWorkflowNodeExecutions: import("graphql").DocumentNode;
-export declare const OnUpdateAIQueryExecution: import("graphql").DocumentNode;
 export declare const OnCreateDoclink: import("graphql").DocumentNode;
 export declare const OnUpdateDoclink: import("graphql").DocumentNode;
 export declare const OnDeleteDoclink: import("graphql").DocumentNode;

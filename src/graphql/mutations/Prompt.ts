@@ -148,7 +148,6 @@ export const M_RUN_AI_QUERY = gql`
       durationMs
       inputValues
       rawOutput
-      structuredOutput
       promptTokenCount
       candidatesTokenCount
       totalTokenCount

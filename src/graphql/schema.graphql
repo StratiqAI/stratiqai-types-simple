@@ -370,10 +370,6 @@ type AIQueryExecution implements Node & Metadata
   """
   inputValues: AWSJSON!
   rawOutput: String
-  """
-  Parsed JSON when schema validation passed.
-  """
-  structuredOutput: AWSJSON
   promptTokenCount: Int
   candidatesTokenCount: Int
   totalTokenCount: Int
@@ -1514,11 +1510,19 @@ input RunAIQueryInput {
   variables: AWSJSON!
 }
 
+# Create an AIQueryExecution record (e.g. before runAIQuery or for async execution).
+input CreateAIQueryExecutionInput {
+  promptId: ID!
+  inputValues: AWSJSON!
+  """Optional idempotency key; if omitted a new id is generated."""
+  executionId: ID
+  projectId: ID
+}
+
 # AI STUDIO: Worker updates execution result (status, output, tokens, etc.)
 input UpdateAIQueryExecutionInput {
   status: ExecutionStatus
   rawOutput: String
-  structuredOutput: AWSJSON
   promptTokenCount: Int
   candidatesTokenCount: Int
   totalTokenCount: Int
@@ -1749,36 +1753,6 @@ input UpdateWorkflowNodeExecutionInput {
 # ----------------------------------------------------------------------
 # AI QUERY, BILLING & CREDITS TYPES
 # ----------------------------------------------------------------------
-
-type AiQuery implements Node & Metadata @aws_iam @aws_cognito_user_pools {
-  # Metadata fields
-  id: ID!
-  entityType: EntityType!
-  tenantId: ID!
-  ownerId: ID!
-  createdAt: AWSDateTime!
-  updatedAt: AWSDateTime!
-  deletedAt: AWSDateTime
-
-  status: AIQueryStatus!
-  requestPayload: AWSJSON
-  responseJsonSchema: AWSJSON!
-  responsePayload: AWSJSON
-  errorMessage: String
-  modelUsed: String
-  inputTokens: Int
-  outputTokens: Int
-  projectId: ID
-}
-
-type AiQueryConnection
-  @aws_iam
-  @aws_cognito_user_pools(
-    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
-  ) {
-  items: [AiQuery!]!
-  nextToken: String
-}
 
 type AccountCredits implements Node & Metadata
   @aws_iam
@@ -2270,9 +2244,18 @@ type Query {
     )
 
   """
+  Get a single AIQueryExecution by id.
+  """
+  getAIQueryExecution(id: ID!): AIQueryExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
   List AI execution history, optionally filtered by promptId.
   """
-  getExecutionHistory(
+  listAIQueryExecutions(
     promptId: ID
     limit: Int
     nextToken: String
@@ -2434,21 +2417,6 @@ type Query {
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
 
-  # AI QUERY QUERIES
-  getAiQuery(id: ID!): AiQuery
-    @aws_iam
-    @aws_cognito_user_pools(
-      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
-    )
-  listAiQuerys(
-    scope: ListScope = OWNED_BY_ME
-    limit: Int
-    nextToken: String
-  ): AiQueryConnection!
-    @aws_iam
-    @aws_cognito_user_pools(
-      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
-    )
 
   # ACCOUNT CREDITS (id = tenantId)
   getAccountCredits(id: ID!): AccountCredits
@@ -2755,6 +2723,11 @@ type Mutation {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
+  createAIQueryExecution(input: CreateAIQueryExecutionInput!): AIQueryExecution!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
   """
   Updates an AIQueryExecution (used by worker after Gemini completes). Returns immediately with status PENDING; subscribe to onUpdateAIQueryExecution(id) for result.
   """
@@ -2762,6 +2735,11 @@ type Mutation {
     id: ID!
     input: UpdateAIQueryExecutionInput!
   ): AIQueryExecution
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  deleteAIQueryExecution(id: ID!): AIQueryExecution
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -2961,22 +2939,6 @@ type Mutation {
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
 
-  # AI QUERY OPERATIONS
-  createAiQuery(input: CreateAiQueryInput!): AiQuery
-    @aws_iam
-    @aws_cognito_user_pools(
-      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
-    )
-  updateAiQuery(id: ID!, input: UpdateAiQueryInput!): AiQuery
-    @aws_iam
-    @aws_cognito_user_pools(
-      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
-    )
-  startAiQuery(key: CompositeKeyInput!): AiQuery
-    @aws_iam
-    @aws_cognito_user_pools(
-      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
-    )
 
   # USAGE RECORD (backend-only create)
   createUsageRecord(input: CreateUsageRecordInput!): UsageRecord
@@ -3075,10 +3037,14 @@ type Subscription {
   onDeletePrompt(id: ID!): Prompt @aws_subscribe(mutations: ["deletePrompt"])
 
   """
-  AI STUDIO: Subscribe to execution updates (PROCESSING / SUCCESS / ERROR). Use id from runAIQuery response.
+  AI STUDIO: AIQueryExecution subscriptions (standard Node pattern).
   """
+  onCreateAIQueryExecution(promptId: ID): AIQueryExecution
+    @aws_subscribe(mutations: ["createAIQueryExecution", "runAIQuery"])
   onUpdateAIQueryExecution(id: ID!): AIQueryExecution
     @aws_subscribe(mutations: ["updateAIQueryExecution"])
+  onDeleteAIQueryExecution(id: ID!): AIQueryExecution
+    @aws_subscribe(mutations: ["deleteAIQueryExecution"])
 
   """
   IMAGE SUBSCRIPTIONS
@@ -3207,8 +3173,5 @@ type Subscription {
       ]
     )
 
-  """
-  AI QUERY SUBSCRIPTIONS
-  """
-  onUpdateAiQuery(id: ID!): AiQuery @aws_subscribe(mutations: ["updateAiQuery"])
+
 }

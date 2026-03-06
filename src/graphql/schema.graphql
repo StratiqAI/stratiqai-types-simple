@@ -1500,17 +1500,17 @@ input UpdatePromptInput {
   sharingMode: SharingMode
 }
 
-# AI STUDIO: Run prompt and persist execution
-# Optional executionId: if provided, use it so client can subscribe first, then run.
+# AI STUDIO: Submit prompt for execution (creates AIQueryExecution PENDING, enqueues SQS).
+# Optional executionId: if provided, use it so client can subscribe first, then submit.
 # Optional projectId: execution context (e.g. which project this run belongs to).
-input RunAIQueryInput {
+input SubmitAIQueryInput {
   executionId: ID
   promptId: ID!
   projectId: ID
   variables: AWSJSON!
 }
 
-# Create an AIQueryExecution record (e.g. before runAIQuery or for async execution).
+# Create an AIQueryExecution record (e.g. before submitAIQuery or for async execution).
 input CreateAIQueryExecutionInput {
   promptId: ID!
   inputValues: AWSJSON!
@@ -2716,9 +2716,9 @@ type Mutation {
     )
 
   """
-  Executes the prompt with Gemini, validates against schema, saves execution record, returns it.
+  Submits the prompt for execution (creates AIQueryExecution PENDING, enqueues SQS). Worker runs Gemini and updates execution; subscribe to onUpdateAIQueryExecution(id) for result.
   """
-  runAIQuery(input: RunAIQueryInput!): AIQueryExecution!
+  submitAIQuery(input: SubmitAIQueryInput!): AIQueryExecution!
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -3040,7 +3040,7 @@ type Subscription {
   AI STUDIO: AIQueryExecution subscriptions (standard Node pattern).
   """
   onCreateAIQueryExecution(promptId: ID): AIQueryExecution
-    @aws_subscribe(mutations: ["createAIQueryExecution", "runAIQuery"])
+    @aws_subscribe(mutations: ["createAIQueryExecution", "submitAIQuery"])
   onUpdateAIQueryExecution(id: ID!): AIQueryExecution
     @aws_subscribe(mutations: ["updateAIQueryExecution"])
   onDeleteAIQueryExecution(id: ID!): AIQueryExecution

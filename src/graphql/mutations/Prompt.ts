@@ -135,9 +135,9 @@ export const M_FORK_PROMPT = gql`
   }
 `;
 
-export const M_RUN_AI_QUERY = gql`
-  mutation RunAIQuery($input: RunAIQueryInput!) {
-    runAIQuery(input: $input) {
+export const M_SUBMIT_AI_QUERY = gql`
+  mutation SubmitAIQuery($input: SubmitAIQueryInput!) {
+    submitAIQuery(input: $input) {
       id
       entityType
       tenantId

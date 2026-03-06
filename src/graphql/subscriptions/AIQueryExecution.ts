@@ -2,7 +2,7 @@ import { gql } from 'graphql-tag';
 
 /**
  * GraphQL Subscriptions for AI Studio AIQueryExecution (standard Node: onCreate, onUpdate, onDelete)
- * Use onUpdateAIQueryExecution(id) with id from runAIQuery to receive PROCESSING / SUCCESS / ERROR.
+ * Use onUpdateAIQueryExecution(id) with id from submitAIQuery to receive PROCESSING / SUCCESS / ERROR.
  */
 
 const AI_QUERY_EXECUTION_FIELDS = `

@@ -1517,6 +1517,10 @@ input CreateAIQueryExecutionInput {
   """Optional idempotency key; if omitted a new id is generated."""
   executionId: ID
   projectId: ID
+  """When provided (e.g. by submitAIQuery Lambda using IAM), used as tenant; otherwise from identity."""
+  tenantId: ID
+  """When provided (e.g. by submitAIQuery Lambda using IAM), used as owner; otherwise from identity."""
+  ownerId: ID
 }
 
 # AI STUDIO: Worker updates execution result (status, output, tokens, etc.)

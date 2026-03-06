@@ -236,8 +236,12 @@ export type CreateAiQueryExecutionInput = {
   /** Optional idempotency key; if omitted a new id is generated. */
   executionId?: InputMaybe<Scalars['ID']['input']>;
   inputValues: Scalars['AWSJSON']['input'];
+  /** When provided (e.g. by submitAIQuery Lambda using IAM), used as owner; otherwise from identity. */
+  ownerId?: InputMaybe<Scalars['ID']['input']>;
   projectId?: InputMaybe<Scalars['ID']['input']>;
   promptId: Scalars['ID']['input'];
+  /** When provided (e.g. by submitAIQuery Lambda using IAM), used as tenant; otherwise from identity. */
+  tenantId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 export type CreateAiQueryInput = {

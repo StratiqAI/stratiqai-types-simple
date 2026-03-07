@@ -2693,6 +2693,11 @@ type Mutation {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
+  deleteStructuredOutputSchema(id: ID!): StructuredOutputSchema
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
 
   # AI STUDIO: Prompt operations (root entity)
   createPrompt(input: CreatePromptInput!): Prompt

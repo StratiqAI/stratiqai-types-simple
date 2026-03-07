@@ -923,6 +923,7 @@ export type Mutation = {
   deletePrompt?: Maybe<Prompt>;
   deleteQuestion?: Maybe<Question>;
   deleteScan?: Maybe<Scan>;
+  deleteStructuredOutputSchema?: Maybe<StructuredOutputSchema>;
   deleteTable?: Maybe<Table>;
   deleteText?: Maybe<Text>;
   deleteWorkflow?: Maybe<Workflow>;
@@ -1185,6 +1186,11 @@ export type MutationDeleteQuestionArgs = {
 
 export type MutationDeleteScanArgs = {
   key: CompositeKeyInput;
+};
+
+
+export type MutationDeleteStructuredOutputSchemaArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -3149,6 +3155,13 @@ export type UpdateStructuredOutputSchemaMutationVariables = Exact<{
 
 export type UpdateStructuredOutputSchemaMutation = { __typename?: 'Mutation', updateStructuredOutputSchema?: { __typename?: 'StructuredOutputSchema', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, name: string, description?: string | null | undefined, schemaDefinition: any } | null | undefined };
 
+export type DeleteStructuredOutputSchemaMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeleteStructuredOutputSchemaMutation = { __typename?: 'Mutation', deleteStructuredOutputSchema?: { __typename?: 'StructuredOutputSchema', id: string } | null | undefined };
+
 export type CreateTableMutationVariables = Exact<{
   input: CreateTableInput;
 }>;
@@ -3896,6 +3909,7 @@ export declare const UpdateScan: import("graphql").DocumentNode;
 export declare const DeleteScan: import("graphql").DocumentNode;
 export declare const CreateStructuredOutputSchema: import("graphql").DocumentNode;
 export declare const UpdateStructuredOutputSchema: import("graphql").DocumentNode;
+export declare const DeleteStructuredOutputSchema: import("graphql").DocumentNode;
 export declare const CreateTable: import("graphql").DocumentNode;
 export declare const UpdateTable: import("graphql").DocumentNode;
 export declare const DeleteTable: import("graphql").DocumentNode;

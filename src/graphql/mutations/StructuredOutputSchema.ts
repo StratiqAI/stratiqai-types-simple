@@ -37,3 +37,11 @@ export const M_UPDATE_STRUCTURED_OUTPUT_SCHEMA = gql`
     }
   }
 `;
+
+export const M_DELETE_STRUCTURED_OUTPUT_SCHEMA = gql`
+  mutation DeleteStructuredOutputSchema($id: ID!) {
+    deleteStructuredOutputSchema(id: $id) {
+      id
+    }
+  }
+`;

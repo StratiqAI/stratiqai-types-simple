@@ -346,6 +346,9 @@ type AIQueryExecution implements Node & Metadata
   @aws_cognito_user_pools(
     cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
   ) {
+  """
+  Node & Metadata fields
+  """
   id: ID!
   entityType: EntityType!
   tenantId: ID!
@@ -353,10 +356,32 @@ type AIQueryExecution implements Node & Metadata
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
   deletedAt: AWSDateTime
+
   """
-  The prompt version that was executed.
+  For backward compatibility: executionId alias.
   """
-  prompt: Prompt!
+  executionId: ID
+
+  """
+  Prompt ID for the execution.
+  """
+  promptId: ID
+
+  """
+  Project ID for the execution.
+  """
+  projectId: ID
+
+  question: String
+
+  pineconeNamespaces: [ID]
+
+  pineconeNamespace: ID
+
+  topK: Int
+
+  topKPerNs: Int
+
   """
   Set when execution completes (null while PENDING/PROCESSING).
   """
@@ -1486,7 +1511,9 @@ input CreatePromptInput {
   config: GeminiConfigInput
   outputSchemaId: ID!
   sharingMode: SharingMode = PRIVATE
-  """Set when forking: ID of the prompt this copy was created from."""
+  """
+  Set when forking: ID of the prompt this copy was created from.
+  """
   sourcePromptId: ID
 }
 
@@ -1500,27 +1527,31 @@ input UpdatePromptInput {
   sharingMode: SharingMode
 }
 
-# AI STUDIO: Submit prompt for execution (creates AIQueryExecution PENDING, enqueues SQS).
-# Optional executionId: if provided, use it so client can subscribe first, then submit.
-# Optional projectId: execution context (e.g. which project this run belongs to).
-input SubmitAIQueryInput {
-  executionId: ID
-  promptId: ID!
-  projectId: ID
-  variables: AWSJSON!
-}
-
 # Create an AIQueryExecution record (e.g. before submitAIQuery or for async execution).
 input CreateAIQueryExecutionInput {
   promptId: ID!
   inputValues: AWSJSON!
-  """Optional idempotency key; if omitted a new id is generated."""
+  """
+  Optional idempotency key; if omitted a new id is generated.
+  """
   executionId: ID
   projectId: ID
-  """When provided (e.g. by submitAIQuery Lambda using IAM), used as tenant; otherwise from identity."""
+  """
+  When provided (e.g. by submitAIQuery Lambda using IAM), used as tenant; otherwise from identity.
+  """
   tenantId: ID
-  """When provided (e.g. by submitAIQuery Lambda using IAM), used as owner; otherwise from identity."""
+  """
+  When provided (e.g. by submitAIQuery Lambda using IAM), used as owner; otherwise from identity.
+  """
   ownerId: ID
+
+  pineconeNamespaces: [String]
+
+  pineconeNamespace: String
+
+  topK: Int
+
+  topKPerNs: Int
 }
 
 # AI STUDIO: Worker updates execution result (status, output, tokens, etc.)
@@ -2120,7 +2151,9 @@ type Query {
   """
   Vision RAG: query Pinecone for relevant images by documentIds (from Project doclinks), then Gemini. Returns answer and optional structured output.
   """
-  documentVisionQuery(input: DocumentVisionQueryInput!): DocumentVisionQueryResult!
+  documentVisionQuery(
+    input: DocumentVisionQueryInput!
+  ): DocumentVisionQueryResult!
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -2420,7 +2453,6 @@ type Query {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
-
 
   # ACCOUNT CREDITS (id = tenantId)
   getAccountCredits(id: ID!): AccountCredits
@@ -2727,12 +2759,14 @@ type Mutation {
   """
   Submits the prompt for execution (creates AIQueryExecution PENDING, enqueues SQS). Worker runs Gemini and updates execution; subscribe to onUpdateAIQueryExecution(id) for result.
   """
-  submitAIQuery(input: SubmitAIQueryInput!): AIQueryExecution!
+  submitAIQuery(input: CreateAIQueryExecutionInput!): AIQueryExecution!
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
-  createAIQueryExecution(input: CreateAIQueryExecutionInput!): AIQueryExecution!
+  createAIQueryExecution(
+    input: CreateAIQueryExecutionInput!
+  ): AIQueryExecution!
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -2947,7 +2981,6 @@ type Mutation {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
-
 
   # USAGE RECORD (backend-only create)
   createUsageRecord(input: CreateUsageRecordInput!): UsageRecord
@@ -3181,6 +3214,4 @@ type Subscription {
         "retryWorkflowNodeExecution"
       ]
     )
-
-
 }

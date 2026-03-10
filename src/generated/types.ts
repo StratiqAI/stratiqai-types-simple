@@ -59,16 +59,26 @@ export type AiQueryExecution = Metadata & Node & {
   errorMessage?: Maybe<Scalars['String']['output']>;
   /** Set when execution completes (null while PENDING/PROCESSING). */
   executedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  /** For backward compatibility: executionId alias. */
+  executionId?: Maybe<Scalars['ID']['output']>;
+  /** Node & Metadata fields */
   id: Scalars['ID']['output'];
   /** Variable values passed (e.g. { \"topic\": \"Sunsets\" }). */
   inputValues: Scalars['AWSJSON']['output'];
   ownerId: Scalars['ID']['output'];
-  /** The prompt version that was executed. */
-  prompt: Prompt;
+  pineconeNamespace?: Maybe<Scalars['ID']['output']>;
+  pineconeNamespaces?: Maybe<Array<Maybe<Scalars['ID']['output']>>>;
+  /** Project ID for the execution. */
+  projectId?: Maybe<Scalars['ID']['output']>;
+  /** Prompt ID for the execution. */
+  promptId?: Maybe<Scalars['ID']['output']>;
   promptTokenCount?: Maybe<Scalars['Int']['output']>;
+  question?: Maybe<Scalars['String']['output']>;
   rawOutput?: Maybe<Scalars['String']['output']>;
   status: ExecutionStatus;
   tenantId: Scalars['ID']['output'];
+  topK?: Maybe<Scalars['Int']['output']>;
+  topKPerNs?: Maybe<Scalars['Int']['output']>;
   totalTokenCount?: Maybe<Scalars['Int']['output']>;
   updatedAt: Scalars['AWSDateTime']['output'];
 };
@@ -238,10 +248,14 @@ export type CreateAiQueryExecutionInput = {
   inputValues: Scalars['AWSJSON']['input'];
   /** When provided (e.g. by submitAIQuery Lambda using IAM), used as owner; otherwise from identity. */
   ownerId?: InputMaybe<Scalars['ID']['input']>;
+  pineconeNamespace?: InputMaybe<Scalars['String']['input']>;
+  pineconeNamespaces?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   projectId?: InputMaybe<Scalars['ID']['input']>;
   promptId: Scalars['ID']['input'];
   /** When provided (e.g. by submitAIQuery Lambda using IAM), used as tenant; otherwise from identity. */
   tenantId?: InputMaybe<Scalars['ID']['input']>;
+  topK?: InputMaybe<Scalars['Int']['input']>;
+  topKPerNs?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type CreateAiQueryInput = {
@@ -1264,7 +1278,7 @@ export type MutationStartWorkflowNodeExecutionArgs = {
 
 
 export type MutationSubmitAiQueryArgs = {
-  input: SubmitAiQueryInput;
+  input: CreateAiQueryExecutionInput;
 };
 
 
@@ -2183,13 +2197,6 @@ export type StructuredOutputSchemaConnection = {
   __typename?: 'StructuredOutputSchemaConnection';
   items: Array<StructuredOutputSchema>;
   nextToken?: Maybe<Scalars['String']['output']>;
-};
-
-export type SubmitAiQueryInput = {
-  executionId?: InputMaybe<Scalars['ID']['input']>;
-  projectId?: InputMaybe<Scalars['ID']['input']>;
-  promptId: Scalars['ID']['input'];
-  variables: Scalars['AWSJSON']['input'];
 };
 
 export type Subscription = {
@@ -3112,11 +3119,11 @@ export type ForkPromptMutationVariables = Exact<{
 export type ForkPromptMutation = { __typename?: 'Mutation', forkPrompt: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourcePromptId?: string | null | undefined, name: string, description?: string | null | undefined, templateText: string, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, config?: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined } | null | undefined, outputSchema?: { __typename?: 'StructuredOutputSchema', id: string, name: string, description?: string | null | undefined, schemaDefinition: any } | null | undefined } };
 
 export type SubmitAiQueryMutationVariables = Exact<{
-  input: SubmitAiQueryInput;
+  input: CreateAiQueryExecutionInput;
 }>;
 
 
-export type SubmitAiQueryMutation = { __typename?: 'Mutation', submitAIQuery: { __typename?: 'AIQueryExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, executedAt?: string | null | undefined, durationMs?: number | null | undefined, inputValues: any, rawOutput?: string | null | undefined, promptTokenCount?: number | null | undefined, candidatesTokenCount?: number | null | undefined, totalTokenCount?: number | null | undefined, status: ExecutionStatus, errorMessage?: string | null | undefined, prompt: { __typename?: 'Prompt', id: string, name: string, version?: number | null | undefined, sourcePromptId?: string | null | undefined } } };
+export type SubmitAiQueryMutation = { __typename?: 'Mutation', submitAIQuery: { __typename?: 'AIQueryExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, executedAt?: string | null | undefined, durationMs?: number | null | undefined, inputValues: any, rawOutput?: string | null | undefined, promptId?: string | null | undefined, promptTokenCount?: number | null | undefined, candidatesTokenCount?: number | null | undefined, totalTokenCount?: number | null | undefined, status: ExecutionStatus, errorMessage?: string | null | undefined } };
 
 export type CreateScanMutationVariables = Exact<{
   input: CreateScanInput;

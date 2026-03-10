@@ -22,5 +22,8 @@ export type * from "./generated/types.js";
 // Re-export EventBridge interfaces for convenience
 export type { S3ObjectCreatedDetailData, S3ObjectCreatedDetail } from "./events/aws.s3/interfaces.js";
 
+// Event sources and detail-types for EventBridge (naming-schema-proposal)
+export { EVENT_SOURCES, EVENT_DETAIL_TYPES } from "./events/constants.js";
+
 // AI Query Execution SQS payload types (submit-ai-query, ai-query-execution-worker)
 export type { VisionRagInputs, AIQueryExecutionSqsPayload } from "./ai-query-execution/types.js";

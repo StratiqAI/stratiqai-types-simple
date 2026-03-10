@@ -136,7 +136,7 @@ export const M_FORK_PROMPT = gql`
 `;
 
 export const M_SUBMIT_AI_QUERY = gql`
-  mutation SubmitAIQuery($input: SubmitAIQueryInput!) {
+  mutation SubmitAIQuery($input: CreateAIQueryExecutionInput!) {
     submitAIQuery(input: $input) {
       id
       entityType
@@ -148,17 +148,12 @@ export const M_SUBMIT_AI_QUERY = gql`
       durationMs
       inputValues
       rawOutput
+      promptId
       promptTokenCount
       candidatesTokenCount
       totalTokenCount
       status
       errorMessage
-      prompt {
-        id
-        name
-        version
-        sourcePromptId
-      }
     }
   }
 `;

@@ -18,7 +18,11 @@ export const M_CREATE_PROMPT = gql`
       sourcePromptId
       name
       description
-      templateText
+      content {
+        body
+        systemInstruction
+        inputVariables
+      }
       inputVariables
       model
       config {
@@ -54,7 +58,11 @@ export const M_UPDATE_PROMPT = gql`
       sourcePromptId
       name
       description
-      templateText
+      content {
+        body
+        systemInstruction
+        inputVariables
+      }
       inputVariables
       model
       config {
@@ -90,47 +98,15 @@ export const M_DELETE_PROMPT = gql`
       sourcePromptId
       name
       description
-      templateText
+      content {
+        body
+        systemInstruction
+        inputVariables
+      }
       inputVariables
       model
       version
       isActive
-    }
-  }
-`;
-
-export const M_FORK_PROMPT = gql`
-  mutation ForkPrompt($sourcePromptId: ID!) {
-    forkPrompt(sourcePromptId: $sourcePromptId) {
-      id
-      entityType
-      tenantId
-      ownerId
-      createdAt
-      updatedAt
-      deletedAt
-      sharingMode
-      sourcePromptId
-      name
-      description
-      templateText
-      inputVariables
-      model
-      config {
-        temperature
-        topP
-        topK
-        maxOutputTokens
-        stopSequences
-      }
-      version
-      isActive
-      outputSchema {
-        id
-        name
-        description
-        schemaDefinition
-      }
     }
   }
 `;

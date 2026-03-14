@@ -311,16 +311,22 @@ type Prompt implements Node & Metadata & Shareable
   name: String!
   description: String
   """
-  Template with variable placeholders (e.g. \"Write a poem about {{topic}}\").
+  Structured content (body, systemInstruction). Execution uses content.body and content.systemInstruction with variable substitution.
   """
-  templateText: String!
+  content: PromptContent!
   """
-  Variables detected in the template (e.g. [\"topic\"]).
+  Read-only; derived from content.body when possible.
   """
   inputVariables: [String!]
   model: AIModel!
   config: GeminiConfig
+  """
+  Server-managed version number; reserved for future use.
+  """
   version: Int
+  """
+  When false, prompt may be excluded from lists or execution; reserved for future use.
+  """
   isActive: Boolean
   """
   Structured output schema enforced for this prompt. Resolved from outputSchemaId.
@@ -366,6 +372,10 @@ type AIQueryExecution implements Node & Metadata
   Prompt ID for the execution.
   """
   promptId: ID
+  """
+  Prompt used for this execution. Resolved from promptId when requested.
+  """
+  prompt: Prompt
 
   """
   Project ID for the execution.
@@ -961,6 +971,11 @@ type Project implements Node & Metadata & Shareable
   topics(limit: Int, nextToken: String): TopicConnection
   notifications(limit: Int, nextToken: String): NotificationConnection
   workflows(limit: Int, nextToken: String): WorkflowConnection
+  """
+  Deprecated: Prompts are no longer scoped to a project. Use listPrompts(scope) instead.
+  Returns empty list for backward compatibility with clients that still request this field.
+  """
+  prompts(limit: Int, nextToken: String): PromptConnection
   auditlogentries(limit: Int, nextToken: String): AuditLogEntryConnection
   dealroommembers(limit: Int, nextToken: String): DealRoomMemberConnection
   ndagreements(limit: Int, nextToken: String): NDAAgreementConnection
@@ -1039,6 +1054,22 @@ type GeminiConfig
   topK: Int
   maxOutputTokens: Int
   stopSequences: [String!]
+}
+
+"""
+Structured content for a prompt. Replaces templateText.
+"""
+type PromptContent
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  """Main user prompt text; may contain {{ variableName }} placeholders."""
+  body: String!
+  """Optional system instruction for the model."""
+  systemInstruction: String
+  """Variable names; read-only/derived when not provided on create."""
+  inputVariables: [String!]
 }
 
 """
@@ -1495,6 +1526,12 @@ input GeminiConfigInput {
   stopSequences: [String!]
 }
 
+input PromptContentInput {
+  body: String!
+  systemInstruction: String
+  inputVariables: [String!]
+}
+
 # AI STUDIO: Structured output schema (tenant-scoped entity)
 input CreateStructuredOutputSchemaInput {
   name: String!
@@ -1506,13 +1543,16 @@ input CreateStructuredOutputSchemaInput {
 input CreatePromptInput {
   name: String!
   description: String
-  templateText: String!
+  content: PromptContentInput!
   model: AIModel = GEMINI_2_5_FLASH
   config: GeminiConfigInput
-  outputSchemaId: ID!
+  """
+  Optional; free-form prompts may omit. Required for structured output execution.
+  """
+  outputSchemaId: ID
   sharingMode: SharingMode = PRIVATE
   """
-  Set when forking: ID of the prompt this copy was created from.
+  Set when copying a shared prompt: ID of the prompt this copy was created from.
   """
   sourcePromptId: ID
 }
@@ -1520,7 +1560,7 @@ input CreatePromptInput {
 input UpdatePromptInput {
   name: String
   description: String
-  templateText: String
+  content: PromptContentInput
   model: AIModel
   config: GeminiConfigInput
   outputSchemaId: ID
@@ -2747,15 +2787,6 @@ type Mutation {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
-  """
-  Create a user-owned copy of a prompt (fork). Original remains shared; the copy is owned by the current user.
-  """
-  forkPrompt(sourcePromptId: ID!): Prompt!
-    @aws_iam
-    @aws_cognito_user_pools(
-      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
-    )
-
   """
   Submits the prompt for execution (creates AIQueryExecution PENDING, enqueues SQS). Worker runs Gemini and updates execution; subscribe to onUpdateAIQueryExecution(id) for result.
   """

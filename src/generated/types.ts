@@ -70,6 +70,8 @@ export type AiQueryExecution = Metadata & Node & {
   pineconeNamespaces?: Maybe<Array<Maybe<Scalars['ID']['output']>>>;
   /** Project ID for the execution. */
   projectId?: Maybe<Scalars['ID']['output']>;
+  /** Prompt used for this execution. Resolved from promptId when requested. */
+  prompt?: Maybe<Prompt>;
   /** Prompt ID for the execution. */
   promptId?: Maybe<Scalars['ID']['output']>;
   promptTokenCount?: Maybe<Scalars['Int']['output']>;
@@ -411,14 +413,15 @@ export type CreateProjectInput = {
 
 export type CreatePromptInput = {
   config?: InputMaybe<GeminiConfigInput>;
+  content: PromptContentInput;
   description?: InputMaybe<Scalars['String']['input']>;
   model?: InputMaybe<AiModel>;
   name: Scalars['String']['input'];
-  outputSchemaId: Scalars['ID']['input'];
+  /** Optional; free-form prompts may omit. Required for structured output execution. */
+  outputSchemaId?: InputMaybe<Scalars['ID']['input']>;
   sharingMode?: InputMaybe<SharingMode>;
-  /** Set when forking: ID of the prompt this copy was created from. */
+  /** Set when copying a shared prompt: ID of the prompt this copy was created from. */
   sourcePromptId?: InputMaybe<Scalars['ID']['input']>;
-  templateText: Scalars['String']['input'];
 };
 
 export type CreateQuestionInput = {
@@ -945,8 +948,6 @@ export type Mutation = {
   deleteWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
   failWorkflowExecution?: Maybe<WorkflowExecution>;
   failWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
-  /** Create a user-owned copy of a prompt (fork). Original remains shared; the copy is owned by the current user. */
-  forkPrompt: Prompt;
   restoreProject?: Maybe<Project>;
   retryWorkflowExecution?: Maybe<WorkflowExecution>;
   retryWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
@@ -1247,11 +1248,6 @@ export type MutationFailWorkflowNodeExecutionArgs = {
 };
 
 
-export type MutationForkPromptArgs = {
-  sourcePromptId: Scalars['ID']['input'];
-};
-
-
 export type MutationRestoreProjectArgs = {
   id: Scalars['ID']['input'];
 };
@@ -1508,6 +1504,11 @@ export type Project = Metadata & Node & Shareable & {
   ownerId: Scalars['ID']['output'];
   photoUrls?: Maybe<Array<Scalars['String']['output']>>;
   primaryColor?: Maybe<Scalars['String']['output']>;
+  /**
+   * Deprecated: Prompts are no longer scoped to a project. Use listPrompts(scope) instead.
+   * Returns empty list for backward compatibility with clients that still request this field.
+   */
+  prompts?: Maybe<PromptConnection>;
   questions?: Maybe<QuestionConnection>;
   secondaryColor?: Maybe<Scalars['String']['output']>;
   sharingMode: SharingMode;
@@ -1580,6 +1581,12 @@ export type ProjectNotificationsArgs = {
 };
 
 
+export type ProjectPromptsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type ProjectQuestionsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
@@ -1618,13 +1625,16 @@ export type Prompt = Metadata & Node & Shareable & {
   __typename?: 'Prompt';
   accessList?: Maybe<ResourceShareConnection>;
   config?: Maybe<GeminiConfig>;
+  /** Structured content (body, systemInstruction). Execution uses content.body and content.systemInstruction with variable substitution. */
+  content: PromptContent;
   createdAt: Scalars['AWSDateTime']['output'];
   deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   entityType: EntityType;
   id: Scalars['ID']['output'];
-  /** Variables detected in the template (e.g. [\"topic\"]). */
+  /** Read-only; derived from content.body when possible. */
   inputVariables?: Maybe<Array<Scalars['String']['output']>>;
+  /** When false, prompt may be excluded from lists or execution; reserved for future use. */
   isActive?: Maybe<Scalars['Boolean']['output']>;
   model: AiModel;
   name: Scalars['String']['output'];
@@ -1635,10 +1645,9 @@ export type Prompt = Metadata & Node & Shareable & {
   sharingMode: SharingMode;
   /** When set, this prompt is a user-owned copy forked from another (the original remains shared). */
   sourcePromptId?: Maybe<Scalars['ID']['output']>;
-  /** Template with variable placeholders (e.g. \"Write a poem about {{topic}}\"). */
-  templateText: Scalars['String']['output'];
   tenantId: Scalars['ID']['output'];
   updatedAt: Scalars['AWSDateTime']['output'];
+  /** Server-managed version number; reserved for future use. */
   version?: Maybe<Scalars['Int']['output']>;
 };
 
@@ -1656,6 +1665,23 @@ export type PromptConnection = {
   __typename?: 'PromptConnection';
   items: Array<Prompt>;
   nextToken?: Maybe<Scalars['String']['output']>;
+};
+
+/** Structured content for a prompt. Replaces templateText. */
+export type PromptContent = {
+  __typename?: 'PromptContent';
+  /** Main user prompt text; may contain {{ variableName }} placeholders. */
+  body: Scalars['String']['output'];
+  /** Variable names; read-only/derived when not provided on create. */
+  inputVariables?: Maybe<Array<Scalars['String']['output']>>;
+  /** Optional system instruction for the model. */
+  systemInstruction?: Maybe<Scalars['String']['output']>;
+};
+
+export type PromptContentInput = {
+  body: Scalars['String']['input'];
+  inputVariables?: InputMaybe<Array<Scalars['String']['input']>>;
+  systemInstruction?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type Query = {
@@ -2652,12 +2678,12 @@ export type UpdateProjectInput = {
 
 export type UpdatePromptInput = {
   config?: InputMaybe<GeminiConfigInput>;
+  content?: InputMaybe<PromptContentInput>;
   description?: InputMaybe<Scalars['String']['input']>;
   model?: InputMaybe<AiModel>;
   name?: InputMaybe<Scalars['String']['input']>;
   outputSchemaId?: InputMaybe<Scalars['ID']['input']>;
   sharingMode?: InputMaybe<SharingMode>;
-  templateText?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateQuestionInput = {
@@ -3094,7 +3120,7 @@ export type CreatePromptMutationVariables = Exact<{
 }>;
 
 
-export type CreatePromptMutation = { __typename?: 'Mutation', createPrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourcePromptId?: string | null | undefined, name: string, description?: string | null | undefined, templateText: string, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, config?: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined } | null | undefined, outputSchema?: { __typename?: 'StructuredOutputSchema', id: string, name: string, description?: string | null | undefined, schemaDefinition: any } | null | undefined } | null | undefined };
+export type CreatePromptMutation = { __typename?: 'Mutation', createPrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourcePromptId?: string | null | undefined, name: string, description?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, content: { __typename?: 'PromptContent', body: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined }, config?: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined } | null | undefined, outputSchema?: { __typename?: 'StructuredOutputSchema', id: string, name: string, description?: string | null | undefined, schemaDefinition: any } | null | undefined } | null | undefined };
 
 export type UpdatePromptMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -3102,21 +3128,14 @@ export type UpdatePromptMutationVariables = Exact<{
 }>;
 
 
-export type UpdatePromptMutation = { __typename?: 'Mutation', updatePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourcePromptId?: string | null | undefined, name: string, description?: string | null | undefined, templateText: string, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, config?: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined } | null | undefined, outputSchema?: { __typename?: 'StructuredOutputSchema', id: string, name: string, description?: string | null | undefined, schemaDefinition: any } | null | undefined } | null | undefined };
+export type UpdatePromptMutation = { __typename?: 'Mutation', updatePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourcePromptId?: string | null | undefined, name: string, description?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, content: { __typename?: 'PromptContent', body: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined }, config?: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined } | null | undefined, outputSchema?: { __typename?: 'StructuredOutputSchema', id: string, name: string, description?: string | null | undefined, schemaDefinition: any } | null | undefined } | null | undefined };
 
 export type DeletePromptMutationVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type DeletePromptMutation = { __typename?: 'Mutation', deletePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourcePromptId?: string | null | undefined, name: string, description?: string | null | undefined, templateText: string, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined } | null | undefined };
-
-export type ForkPromptMutationVariables = Exact<{
-  sourcePromptId: Scalars['ID']['input'];
-}>;
-
-
-export type ForkPromptMutation = { __typename?: 'Mutation', forkPrompt: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourcePromptId?: string | null | undefined, name: string, description?: string | null | undefined, templateText: string, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, config?: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined } | null | undefined, outputSchema?: { __typename?: 'StructuredOutputSchema', id: string, name: string, description?: string | null | undefined, schemaDefinition: any } | null | undefined } };
+export type DeletePromptMutation = { __typename?: 'Mutation', deletePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourcePromptId?: string | null | undefined, name: string, description?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, content: { __typename?: 'PromptContent', body: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined } } | null | undefined };
 
 export type SubmitAiQueryMutationVariables = Exact<{
   input: CreateAiQueryExecutionInput;
@@ -3470,7 +3489,7 @@ export type GetPromptQueryVariables = Exact<{
 }>;
 
 
-export type GetPromptQuery = { __typename?: 'Query', getPrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourcePromptId?: string | null | undefined, name: string, description?: string | null | undefined, templateText: string, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, config?: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined } | null | undefined, outputSchema?: { __typename?: 'StructuredOutputSchema', id: string, name: string, description?: string | null | undefined, schemaDefinition: any } | null | undefined } | null | undefined };
+export type GetPromptQuery = { __typename?: 'Query', getPrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourcePromptId?: string | null | undefined, name: string, description?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, content: { __typename?: 'PromptContent', body: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined }, config?: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined } | null | undefined, outputSchema?: { __typename?: 'StructuredOutputSchema', id: string, name: string, description?: string | null | undefined, schemaDefinition: any } | null | undefined } | null | undefined };
 
 export type ListPromptsQueryVariables = Exact<{
   scope?: InputMaybe<ListScope>;
@@ -3479,7 +3498,7 @@ export type ListPromptsQueryVariables = Exact<{
 }>;
 
 
-export type ListPromptsQuery = { __typename?: 'Query', listPrompts: { __typename?: 'PromptConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourcePromptId?: string | null | undefined, name: string, description?: string | null | undefined, templateText: string, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, config?: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined } | null | undefined, outputSchema?: { __typename?: 'StructuredOutputSchema', id: string, name: string, description?: string | null | undefined, schemaDefinition: any } | null | undefined }> } };
+export type ListPromptsQuery = { __typename?: 'Query', listPrompts: { __typename?: 'PromptConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourcePromptId?: string | null | undefined, name: string, description?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, content: { __typename?: 'PromptContent', body: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined }, config?: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined } | null | undefined, outputSchema?: { __typename?: 'StructuredOutputSchema', id: string, name: string, description?: string | null | undefined, schemaDefinition: any } | null | undefined }> } };
 
 export type GetScanQueryVariables = Exact<{
   key: CompositeKeyInput;
@@ -3729,21 +3748,21 @@ export type OnRestoreProjectSubscription = { __typename?: 'Subscription', onRest
 export type OnCreatePromptSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type OnCreatePromptSubscription = { __typename?: 'Subscription', onCreatePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourcePromptId?: string | null | undefined, name: string, description?: string | null | undefined, templateText: string, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, config?: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined } | null | undefined, outputSchema?: { __typename?: 'StructuredOutputSchema', id: string, name: string } | null | undefined } | null | undefined };
+export type OnCreatePromptSubscription = { __typename?: 'Subscription', onCreatePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourcePromptId?: string | null | undefined, name: string, description?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, content: { __typename?: 'PromptContent', body: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined }, config?: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined } | null | undefined, outputSchema?: { __typename?: 'StructuredOutputSchema', id: string, name: string } | null | undefined } | null | undefined };
 
 export type OnUpdatePromptSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnUpdatePromptSubscription = { __typename?: 'Subscription', onUpdatePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourcePromptId?: string | null | undefined, name: string, description?: string | null | undefined, templateText: string, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, config?: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined } | null | undefined, outputSchema?: { __typename?: 'StructuredOutputSchema', id: string, name: string } | null | undefined } | null | undefined };
+export type OnUpdatePromptSubscription = { __typename?: 'Subscription', onUpdatePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourcePromptId?: string | null | undefined, name: string, description?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, content: { __typename?: 'PromptContent', body: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined }, config?: { __typename?: 'GeminiConfig', temperature?: number | null | undefined, topP?: number | null | undefined, topK?: number | null | undefined, maxOutputTokens?: number | null | undefined, stopSequences?: Array<string> | null | undefined } | null | undefined, outputSchema?: { __typename?: 'StructuredOutputSchema', id: string, name: string } | null | undefined } | null | undefined };
 
 export type OnDeletePromptSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnDeletePromptSubscription = { __typename?: 'Subscription', onDeletePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourcePromptId?: string | null | undefined, name: string, description?: string | null | undefined, templateText: string, version?: number | null | undefined, isActive?: boolean | null | undefined } | null | undefined };
+export type OnDeletePromptSubscription = { __typename?: 'Subscription', onDeletePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourcePromptId?: string | null | undefined, name: string, description?: string | null | undefined, version?: number | null | undefined, isActive?: boolean | null | undefined, content: { __typename?: 'PromptContent', body: string, systemInstruction?: string | null | undefined } } | null | undefined };
 
 export type OnCreateScanSubscriptionVariables = Exact<{
   parentId?: InputMaybe<Scalars['ID']['input']>;
@@ -3909,7 +3928,6 @@ export declare const RestoreProject: import("graphql").DocumentNode;
 export declare const CreatePrompt: import("graphql").DocumentNode;
 export declare const UpdatePrompt: import("graphql").DocumentNode;
 export declare const DeletePrompt: import("graphql").DocumentNode;
-export declare const ForkPrompt: import("graphql").DocumentNode;
 export declare const SubmitAIQuery: import("graphql").DocumentNode;
 export declare const CreateScan: import("graphql").DocumentNode;
 export declare const UpdateScan: import("graphql").DocumentNode;

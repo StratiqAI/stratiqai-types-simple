@@ -18,7 +18,11 @@ export const S_ON_CREATE_PROMPT = gql`
       sourcePromptId
       name
       description
-      templateText
+      content {
+        body
+        systemInstruction
+        inputVariables
+      }
       inputVariables
       model
       config {
@@ -52,7 +56,11 @@ export const S_ON_UPDATE_PROMPT = gql`
       sourcePromptId
       name
       description
-      templateText
+      content {
+        body
+        systemInstruction
+        inputVariables
+      }
       inputVariables
       model
       config {
@@ -86,7 +94,10 @@ export const S_ON_DELETE_PROMPT = gql`
       sourcePromptId
       name
       description
-      templateText
+      content {
+        body
+        systemInstruction
+      }
       version
       isActive
     }

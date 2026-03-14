@@ -18,7 +18,11 @@ export const Q_GET_PROMPT = gql`
       sourcePromptId
       name
       description
-      templateText
+      content {
+        body
+        systemInstruction
+        inputVariables
+      }
       inputVariables
       model
       config {
@@ -55,7 +59,11 @@ export const Q_LIST_PROMPTS = gql`
         sourcePromptId
         name
         description
-        templateText
+        content {
+          body
+          systemInstruction
+          inputVariables
+        }
         inputVariables
         model
         config {

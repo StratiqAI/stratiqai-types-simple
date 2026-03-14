@@ -18,7 +18,7 @@ export * from "./operations.js";
 // Re-export generated types for convenience
 // This ensures consumers get type-safe operations
 export type * from "./generated/types.js";
- 
+
 // Re-export EventBridge interfaces for convenience
 export type { S3ObjectCreatedDetailData, S3ObjectCreatedDetail } from "./events/aws.s3/interfaces.js";
 export type { PdfImagesCompletePayload, EmbeddingResultPayload } from "./events/embeddings/interfaces.js";

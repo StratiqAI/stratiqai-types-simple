@@ -176,6 +176,8 @@ Supported Gemini models. Backend maps enum to API model ID
 (e.g. GEMINI_2_5_FLASH -> "gemini-2.5-flash").
 """
 enum AIModel {
+  GEMINI_3_1_PRO_PREVIEW
+  GEMINI_3_1_FLASH_PREVIEW
   GEMINI_3_PRO_PREVIEW
   GEMINI_3_FLASH_PREVIEW
   GEMINI_2_5_FLASH
@@ -329,10 +331,26 @@ type Prompt implements Node & Metadata & Shareable
   """
   isActive: Boolean
   """
-  Structured output schema enforced for this prompt. Resolved from outputSchemaId.
+  Structured output schema for this prompt (inline). Defines the structure expected from the AI.
   """
-  outputSchemaId: ID
-  outputSchema: StructuredOutputSchema
+  outputSchema: PromptOutputSchema
+}
+
+"""
+Structured output schema for a prompt (inline object). Defines the structure expected from the AI.
+Maps to Gemini responseSchema.
+"""
+type PromptOutputSchema
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  name: String!
+  description: String
+  """
+  JSON Schema definition (OpenAPI 3.0 compatible). Used to validate AI output.
+  """
+  schemaDefinition: AWSJSON!
 }
 
 type PromptConnection
@@ -1064,45 +1082,18 @@ type PromptContent
   @aws_cognito_user_pools(
     cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
   ) {
-  """Main user prompt text; may contain {{ variableName }} placeholders."""
+  """
+  Main user prompt text; may contain {{ variableName }} placeholders.
+  """
   body: String!
-  """Optional system instruction for the model."""
+  """
+  Optional system instruction for the model.
+  """
   systemInstruction: String
-  """Variable names; read-only/derived when not provided on create."""
+  """
+  Variable names; read-only/derived when not provided on create.
+  """
   inputVariables: [String!]
-}
-
-"""
-Persistable structured output schema (tenant-scoped). Defines the structure
-expected from the AI. Maps to Gemini responseSchema.
-"""
-type StructuredOutputSchema implements Node & Metadata
-  @aws_iam
-  @aws_cognito_user_pools(
-    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
-  ) {
-  id: ID!
-  entityType: EntityType!
-  tenantId: ID!
-  ownerId: ID!
-  createdAt: AWSDateTime!
-  updatedAt: AWSDateTime!
-  deletedAt: AWSDateTime
-  name: String!
-  description: String
-  """
-  JSON Schema definition (OpenAPI 3.0 compatible). Used to validate AI output.
-  """
-  schemaDefinition: AWSJSON!
-}
-
-type StructuredOutputSchemaConnection
-  @aws_iam
-  @aws_cognito_user_pools(
-    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
-  ) {
-  items: [StructuredOutputSchema!]!
-  nextToken: String
 }
 
 # Workflow definition: nodes and edges (layout lives in Workflow.ui).
@@ -1532,8 +1523,8 @@ input PromptContentInput {
   inputVariables: [String!]
 }
 
-# AI STUDIO: Structured output schema (tenant-scoped entity)
-input CreateStructuredOutputSchemaInput {
+# AI STUDIO: Inline structured output schema for prompts
+input PromptOutputSchemaInput {
   name: String!
   description: String
   schemaDefinition: AWSJSON!
@@ -1547,9 +1538,9 @@ input CreatePromptInput {
   model: AIModel = GEMINI_2_5_FLASH
   config: GeminiConfigInput
   """
-  Optional; free-form prompts may omit. Required for structured output execution.
+  Optional; inline structured output schema for this prompt. Required for structured output execution.
   """
-  outputSchemaId: ID
+  outputSchema: PromptOutputSchemaInput
   sharingMode: SharingMode = PRIVATE
   """
   Set when copying a shared prompt: ID of the prompt this copy was created from.
@@ -1563,7 +1554,10 @@ input UpdatePromptInput {
   content: PromptContentInput
   model: AIModel
   config: GeminiConfigInput
-  outputSchemaId: ID
+  """
+  Optional; inline structured output schema for this prompt.
+  """
+  outputSchema: PromptOutputSchemaInput
   sharingMode: SharingMode
 }
 
@@ -2283,21 +2277,6 @@ type Query {
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
 
-  # AI STUDIO: Structured output schemas (tenant-scoped)
-  getStructuredOutputSchema(id: ID!): StructuredOutputSchema
-    @aws_iam
-    @aws_cognito_user_pools(
-      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
-    )
-  listStructuredOutputSchemas(
-    limit: Int
-    nextToken: String
-  ): StructuredOutputSchemaConnection!
-    @aws_iam
-    @aws_cognito_user_pools(
-      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
-    )
-
   """
   Get a single Prompt by ID (root entity).
   """
@@ -2748,28 +2727,6 @@ type Mutation {
 
   # Delete: Uses Composite Key to access Main Table
   deleteNotification(key: CompositeKeyInput!): Notification @aws_iam
-
-  # AI STUDIO: Structured output schema operations
-  createStructuredOutputSchema(
-    input: CreateStructuredOutputSchemaInput!
-  ): StructuredOutputSchema
-    @aws_iam
-    @aws_cognito_user_pools(
-      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
-    )
-  updateStructuredOutputSchema(
-    id: ID!
-    input: CreateStructuredOutputSchemaInput!
-  ): StructuredOutputSchema
-    @aws_iam
-    @aws_cognito_user_pools(
-      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
-    )
-  deleteStructuredOutputSchema(id: ID!): StructuredOutputSchema
-    @aws_iam
-    @aws_cognito_user_pools(
-      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
-    )
 
   # AI STUDIO: Prompt operations (root entity)
   createPrompt(input: CreatePromptInput!): Prompt

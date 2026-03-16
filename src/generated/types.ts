@@ -55,29 +55,23 @@ export type AiQueryExecution = Metadata & Node & {
   candidatesTokenCount?: Maybe<Scalars['Int']['output']>;
   createdAt: Scalars['AWSDateTime']['output'];
   deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
-  /** Duration in ms when execution completes (null while PENDING/PROCESSING). */
+  documentIds?: Maybe<Array<Maybe<Scalars['ID']['output']>>>;
   durationMs?: Maybe<Scalars['Int']['output']>;
   entityType: EntityType;
   errorMessage?: Maybe<Scalars['String']['output']>;
-  /** Set when execution completes (null while PENDING/PROCESSING). */
+  /** AI Auditing Fields */
   executedAt?: Maybe<Scalars['AWSDateTime']['output']>;
-  /** For backward compatibility: executionId alias. */
-  executionId?: Maybe<Scalars['ID']['output']>;
+  /** AI Query fields */
+  executionId: Scalars['ID']['output'];
   /** Node & Metadata fields */
   id: Scalars['ID']['output'];
-  /** Variable values passed (e.g. { \"topic\": \"Sunsets\" }). */
+  /** Prompt input fields */
   inputValues: Scalars['AWSJSON']['output'];
   ownerId: Scalars['ID']['output'];
-  pineconeNamespace?: Maybe<Scalars['ID']['output']>;
-  pineconeNamespaces?: Maybe<Array<Maybe<Scalars['ID']['output']>>>;
-  /** Project ID for the execution. */
-  projectId?: Maybe<Scalars['ID']['output']>;
-  /** Prompt used for this execution. Resolved from promptId when requested. */
-  prompt?: Maybe<Prompt>;
-  /** Prompt ID for the execution. */
-  promptId?: Maybe<Scalars['ID']['output']>;
+  /** Project fields */
+  projectId: Scalars['ID']['output'];
+  promptId: Scalars['ID']['output'];
   promptTokenCount?: Maybe<Scalars['Int']['output']>;
-  question?: Maybe<Scalars['String']['output']>;
   rawOutput?: Maybe<Scalars['String']['output']>;
   status: ExecutionStatus;
   tenantId: Scalars['ID']['output'];
@@ -247,14 +241,17 @@ export type CompositeKeyInput = {
 };
 
 export type CreateAiQueryExecutionInput = {
+  documentIds?: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>;
   /** Optional idempotency key; if omitted a new id is generated. */
-  executionId?: InputMaybe<Scalars['ID']['input']>;
+  executionId: Scalars['ID']['input'];
+  /** Visual RAG fields */
   inputValues: Scalars['AWSJSON']['input'];
   /** When provided (e.g. by submitAIQuery Lambda using IAM), used as owner; otherwise from identity. */
   ownerId?: InputMaybe<Scalars['ID']['input']>;
   pineconeNamespace?: InputMaybe<Scalars['String']['input']>;
   pineconeNamespaces?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
-  projectId?: InputMaybe<Scalars['ID']['input']>;
+  /** Project fields */
+  projectId: Scalars['ID']['input'];
   promptId: Scalars['ID']['input'];
   /** When provided (e.g. by submitAIQuery Lambda using IAM), used as tenant; otherwise from identity. */
   tenantId?: InputMaybe<Scalars['ID']['input']>;
@@ -637,21 +634,6 @@ export type DocumentSearchResult = {
   documentId: Scalars['ID']['output'];
   pageNum: Scalars['Int']['output'];
   snippet: Scalars['String']['output'];
-};
-
-export type DocumentVisionQueryInput = {
-  documentIds: Array<Scalars['ID']['input']>;
-  question: Scalars['String']['input'];
-  responseJsonSchema?: InputMaybe<Scalars['AWSJSON']['input']>;
-  topK?: InputMaybe<Scalars['Int']['input']>;
-  topKPerNs?: InputMaybe<Scalars['Int']['input']>;
-};
-
-export type DocumentVisionQueryResult = {
-  __typename?: 'DocumentVisionQueryResult';
-  answer: Scalars['String']['output'];
-  matchCount: Scalars['Int']['output'];
-  structuredOutput?: Maybe<Scalars['AWSJSON']['output']>;
 };
 
 export type EmptyNodeConfig = {
@@ -1680,8 +1662,6 @@ export type PromptOutputSchemaInput = {
 
 export type Query = {
   __typename?: 'Query';
-  /** Vision RAG: query Pinecone for relevant images by documentIds (from Project doclinks), then Gemini. Returns answer and optional structured output. */
-  documentVisionQuery: DocumentVisionQueryResult;
   /** Get a single AIQueryExecution by id. */
   getAIQueryExecution?: Maybe<AiQueryExecution>;
   getAccountCredits?: Maybe<AccountCredits>;
@@ -1770,11 +1750,6 @@ export type Query = {
    * Implement via Lambda that queries Text by deal documentIds and filters by contains(text, query).
    */
   searchDocuments: Array<DocumentSearchResult>;
-};
-
-
-export type QueryDocumentVisionQueryArgs = {
-  input: DocumentVisionQueryInput;
 };
 
 
@@ -3099,7 +3074,7 @@ export type SubmitAiQueryMutationVariables = Exact<{
 }>;
 
 
-export type SubmitAiQueryMutation = { __typename?: 'Mutation', submitAIQuery: { __typename?: 'AIQueryExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, executedAt?: string | null | undefined, durationMs?: number | null | undefined, inputValues: any, rawOutput?: string | null | undefined, promptId?: string | null | undefined, promptTokenCount?: number | null | undefined, candidatesTokenCount?: number | null | undefined, totalTokenCount?: number | null | undefined, status: ExecutionStatus, errorMessage?: string | null | undefined } };
+export type SubmitAiQueryMutation = { __typename?: 'Mutation', submitAIQuery: { __typename?: 'AIQueryExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, executedAt?: string | null | undefined, durationMs?: number | null | undefined, inputValues: any, rawOutput?: string | null | undefined, promptId: string, promptTokenCount?: number | null | undefined, candidatesTokenCount?: number | null | undefined, totalTokenCount?: number | null | undefined, status: ExecutionStatus, errorMessage?: string | null | undefined } };
 
 export type CreateScanMutationVariables = Exact<{
   input: CreateScanInput;
@@ -3350,13 +3325,6 @@ export type ListDocumentsQueryVariables = Exact<{
 
 
 export type ListDocumentsQuery = { __typename?: 'Query', listDocuments: { __typename?: 'DocumentConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Document', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined }> } };
-
-export type DocumentVisionQueryQueryVariables = Exact<{
-  input: DocumentVisionQueryInput;
-}>;
-
-
-export type DocumentVisionQueryQuery = { __typename?: 'Query', documentVisionQuery: { __typename?: 'DocumentVisionQueryResult', answer: string, structuredOutput?: any | null | undefined, matchCount: number } };
 
 export type GetImageQueryVariables = Exact<{
   key: CompositeKeyInput;
@@ -3882,7 +3850,6 @@ export declare const GetDoclink: import("graphql").DocumentNode;
 export declare const ListDoclinks: import("graphql").DocumentNode;
 export declare const GetDocument: import("graphql").DocumentNode;
 export declare const ListDocuments: import("graphql").DocumentNode;
-export declare const DocumentVisionQuery: import("graphql").DocumentNode;
 export declare const GetImage: import("graphql").DocumentNode;
 export declare const ListImages: import("graphql").DocumentNode;
 export declare const GetNotification: import("graphql").DocumentNode;

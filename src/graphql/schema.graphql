@@ -382,52 +382,52 @@ type AIQueryExecution implements Node & Metadata
   deletedAt: AWSDateTime
 
   """
-  For backward compatibility: executionId alias.
+  Project fields
   """
-  executionId: ID
+  projectId: ID! # Every AI execution is associated with a project.
+  """
+  AI Query fields
+  """
+  executionId: ID! # Unique identifier created by the client to track the execution.
+  promptId: ID! # ID of the prompt used for this execution.
+  """
+  Prompt input fields
+  """
+  inputValues: AWSJSON! # Every prompt has input variables that are passed to the prompt.
+  documentIds: [ID] # IDs of the documents for the visual RAG
+  topK: Int # Number of documents to return from the visual RAG.
+  topKPerNs: Int # Number of documents to return from each namespace in the visual RAG.
+  """
+  AI Auditing Fields
+  """
+  executedAt: AWSDateTime # Set when execution completes (null while PENDING/PROCESSING).
+  durationMs: Int # Duration in ms when execution completes (null while PENDING/PROCESSING).
+  rawOutput: String # Raw output from the AI.
+  promptTokenCount: Int # Number of tokens used by the prompt.
+  candidatesTokenCount: Int # Number of tokens used by the candidates.
+  totalTokenCount: Int # Total number of tokens used by the execution.
+  status: ExecutionStatus! # Status of the execution.
+  errorMessage: String # Error message if the execution failed.
+}
 
+# Create an AIQueryExecution record (e.g. before submitAIQuery or for async execution).
+input CreateAIQueryExecutionInput {
   """
-  Prompt ID for the execution.
+  Project fields
   """
-  promptId: ID
+  projectId: ID! # Every AI execution is associated with a project.
   """
-  Prompt used for this execution. Resolved from promptId when requested.
+  AI Query fields
   """
-  prompt: Prompt
-
+  executionId: ID! # Unique identifier created by the client to track the execution.
+  promptId: ID! # ID of the prompt used for this execution.
   """
-  Project ID for the execution.
+  Visual RAG fields
   """
-  projectId: ID
-
-  question: String
-
-  pineconeNamespaces: [ID]
-
-  pineconeNamespace: ID
-
-  topK: Int
-
-  topKPerNs: Int
-
-  """
-  Set when execution completes (null while PENDING/PROCESSING).
-  """
-  executedAt: AWSDateTime
-  """
-  Duration in ms when execution completes (null while PENDING/PROCESSING).
-  """
-  durationMs: Int
-  """
-  Variable values passed (e.g. { \"topic\": \"Sunsets\" }).
-  """
-  inputValues: AWSJSON!
-  rawOutput: String
-  promptTokenCount: Int
-  candidatesTokenCount: Int
-  totalTokenCount: Int
-  status: ExecutionStatus!
-  errorMessage: String
+  inputValues: AWSJSON! # Every prompt has input variables that are passed to the prompt.
+  documentIds: [ID] # IDs of the documents for the visual RAG.
+  topK: Int # Number of documents to return from the visual RAG.
+  topKPerNs: Int # Number of documents to return from each namespace in the visual RAG.
 }
 
 type AIQueryExecutionConnection
@@ -570,21 +570,6 @@ type DocumentSearchResult {
   documentId: ID!
   pageNum: Int!
   snippet: String!
-}
-
-# Vision RAG: query Pinecone by documentId namespaces (from Project doclinks), then Gemini with images
-input DocumentVisionQueryInput {
-  documentIds: [ID!]!
-  question: String!
-  responseJsonSchema: AWSJSON
-  topK: Int
-  topKPerNs: Int
-}
-
-type DocumentVisionQueryResult {
-  answer: String!
-  structuredOutput: AWSJSON
-  matchCount: Int!
 }
 
 # Broker intelligence: aggregated per-buyer engagement (from AuditLogEntry)
@@ -2177,17 +2162,6 @@ type Query {
     query: String!
     limit: Int
   ): [DocumentSearchResult!]!
-    @aws_iam
-    @aws_cognito_user_pools(
-      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
-    )
-
-  """
-  Vision RAG: query Pinecone for relevant images by documentIds (from Project doclinks), then Gemini. Returns answer and optional structured output.
-  """
-  documentVisionQuery(
-    input: DocumentVisionQueryInput!
-  ): DocumentVisionQueryResult!
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]

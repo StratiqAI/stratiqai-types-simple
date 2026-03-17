@@ -410,26 +410,6 @@ type AIQueryExecution implements Node & Metadata
   errorMessage: String # Error message if the execution failed.
 }
 
-# Create an AIQueryExecution record (e.g. before submitAIQuery or for async execution).
-input CreateAIQueryExecutionInput {
-  """
-  Project fields
-  """
-  projectId: ID! # Every AI execution is associated with a project.
-  """
-  AI Query fields
-  """
-  executionId: ID! # Unique identifier created by the client to track the execution.
-  promptId: ID! # ID of the prompt used for this execution.
-  """
-  Visual RAG fields
-  """
-  inputValues: AWSJSON! # Every prompt has input variables that are passed to the prompt.
-  documentIds: [ID] # IDs of the documents for the visual RAG.
-  topK: Int # Number of documents to return from the visual RAG.
-  topKPerNs: Int # Number of documents to return from each namespace in the visual RAG.
-}
-
 type AIQueryExecutionConnection
   @aws_iam
   @aws_cognito_user_pools(
@@ -1548,29 +1528,22 @@ input UpdatePromptInput {
 
 # Create an AIQueryExecution record (e.g. before submitAIQuery or for async execution).
 input CreateAIQueryExecutionInput {
-  promptId: ID!
-  inputValues: AWSJSON!
   """
-  Optional idempotency key; if omitted a new id is generated.
+  Project fields
   """
-  executionId: ID
-  projectId: ID
+  projectId: ID! # Every AI execution is associated with a project.
   """
-  When provided (e.g. by submitAIQuery Lambda using IAM), used as tenant; otherwise from identity.
+  AI Query fields
   """
-  tenantId: ID
+  executionId: ID! # Unique identifier created by the client to track the execution.
+  promptId: ID! # ID of the prompt used for this execution.
   """
-  When provided (e.g. by submitAIQuery Lambda using IAM), used as owner; otherwise from identity.
+  Visual RAG fields
   """
-  ownerId: ID
-
-  pineconeNamespaces: [String]
-
-  pineconeNamespace: String
-
-  topK: Int
-
-  topKPerNs: Int
+  inputValues: AWSJSON! # Every prompt has input variables that are passed to the prompt.
+  documentIds: [ID] # IDs of the documents for the visual RAG.
+  topK: Int # Number of documents to return from the visual RAG.
+  topKPerNs: Int # Number of documents to return from each namespace in the visual RAG.
 }
 
 # AI STUDIO: Worker updates execution result (status, output, tokens, etc.)

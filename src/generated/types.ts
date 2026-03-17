@@ -242,19 +242,13 @@ export type CompositeKeyInput = {
 
 export type CreateAiQueryExecutionInput = {
   documentIds?: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>;
-  /** Optional idempotency key; if omitted a new id is generated. */
+  /** AI Query fields */
   executionId: Scalars['ID']['input'];
   /** Visual RAG fields */
   inputValues: Scalars['AWSJSON']['input'];
-  /** When provided (e.g. by submitAIQuery Lambda using IAM), used as owner; otherwise from identity. */
-  ownerId?: InputMaybe<Scalars['ID']['input']>;
-  pineconeNamespace?: InputMaybe<Scalars['String']['input']>;
-  pineconeNamespaces?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   /** Project fields */
   projectId: Scalars['ID']['input'];
   promptId: Scalars['ID']['input'];
-  /** When provided (e.g. by submitAIQuery Lambda using IAM), used as tenant; otherwise from identity. */
-  tenantId?: InputMaybe<Scalars['ID']['input']>;
   topK?: InputMaybe<Scalars['Int']['input']>;
   topKPerNs?: InputMaybe<Scalars['Int']['input']>;
 };

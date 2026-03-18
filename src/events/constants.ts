@@ -11,6 +11,7 @@ export const EVENT_SOURCES = {
   DOCUMENT_TEXT_UPSERT: 'com.stratiqai.document.text_upsert',
   DOCUMENT_EMBEDDINGS: 'com.stratiqai.document.embeddings',
   DOCUMENT_PROCESSING: 'com.stratiqai.document.processing',
+  AI_QUERY_SUBMIT: 'com.stratiqai.aiQuerySubmit',
   DOCLINK: 'com.stratiqai.doclink',
   SCAN: 'com.stratiqai.scan',
   AI_QUERY: 'com.stratiqai.ai_query',

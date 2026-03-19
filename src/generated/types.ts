@@ -408,16 +408,20 @@ export type CreateProjectInput = {
 };
 
 export type CreatePromptInput = {
-  config?: InputMaybe<GeminiConfigInput>;
-  content: PromptContentInput;
   description?: InputMaybe<Scalars['String']['input']>;
+  /** Variable names; optional on create (derived from prompt when not provided). */
+  inputVariables?: InputMaybe<Array<Scalars['String']['input']>>;
   model?: InputMaybe<AiModel>;
   name: Scalars['String']['input'];
   /** Optional; inline structured output schema for this prompt. Required for structured output execution. */
   outputSchema?: InputMaybe<PromptOutputSchemaInput>;
+  /** Main user prompt text; may contain {{ variableName }} placeholders. */
+  prompt: Scalars['String']['input'];
   sharingMode?: InputMaybe<SharingMode>;
   /** Set when copying a shared prompt: ID of the prompt this copy was created from. */
   sourcePromptId?: InputMaybe<Scalars['ID']['input']>;
+  /** Optional system instruction for the model. */
+  systemInstruction?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateQuestionInput = {
@@ -1589,7 +1593,7 @@ export type Prompt = Metadata & Node & Shareable & {
   inputVariables?: Maybe<Array<Scalars['String']['output']>>;
   /** When false, prompt may be excluded from lists or execution; reserved for future use. */
   isActive?: Maybe<Scalars['Boolean']['output']>;
-  /** Read-only; derived from content.body when possible. */
+  /** Read-only; derived from prompt when possible. */
   model: AiModel;
   /** When set, this prompt is a user-owned copy forked from another (the original remains shared). */
   name: Scalars['String']['output'];
@@ -1632,12 +1636,6 @@ export type PromptContent = {
   inputVariables?: Maybe<Array<Scalars['String']['output']>>;
   /** Optional system instruction for the model. */
   systemInstruction?: Maybe<Scalars['String']['output']>;
-};
-
-export type PromptContentInput = {
-  body: Scalars['String']['input'];
-  inputVariables?: InputMaybe<Array<Scalars['String']['input']>>;
-  systemInstruction?: InputMaybe<Scalars['String']['input']>;
 };
 
 /**
@@ -2606,14 +2604,18 @@ export type UpdateProjectInput = {
 };
 
 export type UpdatePromptInput = {
-  config?: InputMaybe<GeminiConfigInput>;
-  content?: InputMaybe<PromptContentInput>;
   description?: InputMaybe<Scalars['String']['input']>;
+  /** Variable names; optional (derived from prompt when not provided). */
+  inputVariables?: InputMaybe<Array<Scalars['String']['input']>>;
   model?: InputMaybe<AiModel>;
   name?: InputMaybe<Scalars['String']['input']>;
   /** Optional; inline structured output schema for this prompt. */
   outputSchema?: InputMaybe<PromptOutputSchemaInput>;
+  /** Main user prompt text; may contain {{ variableName }} placeholders. */
+  prompt?: InputMaybe<Scalars['String']['input']>;
   sharingMode?: InputMaybe<SharingMode>;
+  /** Optional system instruction for the model. */
+  systemInstruction?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateQuestionInput = {

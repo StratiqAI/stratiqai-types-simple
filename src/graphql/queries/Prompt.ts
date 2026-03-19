@@ -25,8 +25,6 @@ export const PROMPT_FIELDS = gql`
     version
     isActive
     outputSchema {
-      name
-      description
       schemaDefinition
     }
   }

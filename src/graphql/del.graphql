@@ -1,0 +1,65 @@
+mutation createPrompt {
+  createPrompt(
+    input: {
+      name: "Test Prompt"
+      model: GEMINI_3_1_FLASH_PREVIEW
+      prompt: "Extract information about the brokers in this document"
+      outputSchema: {
+        name: "Test Schema"
+        schemaDefinition: "\"{\\r\\n  \\\"$id\\\": \\\"https://example.com/person.schema.json\\\",\\r\\n  \\\"$schema\\\": \\\"https://json-schema.org/draft/2020-12/schema\\\",\\r\\n  \\\"title\\\": \\\"Person\\\",\\r\\n  \\\"type\\\": \\\"object\\\",\\r\\n  \\\"properties\\\": {\\r\\n    \\\"firstName\\\": {\\r\\n      \\\"type\\\": \\\"string\\\",\\r\\n      \\\"description\\\": \\\"The person's first name.\\\"\\r\\n    },\\r\\n    \\\"lastName\\\": {\\r\\n      \\\"type\\\": \\\"string\\\",\\r\\n      \\\"description\\\": \\\"The person's last name.\\\"\\r\\n    },\\r\\n    \\\"email\\\": {\\r\\n      \\\"description\\\": \\\"The person's email address.\\\",\\r\\n      \\\"type\\\": \\\"string\\\"\\r\\n    }\\r\\n  }\\r\\n}\""
+      }
+    }
+  ) {
+    id
+    name
+    model
+    version
+    updatedAt
+    tenantId
+    sharingMode
+    ownerId
+    outputSchema {
+      schemaDefinition
+    }
+    isActive
+    inputVariables
+    entityType
+    description
+    deletedAt
+    createdAt
+  }
+}
+
+mutation createAIQueryExecution {
+  createAIQueryExecution(
+    input: {
+      projectId: "aeb6ad89-9453-40a5-8a71-857f97e883a4"
+      executionId: "1b7c4120-4b61-44c7-b26d-21e2330e44e3"
+      promptId: "2b7c4120-4b61-44c7-b26d-21e2330e44e4"
+      inputValues: "{}"
+    }
+  ) {
+    id
+    inputValues
+    executionId
+    promptId
+    status
+    candidatesTokenCount
+    createdAt
+    deletedAt
+    documentIds
+    durationMs
+    entityType
+    errorMessage
+    executedAt
+    ownerId
+    projectId
+    rawOutput
+    promptTokenCount
+    tenantId
+    topK
+    topKPerNs
+    totalTokenCount
+    updatedAt
+  }
+}

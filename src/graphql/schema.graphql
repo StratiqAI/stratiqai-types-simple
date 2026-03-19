@@ -325,10 +325,9 @@ type Prompt implements Node & Metadata & Shareable
   """
   inputVariables: [String!]
   """
-  Read-only; derived from content.body when possible.
+  Read-only; derived from prompt when possible.
   """
   model: AIModel!
-  # config: GeminiConfig
   """
   Server-managed version number; reserved for future use.
   """
@@ -352,8 +351,6 @@ type PromptOutputSchema
   @aws_cognito_user_pools(
     cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
   ) {
-  name: String!
-  description: String
   """
   JSON Schema definition (OpenAPI 3.0 compatible). Used to validate AI output.
   """
@@ -1489,12 +1486,6 @@ input GeminiConfigInput {
   stopSequences: [String!]
 }
 
-input PromptContentInput {
-  body: String!
-  systemInstruction: String
-  inputVariables: [String!]
-}
-
 # AI STUDIO: Inline structured output schema for prompts
 input PromptOutputSchemaInput {
   name: String!
@@ -1502,13 +1493,23 @@ input PromptOutputSchemaInput {
   schemaDefinition: AWSJSON!
 }
 
-# AI STUDIO: Prompt inputs (root entity; owner from auth)
+# AI STUDIO: Prompt inputs (root entity; owner from auth). Flat fields aligned with Prompt type.
 input CreatePromptInput {
   name: String!
   description: String
-  content: PromptContentInput!
+  """
+  Main user prompt text; may contain {{ variableName }} placeholders.
+  """
+  prompt: String!
+  """
+  Optional system instruction for the model.
+  """
+  systemInstruction: String
+  """
+  Variable names; optional on create (derived from prompt when not provided).
+  """
+  inputVariables: [String!]
   model: AIModel = GEMINI_2_5_FLASH
-  config: GeminiConfigInput
   """
   Optional; inline structured output schema for this prompt. Required for structured output execution.
   """
@@ -1523,9 +1524,19 @@ input CreatePromptInput {
 input UpdatePromptInput {
   name: String
   description: String
-  content: PromptContentInput
+  """
+  Main user prompt text; may contain {{ variableName }} placeholders.
+  """
+  prompt: String
+  """
+  Optional system instruction for the model.
+  """
+  systemInstruction: String
+  """
+  Variable names; optional (derived from prompt when not provided).
+  """
+  inputVariables: [String!]
   model: AIModel
-  config: GeminiConfigInput
   """
   Optional; inline structured output schema for this prompt.
   """

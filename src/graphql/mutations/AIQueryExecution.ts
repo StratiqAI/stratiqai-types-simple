@@ -27,12 +27,7 @@ const AI_QUERY_EXECUTION_FIELDS = `
   totalTokenCount
   status
   errorMessage
-  prompt {
-    id
-    name
-    version
-    sourcePromptId
-  }
+  promptId
 `;
 
 /**

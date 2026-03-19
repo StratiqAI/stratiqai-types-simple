@@ -16,23 +16,12 @@ export const PROMPT_FIELDS = gql`
     updatedAt
     deletedAt
     sharingMode
-    sourcePromptId
     name
     description
-    content {
-      body
-      systemInstruction
-      inputVariables
-    }
+    prompt
+    systemInstruction
     inputVariables
     model
-    config {
-      temperature
-      topP
-      topK
-      maxOutputTokens
-      stopSequences
-    }
     version
     isActive
     outputSchema {

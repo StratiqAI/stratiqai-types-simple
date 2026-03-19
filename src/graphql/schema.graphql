@@ -309,19 +309,26 @@ type Prompt implements Node & Metadata & Shareable
   """
   When set, this prompt is a user-owned copy forked from another (the original remains shared).
   """
-  sourcePromptId: ID
+  # sourcePromptId: ID
   name: String!
   description: String
   """
-  Structured content (body, systemInstruction). Execution uses content.body and content.systemInstruction with variable substitution.
+  Main user prompt text; may contain {{ variableName }} placeholders.
   """
-  content: PromptContent!
+  prompt: String!
+  """
+  Optional system instruction for the model.
+  """
+  systemInstruction: String
+  """
+  Variable names; read-only/derived when not provided on create.
+  """
+  inputVariables: [String!]
   """
   Read-only; derived from content.body when possible.
   """
-  inputVariables: [String!]
   model: AIModel!
-  config: GeminiConfig
+  # config: GeminiConfig
   """
   Server-managed version number; reserved for future use.
   """
@@ -1544,6 +1551,11 @@ input CreateAIQueryExecutionInput {
   documentIds: [ID] # IDs of the documents for the visual RAG.
   topK: Int # Number of documents to return from the visual RAG.
   topKPerNs: Int # Number of documents to return from each namespace in the visual RAG.
+  """
+  Optional: when provided (e.g. by submitAIQuery Lambda using IAM), used as tenant/owner; otherwise from identity.
+  """
+  tenantId: ID
+  ownerId: ID
 }
 
 # AI STUDIO: Worker updates execution result (status, output, tokens, etc.)

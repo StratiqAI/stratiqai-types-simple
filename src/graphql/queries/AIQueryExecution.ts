@@ -2,30 +2,32 @@ import { gql } from 'graphql-tag';
 
 /**
  * GraphQL Queries for AI Studio AIQueryExecution (standard Node: get + list)
+ *
+ * Selection set matches GraphQL type `AIQueryExecution` in `schema.graphql`.
  */
-
-const AI_QUERY_EXECUTION_FIELDS = `
+export const AI_QUERY_EXECUTION_FIELDS = `
   id
   entityType
   tenantId
   ownerId
   createdAt
   updatedAt
+  deletedAt
+  projectId
+  executionId
+  promptId
+  inputValues
+  documentIds
+  topK
+  topKPerNs
   executedAt
   durationMs
-  inputValues
   rawOutput
   promptTokenCount
   candidatesTokenCount
   totalTokenCount
   status
   errorMessage
-  prompt {
-    id
-    name
-    version
-    sourcePromptId
-  }
 `;
 
 export const Q_GET_AI_QUERY_EXECUTION = gql`
@@ -48,11 +50,11 @@ export const Q_LIST_AI_QUERY_EXECUTIONS = gql`
 `;
 
 /**
- * List execution history (optionally by promptId). Alias for listAIQueryExecutions.
+ * Same data as {@link Q_LIST_AI_QUERY_EXECUTIONS}; schema exposes history via `listAIQueryExecutions` only.
  */
 export const Q_GET_EXECUTION_HISTORY = gql`
   query GetExecutionHistory($promptId: ID, $limit: Int, $nextToken: String) {
-    getExecutionHistory(promptId: $promptId, limit: $limit, nextToken: $nextToken) {
+    listAIQueryExecutions(promptId: $promptId, limit: $limit, nextToken: $nextToken) {
       items {
         ${AI_QUERY_EXECUTION_FIELDS}
       }

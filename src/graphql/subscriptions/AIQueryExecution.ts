@@ -1,33 +1,11 @@
 import { gql } from 'graphql-tag';
 
+import { AI_QUERY_EXECUTION_FIELDS } from '../queries/AIQueryExecution.js';
+
 /**
  * GraphQL Subscriptions for AI Studio AIQueryExecution (standard Node: onCreate, onUpdate, onDelete)
- * Use onUpdateAIQueryExecution(id) with id from submitAIQuery to receive PROCESSING / SUCCESS / ERROR.
+ * Use onUpdateAIQueryExecution(id) with id from create/submit to receive PROCESSING / SUCCESS / ERROR.
  */
-
-const AI_QUERY_EXECUTION_FIELDS = `
-  id
-  entityType
-  tenantId
-  ownerId
-  createdAt
-  updatedAt
-  executedAt
-  durationMs
-  inputValues
-  rawOutput
-  promptTokenCount
-  candidatesTokenCount
-  totalTokenCount
-  status
-  errorMessage
-  prompt {
-    id
-    name
-    version
-    sourcePromptId
-  }
-`;
 
 export const S_ON_CREATE_AI_QUERY_EXECUTION = gql`
   subscription OnCreateAIQueryExecution($promptId: ID) {
@@ -48,9 +26,7 @@ export const S_ON_UPDATE_AI_QUERY_EXECUTION = gql`
 export const S_ON_DELETE_AI_QUERY_EXECUTION = gql`
   subscription OnDeleteAIQueryExecution($id: ID!) {
     onDeleteAIQueryExecution(id: $id) {
-      id
-      status
-      deletedAt
+      ${AI_QUERY_EXECUTION_FIELDS}
     }
   }
 `;

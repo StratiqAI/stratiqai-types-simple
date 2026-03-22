@@ -1,4 +1,5 @@
 import { gql } from 'graphql-tag';
+import { AI_QUERY_EXECUTION_FIELDS } from '../queries/AIQueryExecution.js';
 import { PROMPT_FIELDS } from '../queries/Prompt.js';
 
 /**
@@ -36,22 +37,7 @@ export const M_DELETE_PROMPT = gql`
 export const M_SUBMIT_AI_QUERY = gql`
   mutation SubmitAIQuery($input: CreateAIQueryExecutionInput!) {
     submitAIQuery(input: $input) {
-      id
-      entityType
-      tenantId
-      ownerId
-      createdAt
-      updatedAt
-      executedAt
-      durationMs
-      inputValues
-      rawOutput
-      promptId
-      promptTokenCount
-      candidatesTokenCount
-      totalTokenCount
-      status
-      errorMessage
+      ${AI_QUERY_EXECUTION_FIELDS}
     }
   }
 `;

@@ -1649,8 +1649,6 @@ export type PromptOutputSchema = {
 };
 
 export type PromptOutputSchemaInput = {
-  description?: InputMaybe<Scalars['String']['input']>;
-  name: Scalars['String']['input'];
   schemaDefinition: Scalars['AWSJSON']['input'];
 };
 
@@ -3045,35 +3043,6 @@ export type RestoreProjectMutationVariables = Exact<{
 
 export type RestoreProjectMutation = { __typename?: 'Mutation', restoreProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus } | null | undefined };
 
-export type CreatePromptMutationVariables = Exact<{
-  input: CreatePromptInput;
-}>;
-
-
-export type CreatePromptMutation = { __typename?: 'Mutation', createPrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, outputSchema?: { __typename?: 'PromptOutputSchema', schemaDefinition: any } | null | undefined } | null | undefined };
-
-export type UpdatePromptMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-  input: UpdatePromptInput;
-}>;
-
-
-export type UpdatePromptMutation = { __typename?: 'Mutation', updatePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, outputSchema?: { __typename?: 'PromptOutputSchema', schemaDefinition: any } | null | undefined } | null | undefined };
-
-export type DeletePromptMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-}>;
-
-
-export type DeletePromptMutation = { __typename?: 'Mutation', deletePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, outputSchema?: { __typename?: 'PromptOutputSchema', schemaDefinition: any } | null | undefined } | null | undefined };
-
-export type SubmitAiQueryMutationVariables = Exact<{
-  input: CreateAiQueryExecutionInput;
-}>;
-
-
-export type SubmitAiQueryMutation = { __typename?: 'Mutation', submitAIQuery: { __typename?: 'AIQueryExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, executedAt?: string | null | undefined, durationMs?: number | null | undefined, inputValues: any, rawOutput?: string | null | undefined, promptId: string, promptTokenCount?: number | null | undefined, candidatesTokenCount?: number | null | undefined, totalTokenCount?: number | null | undefined, status: ExecutionStatus, errorMessage?: string | null | undefined } };
-
 export type CreateScanMutationVariables = Exact<{
   input: CreateScanInput;
 }>;
@@ -3813,10 +3782,6 @@ export declare const CreateProject: import("graphql").DocumentNode;
 export declare const UpdateProject: import("graphql").DocumentNode;
 export declare const DeleteProject: import("graphql").DocumentNode;
 export declare const RestoreProject: import("graphql").DocumentNode;
-export declare const CreatePrompt: import("graphql").DocumentNode;
-export declare const UpdatePrompt: import("graphql").DocumentNode;
-export declare const DeletePrompt: import("graphql").DocumentNode;
-export declare const SubmitAIQuery: import("graphql").DocumentNode;
 export declare const CreateScan: import("graphql").DocumentNode;
 export declare const UpdateScan: import("graphql").DocumentNode;
 export declare const DeleteScan: import("graphql").DocumentNode;

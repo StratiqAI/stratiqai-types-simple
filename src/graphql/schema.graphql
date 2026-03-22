@@ -1488,8 +1488,6 @@ input GeminiConfigInput {
 
 # AI STUDIO: Inline structured output schema for prompts
 input PromptOutputSchemaInput {
-  name: String!
-  description: String
   schemaDefinition: AWSJSON!
 }
 

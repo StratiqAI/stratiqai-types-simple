@@ -9,6 +9,7 @@ export * from './Document.js';
 export * from './Notification.js';
 export * from './Prompt.js';
 export * from './AIQueryExecution.js';
+export * from './UsageRecord.js';
 export * from './Image.js';
 export * from './Table.js';
 export * from './Text.js';

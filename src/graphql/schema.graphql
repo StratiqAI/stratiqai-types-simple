@@ -172,8 +172,11 @@ enum WorkflowNodeKind {
 }
 
 """
-Supported Gemini models. Backend maps enum to API model ID
-(e.g. GEMINI_2_5_FLASH -> "gemini-2.5-flash").
+LLM provider model keys. Backend maps each enum value to the provider API model id:
+- Gemini (Google Generative AI): e.g. GEMINI_2_5_FLASH -> "gemini-2.5-flash"
+- Anthropic (Claude API, Vercel AI SDK @ai-sdk/anthropic): e.g. CLAUDE_SONNET_4_6 -> "claude-sonnet-4-6"
+
+Use snapshot ids where listed for stable behavior across environments.
 """
 enum AIModel {
   GEMINI_3_1_PRO_PREVIEW
@@ -183,6 +186,22 @@ enum AIModel {
   GEMINI_2_5_FLASH
   GEMINI_2_5_FLASH_LITE
   GEMINI_2_5_PRO
+
+  CLAUDE_OPUS_4_6
+  CLAUDE_SONNET_4_6
+  CLAUDE_HAIKU_4_5
+  CLAUDE_HAIKU_4_5_20251001
+  CLAUDE_SONNET_4_5
+  CLAUDE_SONNET_4_5_20250929
+  CLAUDE_OPUS_4_5
+  CLAUDE_OPUS_4_5_20251101
+  CLAUDE_OPUS_4_1_20250805
+  CLAUDE_SONNET_4_20250514
+  CLAUDE_OPUS_4_20250514
+  CLAUDE_3_5_SONNET_20241022
+  CLAUDE_3_5_HAIKU_20241022
+  CLAUDE_3_OPUS_20240229
+  CLAUDE_3_HAIKU_20240307
 }
 
 """
@@ -3042,6 +3061,16 @@ type Subscription {
   onUpdateAIQueryExecution(id: ID!): AIQueryExecution
     @aws_subscribe(mutations: ["updateAIQueryExecution"])
   onDeleteAIQueryExecution(id: ID!): AIQueryExecution
+    @aws_subscribe(mutations: ["deleteAIQueryExecution"])
+
+  """
+  AI STUDIO: AIQueryExecution subscriptions filtered by client executionId (same underlying mutations as above).
+  """
+  onCreateAIQueryExecutionByExecutionId(executionId: ID!): AIQueryExecution
+    @aws_subscribe(mutations: ["createAIQueryExecution", "submitAIQuery"])
+  onUpdateAIQueryExecutionByExecutionId(executionId: ID!): AIQueryExecution
+    @aws_subscribe(mutations: ["updateAIQueryExecution"])
+  onDeleteAIQueryExecutionByExecutionId(executionId: ID!): AIQueryExecution
     @aws_subscribe(mutations: ["deleteAIQueryExecution"])
 
   """

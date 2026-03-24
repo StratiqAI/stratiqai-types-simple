@@ -18,10 +18,28 @@ export type Scalars = {
 };
 
 /**
- * Supported Gemini models. Backend maps enum to API model ID
- * (e.g. GEMINI_2_5_FLASH -> "gemini-2.5-flash").
+ * LLM provider model keys. Backend maps each enum value to the provider API model id:
+ * - Gemini (Google Generative AI): e.g. GEMINI_2_5_FLASH -> "gemini-2.5-flash"
+ * - Anthropic (Claude API, Vercel AI SDK @ai-sdk/anthropic): e.g. CLAUDE_SONNET_4_6 -> "claude-sonnet-4-6"
+ *
+ * Use snapshot ids where listed for stable behavior across environments.
  */
 export type AiModel =
+  | 'CLAUDE_3_5_HAIKU_20241022'
+  | 'CLAUDE_3_5_SONNET_20241022'
+  | 'CLAUDE_3_HAIKU_20240307'
+  | 'CLAUDE_3_OPUS_20240229'
+  | 'CLAUDE_HAIKU_4_5'
+  | 'CLAUDE_HAIKU_4_5_20251001'
+  | 'CLAUDE_OPUS_4_1_20250805'
+  | 'CLAUDE_OPUS_4_5'
+  | 'CLAUDE_OPUS_4_5_20251101'
+  | 'CLAUDE_OPUS_4_6'
+  | 'CLAUDE_OPUS_4_20250514'
+  | 'CLAUDE_SONNET_4_5'
+  | 'CLAUDE_SONNET_4_5_20250929'
+  | 'CLAUDE_SONNET_4_6'
+  | 'CLAUDE_SONNET_4_20250514'
   | 'GEMINI_2_5_FLASH'
   | 'GEMINI_2_5_FLASH_LITE'
   | 'GEMINI_2_5_PRO'
@@ -2152,6 +2170,8 @@ export type Subscription = {
   __typename?: 'Subscription';
   /** AI STUDIO: AIQueryExecution subscriptions (standard Node pattern). */
   onCreateAIQueryExecution?: Maybe<AiQueryExecution>;
+  /** AI STUDIO: AIQueryExecution subscriptions filtered by client executionId (same underlying mutations as above). */
+  onCreateAIQueryExecutionByExecutionId?: Maybe<AiQueryExecution>;
   /** DOCLINK SUBSCRIPTIONS */
   onCreateDoclink?: Maybe<Doclink>;
   /** DOCUMENT SUBSCRIPTIONS */
@@ -2177,6 +2197,7 @@ export type Subscription = {
   /** WORKFLOW NODE EXECUTION SUBSCRIPTIONS */
   onCreateWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
   onDeleteAIQueryExecution?: Maybe<AiQueryExecution>;
+  onDeleteAIQueryExecutionByExecutionId?: Maybe<AiQueryExecution>;
   onDeleteDoclink?: Maybe<Doclink>;
   onDeleteDocument?: Maybe<Document>;
   onDeleteImage?: Maybe<Image>;
@@ -2189,6 +2210,7 @@ export type Subscription = {
   onDeleteWorkflow?: Maybe<Workflow>;
   onRestoreProject?: Maybe<Project>;
   onUpdateAIQueryExecution?: Maybe<AiQueryExecution>;
+  onUpdateAIQueryExecutionByExecutionId?: Maybe<AiQueryExecution>;
   onUpdateDoclink?: Maybe<Doclink>;
   onUpdateDocument?: Maybe<Document>;
   onUpdateImage?: Maybe<Image>;
@@ -2208,6 +2230,11 @@ export type Subscription = {
 
 export type SubscriptionOnCreateAiQueryExecutionArgs = {
   promptId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type SubscriptionOnCreateAiQueryExecutionByExecutionIdArgs = {
+  executionId: Scalars['ID']['input'];
 };
 
 
@@ -2273,6 +2300,11 @@ export type SubscriptionOnDeleteAiQueryExecutionArgs = {
 };
 
 
+export type SubscriptionOnDeleteAiQueryExecutionByExecutionIdArgs = {
+  executionId: Scalars['ID']['input'];
+};
+
+
 export type SubscriptionOnDeleteDoclinkArgs = {
   id: Scalars['ID']['input'];
 };
@@ -2330,6 +2362,11 @@ export type SubscriptionOnRestoreProjectArgs = {
 
 export type SubscriptionOnUpdateAiQueryExecutionArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnUpdateAiQueryExecutionByExecutionIdArgs = {
+  executionId: Scalars['ID']['input'];
 };
 
 

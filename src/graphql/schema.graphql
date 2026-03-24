@@ -1342,7 +1342,7 @@ input UpdateProjectInput {
 
 # DOCLINK INPUTS
 input CreateDoclinkInput {
-  # Optional: deterministic id for doclink (e.g. documentId or documentId#textEmbeddings)
+  # Optional: deterministic id for doclink (typically documentId / content hash; unique per parent project)
   id: ID
   # REQUIRED: To perform the Strongly Consistent Write to Main Table
   parentId: ID!

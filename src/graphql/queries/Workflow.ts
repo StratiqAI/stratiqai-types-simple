@@ -47,9 +47,7 @@ export const Q_GET_WORKFLOW = gql`
               model
               topK
               systemPrompt
-              structuredOutputSchema {
-                jsonSchema
-              }
+              jsonSchemaId
             }
             ... on ToolsNodeConfig {
               options
@@ -67,9 +65,7 @@ export const Q_GET_WORKFLOW = gql`
           targetPort
         }
       }
-      structuredOutputSchema {
-        jsonSchema
-      }
+      jsonSchemaId
       parentId
       ui {
         elements {
@@ -123,9 +119,7 @@ export const Q_LIST_WORKFLOWS = gql`
                 model
                 topK
                 systemPrompt
-                structuredOutputSchema {
-                  jsonSchema
-                }
+                jsonSchemaId
               }
               ... on ToolsNodeConfig {
                 options
@@ -143,9 +137,7 @@ export const Q_LIST_WORKFLOWS = gql`
             targetPort
           }
         }
-        structuredOutputSchema {
-          jsonSchema
-        }
+        jsonSchemaId
         parentId
         ui {
           elements {

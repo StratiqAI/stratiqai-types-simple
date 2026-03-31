@@ -2,10 +2,8 @@ import { gql } from 'graphql-tag';
 
 /**
  * GraphQL Queries for AI Studio Prompt (root entity)
- * Uses inline outputSchema (PromptOutputSchema); no separate schema entity.
  */
 
-/** Fragment for full Prompt shape including inline outputSchema */
 export const PROMPT_FIELDS = gql`
   fragment PromptFields on Prompt {
     id
@@ -24,9 +22,7 @@ export const PROMPT_FIELDS = gql`
     model
     version
     isActive
-    outputSchema {
-      schemaDefinition
-    }
+    jsonSchemaId
   }
 `;
 

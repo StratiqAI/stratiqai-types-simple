@@ -50,19 +50,19 @@ export type AiModel =
 
 export type AiNodeConfig = {
   __typename?: 'AINodeConfig';
+  /** Reference to a persisted JsonSchema entity for structured output. */
+  jsonSchemaId?: Maybe<Scalars['ID']['output']>;
   model?: Maybe<Scalars['String']['output']>;
   prompt?: Maybe<Scalars['String']['output']>;
-  /** JSON Schema for structured output (e.g. responseFormat.type eq json_schema). */
-  structuredOutputSchema?: Maybe<JsonSchemaValue>;
   systemPrompt?: Maybe<Scalars['String']['output']>;
   topK?: Maybe<Scalars['Int']['output']>;
 };
 
 export type AiNodeConfigInput = {
+  /** Reference to a persisted JsonSchema entity for structured output. */
+  jsonSchemaId?: InputMaybe<Scalars['ID']['input']>;
   model?: InputMaybe<Scalars['String']['input']>;
   prompt?: InputMaybe<Scalars['String']['input']>;
-  /** JSON Schema for structured output (e.g. responseFormat.type eq json_schema). */
-  structuredOutputSchema?: InputMaybe<JsonSchemaValueInput>;
   systemPrompt?: InputMaybe<Scalars['String']['input']>;
   topK?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -274,14 +274,6 @@ export type CreateAiQueryExecutionInput = {
   topKPerNs?: InputMaybe<Scalars['Int']['input']>;
 };
 
-export type CreateAiQueryInput = {
-  ownerId: Scalars['ID']['input'];
-  projectId?: InputMaybe<Scalars['ID']['input']>;
-  requestPayload?: InputMaybe<Scalars['AWSJSON']['input']>;
-  responseJsonSchema: Scalars['AWSJSON']['input'];
-  tenantId: Scalars['ID']['input'];
-};
-
 export type CreateAnnouncementInput = {
   body: Scalars['String']['input'];
   parentId: Scalars['ID']['input'];
@@ -380,6 +372,16 @@ export type CreateInvoiceInput = {
   tenantId: Scalars['ID']['input'];
 };
 
+export type CreateJsonSchemaInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+  /** JSON Schema definition (OpenAPI 3.0 / JSON Schema draft-07 compatible). Stored as AWSJSON. */
+  schemaDefinition: Scalars['AWSJSON']['input'];
+  sharingMode?: InputMaybe<SharingMode>;
+  /** Set when copying a shared schema: ID of the schema this copy was created from. */
+  sourceJsonSchemaId?: InputMaybe<Scalars['ID']['input']>;
+};
+
 export type CreateMatchScoreInput = {
   parentId: Scalars['ID']['input'];
   rationaleText?: InputMaybe<Scalars['String']['input']>;
@@ -429,10 +431,10 @@ export type CreatePromptInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   /** Variable names; optional on create (derived from prompt when not provided). */
   inputVariables?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** Reference to a persisted JsonSchema entity defining the structured output schema for this prompt. */
+  jsonSchemaId?: InputMaybe<Scalars['ID']['input']>;
   model?: InputMaybe<AiModel>;
   name: Scalars['String']['input'];
-  /** Optional; inline structured output schema for this prompt. Required for structured output execution. */
-  outputSchema?: InputMaybe<PromptOutputSchemaInput>;
   /** Main user prompt text; may contain {{ variableName }} placeholders. */
   prompt: Scalars['String']['input'];
   sharingMode?: InputMaybe<SharingMode>;
@@ -487,9 +489,9 @@ export type CreateWorkflowExecutionInput = {
 
 export type CreateWorkflowInput = {
   definition: WorkflowDefinitionInput;
+  jsonSchemaId?: InputMaybe<Scalars['ID']['input']>;
   name: Scalars['String']['input'];
   parentId: Scalars['ID']['input'];
-  structuredOutputSchema?: InputMaybe<JsonSchemaValueInput>;
   ui?: InputMaybe<WorkflowUiInput>;
 };
 
@@ -674,6 +676,7 @@ export type EntityType =
   | 'IMAGE'
   | 'INVESTOR_PROFILE'
   | 'INVITATION'
+  | 'JSON_SCHEMA'
   | 'MATCH_SCORE'
   | 'MICRO_INTERVIEW'
   | 'NDA_AGREEMENT'
@@ -820,13 +823,45 @@ export type InvoiceStatus =
   | 'UNCOLLECTIBLE'
   | 'VOID';
 
-export type JsonSchemaValue = {
-  __typename?: 'JsonSchemaValue';
-  jsonSchema: Scalars['AWSJSON']['output'];
+/**
+ * Persistable JSON Schema definition for structured AI output.
+ * Root entity with Shareable ownership: system-owned schemas are shared;
+ * user copies are PRIVATE (copy-on-write via sourceJsonSchemaId).
+ */
+export type JsonSchema = Metadata & Node & Shareable & {
+  __typename?: 'JsonSchema';
+  accessList?: Maybe<ResourceShareConnection>;
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  ownerId: Scalars['ID']['output'];
+  /** JSON Schema definition (OpenAPI 3.0 / JSON Schema draft-07 compatible). Stored as AWSJSON. */
+  schemaDefinition: Scalars['AWSJSON']['output'];
+  sharingMode: SharingMode;
+  /** When set, this schema is a user-owned copy forked from another (the original remains shared). */
+  sourceJsonSchemaId?: Maybe<Scalars['ID']['output']>;
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
 };
 
-export type JsonSchemaValueInput = {
-  jsonSchema: Scalars['AWSJSON']['input'];
+
+/**
+ * Persistable JSON Schema definition for structured AI output.
+ * Root entity with Shareable ownership: system-owned schemas are shared;
+ * user copies are PRIVATE (copy-on-write via sourceJsonSchemaId).
+ */
+export type JsonSchemaAccessListArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type JsonSchemaConnection = {
+  __typename?: 'JsonSchemaConnection';
+  items: Array<JsonSchema>;
+  nextToken?: Maybe<Scalars['String']['output']>;
 };
 
 export type ListScope =
@@ -908,6 +943,7 @@ export type Mutation = {
   createInvestorProfile?: Maybe<InvestorProfile>;
   createInvitation?: Maybe<Invitation>;
   createInvoice?: Maybe<BillingInvoicePayload>;
+  createJsonSchema?: Maybe<JsonSchema>;
   createMatchScore?: Maybe<MatchScore>;
   createMicroInterview?: Maybe<MicroInterview>;
   createNDAAgreement?: Maybe<NdaAgreement>;
@@ -930,6 +966,7 @@ export type Mutation = {
   deleteDocument?: Maybe<Document>;
   deleteImage?: Maybe<Image>;
   deleteInvitation?: Maybe<Invitation>;
+  deleteJsonSchema?: Maybe<JsonSchema>;
   deleteNDAAgreement?: Maybe<NdaAgreement>;
   deleteNotification?: Maybe<Notification>;
   deleteProject?: Maybe<Project>;
@@ -961,6 +998,7 @@ export type Mutation = {
   updateImage?: Maybe<Image>;
   updateInvestorProfile?: Maybe<InvestorProfile>;
   updateInvitation?: Maybe<Invitation>;
+  updateJsonSchema?: Maybe<JsonSchema>;
   updateMicroInterview?: Maybe<MicroInterview>;
   updateNDAAgreement?: Maybe<NdaAgreement>;
   updateNotification?: Maybe<Notification>;
@@ -1050,6 +1088,11 @@ export type MutationCreateInvitationArgs = {
 
 export type MutationCreateInvoiceArgs = {
   input: CreateInvoiceInput;
+};
+
+
+export type MutationCreateJsonSchemaArgs = {
+  input: CreateJsonSchemaInput;
 };
 
 
@@ -1160,6 +1203,11 @@ export type MutationDeleteImageArgs = {
 
 export type MutationDeleteInvitationArgs = {
   key: CompositeKeyInput;
+};
+
+
+export type MutationDeleteJsonSchemaArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -1319,6 +1367,12 @@ export type MutationUpdateInvestorProfileArgs = {
 export type MutationUpdateInvitationArgs = {
   input: UpdateInvitationInput;
   key: CompositeKeyInput;
+};
+
+
+export type MutationUpdateJsonSchemaArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateJsonSchemaInput;
 };
 
 
@@ -1611,17 +1665,16 @@ export type Prompt = Metadata & Node & Shareable & {
   inputVariables?: Maybe<Array<Scalars['String']['output']>>;
   /** When false, prompt may be excluded from lists or execution; reserved for future use. */
   isActive?: Maybe<Scalars['Boolean']['output']>;
+  /** Reference to a persisted JsonSchema entity defining the structured output schema for this prompt. */
+  jsonSchemaId?: Maybe<Scalars['ID']['output']>;
   /** Read-only; derived from prompt when possible. */
   model: AiModel;
+  /** When set, this prompt is a user-owned copy forked from another (the original remains shared). */
   name: Scalars['String']['output'];
-  /** Structured output schema for this prompt (inline). Defines the structure expected from the AI. */
-  outputSchema?: Maybe<PromptOutputSchema>;
   ownerId: Scalars['ID']['output'];
   /** Main user prompt text; may contain {{ variableName }} placeholders. */
   prompt: Scalars['String']['output'];
   sharingMode: SharingMode;
-  /** When set, this prompt is a user-owned copy forked from another (the original remains shared). */
-  sourcePromptId?: Maybe<Scalars['ID']['output']>;
   /** Optional system instruction for the model. */
   systemInstruction?: Maybe<Scalars['String']['output']>;
   tenantId: Scalars['ID']['output'];
@@ -1657,26 +1710,6 @@ export type PromptContent = {
   systemInstruction?: Maybe<Scalars['String']['output']>;
 };
 
-/**
- * Structured output schema for a prompt (inline object). Defines the structure expected from the AI.
- * Maps to Gemini responseSchema.
- */
-export type PromptOutputSchema = {
-  __typename?: 'PromptOutputSchema';
-  /** Optional description; may be null when only schemaDefinition is stored. */
-  description?: Maybe<Scalars['String']['output']>;
-  /** Optional label for UI and tooling; may be null when only schemaDefinition is stored. */
-  name?: Maybe<Scalars['String']['output']>;
-  /** JSON Schema definition (OpenAPI 3.0 compatible). Used to validate AI output. */
-  schemaDefinition: Scalars['AWSJSON']['output'];
-};
-
-export type PromptOutputSchemaInput = {
-  description?: InputMaybe<Scalars['String']['input']>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  schemaDefinition: Scalars['AWSJSON']['input'];
-};
-
 export type Query = {
   __typename?: 'Query';
   /** Get a single AIQueryExecution by id. */
@@ -1699,6 +1732,8 @@ export type Query = {
   getInvestorProfile?: Maybe<InvestorProfile>;
   /** Get a single Invitation. Requires composite key (ID + ParentID) for access. */
   getInvitation?: Maybe<Invitation>;
+  /** Get a single JsonSchema by ID (root entity). */
+  getJsonSchema?: Maybe<JsonSchema>;
   getMatchScore?: Maybe<MatchScore>;
   getMicroInterview?: Maybe<MicroInterview>;
   /** Get a single NDAAgreement. Requires composite key (ID + ParentID) for access. */
@@ -1739,6 +1774,8 @@ export type Query = {
   listImages: ImageConnection;
   /** List Invitations for a specific Deal (Project). */
   listInvitations: InvitationConnection;
+  /** List JsonSchemas by scope. Defaults to ALL_TENANT so users see both system and their own schemas. */
+  listJsonSchemas: JsonSchemaConnection;
   listMatchScores: MatchScoreConnection;
   listMicroInterviews: MicroInterviewConnection;
   /** List NDAAgreements for a specific Deal (Project). Used for NDA gate check. */
@@ -1833,6 +1870,11 @@ export type QueryGetInvestorProfileArgs = {
 
 export type QueryGetInvitationArgs = {
   key: CompositeKeyInput;
+};
+
+
+export type QueryGetJsonSchemaArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -1972,6 +2014,13 @@ export type QueryListInvitationsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
   parentId: Scalars['ID']['input'];
+};
+
+
+export type QueryListJsonSchemasArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  scope?: InputMaybe<ListScope>;
 };
 
 
@@ -2185,6 +2234,8 @@ export type Subscription = {
   onCreateDocument?: Maybe<Document>;
   /** IMAGE SUBSCRIPTIONS */
   onCreateImage?: Maybe<Image>;
+  /** AI STUDIO: JsonSchema subscriptions */
+  onCreateJsonSchema?: Maybe<JsonSchema>;
   /** NOTIFICATION SUBSCRIPTIONS */
   onCreateNotification?: Maybe<Notification>;
   /** PROJECT SUBSCRIPTIONS */
@@ -2208,6 +2259,7 @@ export type Subscription = {
   onDeleteDoclink?: Maybe<Doclink>;
   onDeleteDocument?: Maybe<Document>;
   onDeleteImage?: Maybe<Image>;
+  onDeleteJsonSchema?: Maybe<JsonSchema>;
   onDeleteNotification?: Maybe<Notification>;
   onDeleteProject?: Maybe<Project>;
   onDeletePrompt?: Maybe<Prompt>;
@@ -2221,6 +2273,7 @@ export type Subscription = {
   onUpdateDoclink?: Maybe<Doclink>;
   onUpdateDocument?: Maybe<Document>;
   onUpdateImage?: Maybe<Image>;
+  onUpdateJsonSchema?: Maybe<JsonSchema>;
   onUpdateNotification?: Maybe<Notification>;
   onUpdateProject?: Maybe<Project>;
   onUpdatePrompt?: Maybe<Prompt>;
@@ -2327,6 +2380,11 @@ export type SubscriptionOnDeleteImageArgs = {
 };
 
 
+export type SubscriptionOnDeleteJsonSchemaArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type SubscriptionOnDeleteNotificationArgs = {
   id: Scalars['ID']['input'];
 };
@@ -2388,6 +2446,11 @@ export type SubscriptionOnUpdateDocumentArgs = {
 
 
 export type SubscriptionOnUpdateImageArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnUpdateJsonSchemaArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -2539,15 +2602,6 @@ export type UpdateAccountCreditsInput = {
   stripeCustomerId?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type UpdateAiQueryInput = {
-  errorMessage?: InputMaybe<Scalars['String']['input']>;
-  inputTokens?: InputMaybe<Scalars['Int']['input']>;
-  modelUsed?: InputMaybe<Scalars['String']['input']>;
-  outputTokens?: InputMaybe<Scalars['Int']['input']>;
-  responsePayload?: InputMaybe<Scalars['AWSJSON']['input']>;
-  status?: InputMaybe<AiQueryStatus>;
-};
-
 export type UpdateAnnouncementInput = {
   body?: InputMaybe<Scalars['String']['input']>;
 };
@@ -2609,6 +2663,14 @@ export type UpdateInvitationInput = {
   status?: InputMaybe<InvitationStatus>;
 };
 
+export type UpdateJsonSchemaInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  /** JSON Schema definition (OpenAPI 3.0 / JSON Schema draft-07 compatible). Stored as AWSJSON. */
+  schemaDefinition?: InputMaybe<Scalars['AWSJSON']['input']>;
+  sharingMode?: InputMaybe<SharingMode>;
+};
+
 export type UpdateMicroInterviewInput = {
   respondedAt?: InputMaybe<Scalars['AWSDateTime']['input']>;
   response?: InputMaybe<Scalars['String']['input']>;
@@ -2647,10 +2709,10 @@ export type UpdatePromptInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   /** Variable names; optional (derived from prompt when not provided). */
   inputVariables?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** Reference to a persisted JsonSchema entity defining the structured output schema for this prompt. */
+  jsonSchemaId?: InputMaybe<Scalars['ID']['input']>;
   model?: InputMaybe<AiModel>;
   name?: InputMaybe<Scalars['String']['input']>;
-  /** Optional; inline structured output schema for this prompt. */
-  outputSchema?: InputMaybe<PromptOutputSchemaInput>;
   /** Main user prompt text; may contain {{ variableName }} placeholders. */
   prompt?: InputMaybe<Scalars['String']['input']>;
   sharingMode?: InputMaybe<SharingMode>;
@@ -2692,8 +2754,8 @@ export type UpdateWorkflowExecutionInput = {
 
 export type UpdateWorkflowInput = {
   definition?: InputMaybe<WorkflowDefinitionInput>;
+  jsonSchemaId?: InputMaybe<Scalars['ID']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
-  structuredOutputSchema?: InputMaybe<JsonSchemaValueInput>;
   ui?: InputMaybe<WorkflowUiInput>;
 };
 
@@ -2750,12 +2812,12 @@ export type Workflow = Metadata & Node & Shareable & {
   deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
   entityType: EntityType;
   id: Scalars['ID']['output'];
+  jsonSchemaId?: Maybe<Scalars['ID']['output']>;
   name: Scalars['String']['output'];
   ownerId: Scalars['ID']['output'];
   parentId: Scalars['ID']['output'];
   project?: Maybe<Project>;
   sharingMode: SharingMode;
-  structuredOutputSchema?: Maybe<JsonSchemaValue>;
   tenantId: Scalars['ID']['output'];
   ui?: Maybe<WorkflowUi>;
   updatedAt: Scalars['AWSDateTime']['output'];
@@ -3036,6 +3098,28 @@ export type DeleteImageMutationVariables = Exact<{
 
 export type DeleteImageMutation = { __typename?: 'Mutation', deleteImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType?: string | null | undefined, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
 
+export type CreateJsonSchemaMutationVariables = Exact<{
+  input: CreateJsonSchemaInput;
+}>;
+
+
+export type CreateJsonSchemaMutation = { __typename?: 'Mutation', createJsonSchema?: { __typename?: 'JsonSchema', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourceJsonSchemaId?: string | null | undefined, name: string, description?: string | null | undefined, schemaDefinition: any } | null | undefined };
+
+export type UpdateJsonSchemaMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: UpdateJsonSchemaInput;
+}>;
+
+
+export type UpdateJsonSchemaMutation = { __typename?: 'Mutation', updateJsonSchema?: { __typename?: 'JsonSchema', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourceJsonSchemaId?: string | null | undefined, name: string, description?: string | null | undefined, schemaDefinition: any } | null | undefined };
+
+export type DeleteJsonSchemaMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeleteJsonSchemaMutation = { __typename?: 'Mutation', deleteJsonSchema?: { __typename?: 'JsonSchema', id: string } | null | undefined };
+
 export type CreateNotificationMutationVariables = Exact<{
   input: CreateNotificationInput;
 }>;
@@ -3158,13 +3242,13 @@ export type CreateWorkflowMutationVariables = Exact<{
 }>;
 
 
-export type CreateWorkflowMutation = { __typename?: 'Mutation', createWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined }
+export type CreateWorkflowMutation = { __typename?: 'Mutation', createWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, jsonSchemaId?: string | null | undefined, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, jsonSchemaId?: string | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'InputNodeConfig' }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
-         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
+         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
 
 export type UpdateWorkflowMutationVariables = Exact<{
   key: CompositeKeyInput;
@@ -3172,26 +3256,26 @@ export type UpdateWorkflowMutationVariables = Exact<{
 }>;
 
 
-export type UpdateWorkflowMutation = { __typename?: 'Mutation', updateWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined }
+export type UpdateWorkflowMutation = { __typename?: 'Mutation', updateWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, jsonSchemaId?: string | null | undefined, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, jsonSchemaId?: string | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'InputNodeConfig' }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
-         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
+         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
 
 export type DeleteWorkflowMutationVariables = Exact<{
   key: CompositeKeyInput;
 }>;
 
 
-export type DeleteWorkflowMutation = { __typename?: 'Mutation', deleteWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined }
+export type DeleteWorkflowMutation = { __typename?: 'Mutation', deleteWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, jsonSchemaId?: string | null | undefined, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, jsonSchemaId?: string | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'InputNodeConfig' }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
-         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
+         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
 
 export type CreateWorkflowExecutionMutationVariables = Exact<{
   input: CreateWorkflowExecutionInput;
@@ -3353,6 +3437,24 @@ export type ListImagesQueryVariables = Exact<{
 
 export type ListImagesQuery = { __typename?: 'Query', listImages: { __typename?: 'ImageConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType?: string | null | undefined, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined }> } };
 
+export type JsonSchemaFieldsFragment = { __typename?: 'JsonSchema', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourceJsonSchemaId?: string | null | undefined, name: string, description?: string | null | undefined, schemaDefinition: any };
+
+export type GetJsonSchemaQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetJsonSchemaQuery = { __typename?: 'Query', getJsonSchema?: { __typename?: 'JsonSchema', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourceJsonSchemaId?: string | null | undefined, name: string, description?: string | null | undefined, schemaDefinition: any } | null | undefined };
+
+export type ListJsonSchemasQueryVariables = Exact<{
+  scope?: InputMaybe<ListScope>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ListJsonSchemasQuery = { __typename?: 'Query', listJsonSchemas: { __typename?: 'JsonSchemaConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'JsonSchema', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourceJsonSchemaId?: string | null | undefined, name: string, description?: string | null | undefined, schemaDefinition: any }> } };
+
 export type GetNotificationQueryVariables = Exact<{
   key: CompositeKeyInput;
 }>;
@@ -3374,13 +3476,13 @@ export type GetProjectQueryVariables = Exact<{
 }>;
 
 
-export type GetProjectQuery = { __typename?: 'Query', getProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus, accessList?: { __typename?: 'ResourceShareConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'ResourceShare', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, recipientUserId: string, permission: SharePermission, resourceTitle: string, resourceType: EntityType }> } | null | undefined, doclinks?: { __typename?: 'DoclinkConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string, deletedAt?: string | null | undefined }> } | null | undefined, topics?: { __typename?: 'TopicConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Topic', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, parentId: string, name: string }> } | null | undefined, workflows?: { __typename?: 'WorkflowConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
-              | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined }
+export type GetProjectQuery = { __typename?: 'Query', getProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus, accessList?: { __typename?: 'ResourceShareConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'ResourceShare', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, recipientUserId: string, permission: SharePermission, resourceTitle: string, resourceType: EntityType }> } | null | undefined, doclinks?: { __typename?: 'DoclinkConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string, deletedAt?: string | null | undefined }> } | null | undefined, topics?: { __typename?: 'TopicConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Topic', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, parentId: string, name: string }> } | null | undefined, workflows?: { __typename?: 'WorkflowConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, jsonSchemaId?: string | null | undefined, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
+              | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, jsonSchemaId?: string | null | undefined }
               | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
               | { __typename?: 'InputNodeConfig' }
               | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
               | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
-             | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined }> } | null | undefined } | null | undefined };
+             | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined }> } | null | undefined } | null | undefined };
 
 export type ListProjectsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -3398,14 +3500,14 @@ export type GetProjectWithPromptsQueryVariables = Exact<{
 
 export type GetProjectWithPromptsQuery = { __typename?: 'Query', getProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus } | null | undefined };
 
-export type PromptFieldsFragment = { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, sourcePromptId?: string | null | undefined, outputSchema?: { __typename?: 'PromptOutputSchema', name?: string | null | undefined, description?: string | null | undefined, schemaDefinition: any } | null | undefined };
+export type PromptFieldsFragment = { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, jsonSchemaId?: string | null | undefined };
 
 export type GetPromptQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type GetPromptQuery = { __typename?: 'Query', getPrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, sourcePromptId?: string | null | undefined, outputSchema?: { __typename?: 'PromptOutputSchema', name?: string | null | undefined, description?: string | null | undefined, schemaDefinition: any } | null | undefined } | null | undefined };
+export type GetPromptQuery = { __typename?: 'Query', getPrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, jsonSchemaId?: string | null | undefined } | null | undefined };
 
 export type ListPromptsQueryVariables = Exact<{
   scope?: InputMaybe<ListScope>;
@@ -3414,7 +3516,7 @@ export type ListPromptsQueryVariables = Exact<{
 }>;
 
 
-export type ListPromptsQuery = { __typename?: 'Query', listPrompts: { __typename?: 'PromptConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, sourcePromptId?: string | null | undefined, outputSchema?: { __typename?: 'PromptOutputSchema', name?: string | null | undefined, description?: string | null | undefined, schemaDefinition: any } | null | undefined }> } };
+export type ListPromptsQuery = { __typename?: 'Query', listPrompts: { __typename?: 'PromptConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, jsonSchemaId?: string | null | undefined }> } };
 
 export type GetScanQueryVariables = Exact<{
   key: CompositeKeyInput;
@@ -3469,13 +3571,13 @@ export type GetWorkflowQueryVariables = Exact<{
 }>;
 
 
-export type GetWorkflowQuery = { __typename?: 'Query', getWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, accessList?: { __typename?: 'ResourceShareConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'ResourceShare', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, recipientUserId: string, permission: SharePermission, resourceTitle: string, resourceType: EntityType }> } | null | undefined, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined }
+export type GetWorkflowQuery = { __typename?: 'Query', getWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, jsonSchemaId?: string | null | undefined, parentId: string, accessList?: { __typename?: 'ResourceShareConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'ResourceShare', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, recipientUserId: string, permission: SharePermission, resourceTitle: string, resourceType: EntityType }> } | null | undefined, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, jsonSchemaId?: string | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'InputNodeConfig' }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
-         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
+         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
 
 export type ListWorkflowsQueryVariables = Exact<{
   parentId: Scalars['ID']['input'];
@@ -3484,26 +3586,26 @@ export type ListWorkflowsQueryVariables = Exact<{
 }>;
 
 
-export type ListWorkflowsQuery = { __typename?: 'Query', listWorkflows: { __typename?: 'WorkflowConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
-            | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined }
+export type ListWorkflowsQuery = { __typename?: 'Query', listWorkflows: { __typename?: 'WorkflowConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, jsonSchemaId?: string | null | undefined, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
+            | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, jsonSchemaId?: string | null | undefined }
             | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
             | { __typename?: 'InputNodeConfig' }
             | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
             | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
-           | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined }> } };
+           | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined }> } };
 
 export type GetWorkflowExecutionQueryVariables = Exact<{
   key: CompositeKeyInput;
 }>;
 
 
-export type GetWorkflowExecutionQuery = { __typename?: 'Query', getWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined, workflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
-            | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined }
+export type GetWorkflowExecutionQuery = { __typename?: 'Query', getWorkflowExecution?: { __typename?: 'WorkflowExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, status: WorkflowExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, cancelledAt?: string | null | undefined, triggerEvent?: any | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, totalNodes?: number | null | undefined, completedNodes?: number | null | undefined, currentNodeId?: string | null | undefined, workflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, jsonSchemaId?: string | null | undefined, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
+            | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, jsonSchemaId?: string | null | undefined }
             | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
             | { __typename?: 'InputNodeConfig' }
             | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
             | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
-           | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined, workflownodeexecutions?: { __typename?: 'WorkflowNodeExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined }> } | null | undefined } | null | undefined };
+           | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined, workflownodeexecutions?: { __typename?: 'WorkflowNodeExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined }> } | null | undefined } | null | undefined };
 
 export type ListWorkflowExecutionsQueryVariables = Exact<{
   parentId: Scalars['ID']['input'];
@@ -3596,6 +3698,25 @@ export type OnDeleteImageSubscriptionVariables = Exact<{
 
 export type OnDeleteImageSubscription = { __typename?: 'Subscription', onDeleteImage?: { __typename?: 'Image', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, s3Bucket: string, s3Key: string, mimeType?: string | null | undefined, sizeBytes?: number | null | undefined, parentId: string, pageNum: number, imageId: string, topLeftX: number, topLeftY: number, bottomRightX: number, bottomRightY: number, imageAnnotation?: any | null | undefined } | null | undefined };
 
+export type OnCreateJsonSchemaSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OnCreateJsonSchemaSubscription = { __typename?: 'Subscription', onCreateJsonSchema?: { __typename?: 'JsonSchema', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourceJsonSchemaId?: string | null | undefined, name: string, description?: string | null | undefined, schemaDefinition: any } | null | undefined };
+
+export type OnUpdateJsonSchemaSubscriptionVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnUpdateJsonSchemaSubscription = { __typename?: 'Subscription', onUpdateJsonSchema?: { __typename?: 'JsonSchema', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourceJsonSchemaId?: string | null | undefined, name: string, description?: string | null | undefined, schemaDefinition: any } | null | undefined };
+
+export type OnDeleteJsonSchemaSubscriptionVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnDeleteJsonSchemaSubscription = { __typename?: 'Subscription', onDeleteJsonSchema?: { __typename?: 'JsonSchema', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, sourceJsonSchemaId?: string | null | undefined, name: string, description?: string | null | undefined, schemaDefinition: any } | null | undefined };
+
 export type OnCreateNotificationSubscriptionVariables = Exact<{
   parentId?: InputMaybe<Scalars['ID']['input']>;
 }>;
@@ -3649,21 +3770,21 @@ export type OnRestoreProjectSubscription = { __typename?: 'Subscription', onRest
 export type OnCreatePromptSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type OnCreatePromptSubscription = { __typename?: 'Subscription', onCreatePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, sourcePromptId?: string | null | undefined, outputSchema?: { __typename?: 'PromptOutputSchema', name?: string | null | undefined, description?: string | null | undefined, schemaDefinition: any } | null | undefined } | null | undefined };
+export type OnCreatePromptSubscription = { __typename?: 'Subscription', onCreatePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, jsonSchemaId?: string | null | undefined } | null | undefined };
 
 export type OnUpdatePromptSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnUpdatePromptSubscription = { __typename?: 'Subscription', onUpdatePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, sourcePromptId?: string | null | undefined, outputSchema?: { __typename?: 'PromptOutputSchema', name?: string | null | undefined, description?: string | null | undefined, schemaDefinition: any } | null | undefined } | null | undefined };
+export type OnUpdatePromptSubscription = { __typename?: 'Subscription', onUpdatePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, jsonSchemaId?: string | null | undefined } | null | undefined };
 
 export type OnDeletePromptSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnDeletePromptSubscription = { __typename?: 'Subscription', onDeletePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, sourcePromptId?: string | null | undefined, outputSchema?: { __typename?: 'PromptOutputSchema', name?: string | null | undefined, description?: string | null | undefined, schemaDefinition: any } | null | undefined } | null | undefined };
+export type OnDeletePromptSubscription = { __typename?: 'Subscription', onDeletePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, jsonSchemaId?: string | null | undefined } | null | undefined };
 
 export type OnCreateScanSubscriptionVariables = Exact<{
   parentId?: InputMaybe<Scalars['ID']['input']>;
@@ -3733,39 +3854,39 @@ export type OnCreateWorkflowSubscriptionVariables = Exact<{
 }>;
 
 
-export type OnCreateWorkflowSubscription = { __typename?: 'Subscription', onCreateWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined }
+export type OnCreateWorkflowSubscription = { __typename?: 'Subscription', onCreateWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, jsonSchemaId?: string | null | undefined, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, jsonSchemaId?: string | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'InputNodeConfig' }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
-         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
+         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
 
 export type OnUpdateWorkflowSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnUpdateWorkflowSubscription = { __typename?: 'Subscription', onUpdateWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined }
+export type OnUpdateWorkflowSubscription = { __typename?: 'Subscription', onUpdateWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, jsonSchemaId?: string | null | undefined, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, jsonSchemaId?: string | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'InputNodeConfig' }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
-         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
+         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
 
 export type OnDeleteWorkflowSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnDeleteWorkflowSubscription = { __typename?: 'Subscription', onDeleteWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
-          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined }
+export type OnDeleteWorkflowSubscription = { __typename?: 'Subscription', onDeleteWorkflow?: { __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, jsonSchemaId?: string | null | undefined, parentId: string, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
+          | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, jsonSchemaId?: string | null | undefined }
           | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
           | { __typename?: 'InputNodeConfig' }
           | { __typename?: 'ProcessNodeConfig', options?: any | null | undefined, staticOutput?: any | null | undefined }
           | { __typename?: 'ToolsNodeConfig', options?: any | null | undefined }
-         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, structuredOutputSchema?: { __typename?: 'JsonSchemaValue', jsonSchema: any } | null | undefined, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
+         | null | undefined }>, edges: Array<{ __typename?: 'WorkflowEdge', id: string, sourceId: string, targetId: string, sourcePort?: string | null | undefined, targetPort?: string | null | undefined }> }, ui?: { __typename?: 'WorkflowUI', elements: Array<{ __typename?: 'WorkflowUIElement', id: string, type: string, category: string, typeLabel: string, x: number, y: number, width: number, height: number }>, connections: Array<{ __typename?: 'WorkflowUIConnection', id: string, from: string, to: string, fromSide: string, toSide: string }> } | null | undefined } | null | undefined };
 
 export type OnCreateWorkflowExecutionSubscriptionVariables = Exact<{
   parentId: Scalars['ID']['input'];
@@ -3819,6 +3940,9 @@ export declare const DeleteDocument: import("graphql").DocumentNode;
 export declare const CreateImage: import("graphql").DocumentNode;
 export declare const UpdateImage: import("graphql").DocumentNode;
 export declare const DeleteImage: import("graphql").DocumentNode;
+export declare const CreateJsonSchema: import("graphql").DocumentNode;
+export declare const UpdateJsonSchema: import("graphql").DocumentNode;
+export declare const DeleteJsonSchema: import("graphql").DocumentNode;
 export declare const CreateNotification: import("graphql").DocumentNode;
 export declare const UpdateNotification: import("graphql").DocumentNode;
 export declare const DeleteNotification: import("graphql").DocumentNode;
@@ -3859,6 +3983,9 @@ export declare const GetDocument: import("graphql").DocumentNode;
 export declare const ListDocuments: import("graphql").DocumentNode;
 export declare const GetImage: import("graphql").DocumentNode;
 export declare const ListImages: import("graphql").DocumentNode;
+export declare const JsonSchemaFields: import("graphql").DocumentNode;
+export declare const GetJsonSchema: import("graphql").DocumentNode;
+export declare const ListJsonSchemas: import("graphql").DocumentNode;
 export declare const GetNotification: import("graphql").DocumentNode;
 export declare const ListNotifications: import("graphql").DocumentNode;
 export declare const GetProject: import("graphql").DocumentNode;
@@ -3888,6 +4015,9 @@ export declare const OnDeleteDocument: import("graphql").DocumentNode;
 export declare const OnCreateImage: import("graphql").DocumentNode;
 export declare const OnUpdateImage: import("graphql").DocumentNode;
 export declare const OnDeleteImage: import("graphql").DocumentNode;
+export declare const OnCreateJsonSchema: import("graphql").DocumentNode;
+export declare const OnUpdateJsonSchema: import("graphql").DocumentNode;
+export declare const OnDeleteJsonSchema: import("graphql").DocumentNode;
 export declare const OnCreateNotification: import("graphql").DocumentNode;
 export declare const OnUpdateNotification: import("graphql").DocumentNode;
 export declare const OnDeleteNotification: import("graphql").DocumentNode;

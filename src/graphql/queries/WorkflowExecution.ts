@@ -41,9 +41,7 @@ export const Q_GET_WORKFLOW_EXECUTION = gql`
                 model
                 topK
                 systemPrompt
-                structuredOutputSchema {
-                  jsonSchema
-                }
+                jsonSchemaId
               }
               ... on ToolsNodeConfig {
                 options
@@ -61,9 +59,7 @@ export const Q_GET_WORKFLOW_EXECUTION = gql`
             targetPort
           }
         }
-        structuredOutputSchema {
-          jsonSchema
-        }
+        jsonSchemaId
         ui {
           elements {
             id

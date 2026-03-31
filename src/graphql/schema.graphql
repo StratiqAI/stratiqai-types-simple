@@ -36,7 +36,8 @@ enum EntityType {
   TEXT
   SCAN
   PROMPT
-  STRUCTURED_OUTPUT_SCHEMA
+  STRUCTURED_OUTPUT_SCHEMA @deprecated(reason: "Use JSON_SCHEMA. Retained for backward compatibility with existing DynamoDB rows.")
+  JSON_SCHEMA
   AI_QUERY_EXECUTION
   WORKFLOW
   WORKFLOW_EXECUTION
@@ -356,24 +357,9 @@ type Prompt implements Node & Metadata & Shareable
   """
   isActive: Boolean
   """
-  Structured output schema for this prompt (inline). Defines the structure expected from the AI.
+  Reference to a persisted JsonSchema entity defining the structured output schema for this prompt.
   """
-  outputSchema: PromptOutputSchema
-}
-
-"""
-Structured output schema for a prompt (inline object). Defines the structure expected from the AI.
-Maps to Gemini responseSchema.
-"""
-type PromptOutputSchema
-  @aws_iam
-  @aws_cognito_user_pools(
-    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
-  ) {
-  """
-  JSON Schema definition (OpenAPI 3.0 compatible). Used to validate AI output.
-  """
-  schemaDefinition: AWSJSON!
+  jsonSchemaId: ID
 }
 
 type PromptConnection
@@ -382,6 +368,46 @@ type PromptConnection
     cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
   ) {
   items: [Prompt!]!
+  nextToken: String
+}
+
+"""
+Persistable JSON Schema definition for structured AI output.
+Root entity with Shareable ownership: system-owned schemas are shared;
+user copies are PRIVATE (copy-on-write via sourceJsonSchemaId).
+"""
+type JsonSchema implements Node & Metadata & Shareable
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  sharingMode: SharingMode!
+  accessList(limit: Int, nextToken: String): ResourceShareConnection
+  """
+  When set, this schema is a user-owned copy forked from another (the original remains shared).
+  """
+  sourceJsonSchemaId: ID
+  name: String!
+  description: String
+  """
+  JSON Schema definition (OpenAPI 3.0 / JSON Schema draft-07 compatible). Stored as AWSJSON.
+  """
+  schemaDefinition: AWSJSON!
+}
+
+type JsonSchemaConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [JsonSchema!]!
   nextToken: String
 }
 
@@ -1038,15 +1064,6 @@ type WorkflowUI
   connections: [WorkflowUIConnection!]!
 }
 
-# JSON Schema document for structured output. Shared by Workflows, ValidateTopicStore, and dashboard widgets.
-type JsonSchemaValue
-  @aws_iam
-  @aws_cognito_user_pools(
-    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
-  ) {
-  jsonSchema: AWSJSON!
-}
-
 """
 Configuration for Google Gemini generation.
 """
@@ -1097,9 +1114,9 @@ type AINodeConfig @aws_iam @aws_cognito_user_pools {
   topK: Int
   systemPrompt: String
   """
-  JSON Schema for structured output (e.g. responseFormat.type eq json_schema).
+  Reference to a persisted JsonSchema entity for structured output.
   """
-  structuredOutputSchema: JsonSchemaValue
+  jsonSchemaId: ID
 }
 
 type ToolsNodeConfig @aws_iam @aws_cognito_user_pools {
@@ -1164,7 +1181,7 @@ type Workflow implements Node & Metadata & Shareable
 
   name: String!
   definition: WorkflowDefinition!
-  structuredOutputSchema: JsonSchemaValue
+  jsonSchemaId: ID
   ui: WorkflowUI
 
   # Parent Relationship
@@ -1505,11 +1522,6 @@ input GeminiConfigInput {
   stopSequences: [String!]
 }
 
-# AI STUDIO: Inline structured output schema for prompts
-input PromptOutputSchemaInput {
-  schemaDefinition: AWSJSON!
-}
-
 # AI STUDIO: Prompt inputs (root entity; owner from auth). Flat fields aligned with Prompt type.
 input CreatePromptInput {
   name: String!
@@ -1528,9 +1540,9 @@ input CreatePromptInput {
   inputVariables: [String!]
   model: AIModel = GEMINI_2_5_FLASH
   """
-  Optional; inline structured output schema for this prompt. Required for structured output execution.
+  Reference to a persisted JsonSchema entity defining the structured output schema for this prompt.
   """
-  outputSchema: PromptOutputSchemaInput
+  jsonSchemaId: ID
   sharingMode: SharingMode = PRIVATE
   """
   Set when copying a shared prompt: ID of the prompt this copy was created from.
@@ -1555,9 +1567,34 @@ input UpdatePromptInput {
   inputVariables: [String!]
   model: AIModel
   """
-  Optional; inline structured output schema for this prompt.
+  Reference to a persisted JsonSchema entity defining the structured output schema for this prompt.
   """
-  outputSchema: PromptOutputSchemaInput
+  jsonSchemaId: ID
+  sharingMode: SharingMode
+}
+
+# AI STUDIO: JsonSchema inputs (root entity; owner from auth).
+input CreateJsonSchemaInput {
+  name: String!
+  description: String
+  """
+  JSON Schema definition (OpenAPI 3.0 / JSON Schema draft-07 compatible). Stored as AWSJSON.
+  """
+  schemaDefinition: AWSJSON!
+  sharingMode: SharingMode = PRIVATE
+  """
+  Set when copying a shared schema: ID of the schema this copy was created from.
+  """
+  sourceJsonSchemaId: ID
+}
+
+input UpdateJsonSchemaInput {
+  name: String
+  description: String
+  """
+  JSON Schema definition (OpenAPI 3.0 / JSON Schema draft-07 compatible). Stored as AWSJSON.
+  """
+  schemaDefinition: AWSJSON
   sharingMode: SharingMode
 }
 
@@ -1710,11 +1747,6 @@ input WorkflowUIInput {
   connections: [WorkflowUIConnectionInput!]!
 }
 
-# Input for structured output schema (shared by Workflows, ValidateTopicStore, dashboard widgets).
-input JsonSchemaValueInput {
-  jsonSchema: AWSJSON!
-}
-
 input ProcessNodeConfigInput {
   options: AWSJSON
   staticOutput: AWSJSON
@@ -1726,9 +1758,9 @@ input AINodeConfigInput {
   topK: Int
   systemPrompt: String
   """
-  JSON Schema for structured output (e.g. responseFormat.type eq json_schema).
+  Reference to a persisted JsonSchema entity for structured output.
   """
-  structuredOutputSchema: JsonSchemaValueInput
+  jsonSchemaId: ID
 }
 
 input ToolsNodeConfigInput {
@@ -1764,14 +1796,14 @@ input CreateWorkflowInput {
   parentId: ID!
   name: String!
   definition: WorkflowDefinitionInput!
-  structuredOutputSchema: JsonSchemaValueInput
+  jsonSchemaId: ID
   ui: WorkflowUIInput
 }
 
 input UpdateWorkflowInput {
   name: String
   definition: WorkflowDefinitionInput
-  structuredOutputSchema: JsonSchemaValueInput
+  jsonSchemaId: ID
   ui: WorkflowUIInput
 }
 
@@ -1920,24 +1952,6 @@ type UserError {
   message: String!
   code: String!
   field: [String]
-}
-
-# AI Query inputs
-input CreateAiQueryInput {
-  tenantId: ID!
-  ownerId: ID!
-  requestPayload: AWSJSON
-  responseJsonSchema: AWSJSON!
-  projectId: ID
-}
-
-input UpdateAiQueryInput {
-  status: AIQueryStatus
-  responsePayload: AWSJSON
-  errorMessage: String
-  modelUsed: String
-  inputTokens: Int
-  outputTokens: Int
 }
 
 # AccountCredits: id is tenantId for root lookup
@@ -2281,6 +2295,28 @@ type Query {
     limit: Int
     nextToken: String
   ): PromptConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
+  Get a single JsonSchema by ID (root entity).
+  """
+  getJsonSchema(id: ID!): JsonSchema
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
+  List JsonSchemas by scope. Defaults to ALL_TENANT so users see both system and their own schemas.
+  """
+  listJsonSchemas(
+    scope: ListScope = ALL_TENANT
+    limit: Int
+    nextToken: String
+  ): JsonSchemaConnection!
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
@@ -2731,6 +2767,24 @@ type Mutation {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
+
+  # AI STUDIO: JsonSchema operations (root entity)
+  createJsonSchema(input: CreateJsonSchemaInput!): JsonSchema
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  updateJsonSchema(id: ID!, input: UpdateJsonSchemaInput!): JsonSchema
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  deleteJsonSchema(id: ID!): JsonSchema
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
   """
   Submits the prompt for execution (creates AIQueryExecution PENDING, enqueues SQS). Worker runs Gemini and updates execution; subscribe to onUpdateAIQueryExecution(id) for result.
   """
@@ -3052,6 +3106,13 @@ type Subscription {
   onCreatePrompt: Prompt @aws_subscribe(mutations: ["createPrompt"])
   onUpdatePrompt(id: ID!): Prompt @aws_subscribe(mutations: ["updatePrompt"])
   onDeletePrompt(id: ID!): Prompt @aws_subscribe(mutations: ["deletePrompt"])
+
+  """
+  AI STUDIO: JsonSchema subscriptions
+  """
+  onCreateJsonSchema: JsonSchema @aws_subscribe(mutations: ["createJsonSchema"])
+  onUpdateJsonSchema(id: ID!): JsonSchema @aws_subscribe(mutations: ["updateJsonSchema"])
+  onDeleteJsonSchema(id: ID!): JsonSchema @aws_subscribe(mutations: ["deleteJsonSchema"])
 
   """
   AI STUDIO: AIQueryExecution subscriptions (standard Node pattern).

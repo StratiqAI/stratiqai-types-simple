@@ -4,10 +4,7 @@ mutation createPrompt {
       name: "Test Prompt"
       model: GEMINI_3_1_FLASH_PREVIEW
       prompt: "Extract information about the brokers in this document"
-      outputSchema: {
-        name: "Test Schema"
-        schemaDefinition: "\"{\\r\\n  \\\"$id\\\": \\\"https://example.com/person.schema.json\\\",\\r\\n  \\\"$schema\\\": \\\"https://json-schema.org/draft/2020-12/schema\\\",\\r\\n  \\\"title\\\": \\\"Person\\\",\\r\\n  \\\"type\\\": \\\"object\\\",\\r\\n  \\\"properties\\\": {\\r\\n    \\\"firstName\\\": {\\r\\n      \\\"type\\\": \\\"string\\\",\\r\\n      \\\"description\\\": \\\"The person's first name.\\\"\\r\\n    },\\r\\n    \\\"lastName\\\": {\\r\\n      \\\"type\\\": \\\"string\\\",\\r\\n      \\\"description\\\": \\\"The person's last name.\\\"\\r\\n    },\\r\\n    \\\"email\\\": {\\r\\n      \\\"description\\\": \\\"The person's email address.\\\",\\r\\n      \\\"type\\\": \\\"string\\\"\\r\\n    }\\r\\n  }\\r\\n}\""
-      }
+      jsonSchemaId: "PASTE_JSON_SCHEMA_ID_HERE"
     }
   ) {
     id
@@ -18,9 +15,7 @@ mutation createPrompt {
     tenantId
     sharingMode
     ownerId
-    outputSchema {
-      schemaDefinition
-    }
+    jsonSchemaId
     isActive
     inputVariables
     entityType

@@ -4,7 +4,7 @@ import { PROMPT_FIELDS } from '../queries/Prompt.js';
 
 /**
  * GraphQL Mutations for AI Studio Prompt (root entity)
- * Create/Update use input.outputSchema (PromptOutputSchemaInput); no outputSchemaId.
+ * Create/Update use input.jsonSchemaId to reference a persisted JsonSchema entity.
  */
 
 export const M_CREATE_PROMPT = gql`

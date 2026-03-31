@@ -32,9 +32,7 @@ export const M_CREATE_WORKFLOW = gql`
               model
               topK
               systemPrompt
-              structuredOutputSchema {
-                jsonSchema
-              }
+              jsonSchemaId
             }
             ... on ToolsNodeConfig {
               options
@@ -52,9 +50,7 @@ export const M_CREATE_WORKFLOW = gql`
           targetPort
         }
       }
-      structuredOutputSchema {
-        jsonSchema
-      }
+      jsonSchemaId
       parentId
       ui {
         elements {
@@ -107,9 +103,7 @@ export const M_UPDATE_WORKFLOW = gql`
               model
               topK
               systemPrompt
-              structuredOutputSchema {
-                jsonSchema
-              }
+              jsonSchemaId
             }
             ... on ToolsNodeConfig {
               options
@@ -127,9 +121,7 @@ export const M_UPDATE_WORKFLOW = gql`
           targetPort
         }
       }
-      structuredOutputSchema {
-        jsonSchema
-      }
+      jsonSchemaId
       parentId
       ui {
         elements {
@@ -182,9 +174,7 @@ export const M_DELETE_WORKFLOW = gql`
               model
               topK
               systemPrompt
-              structuredOutputSchema {
-                jsonSchema
-              }
+              jsonSchemaId
             }
             ... on ToolsNodeConfig {
               options
@@ -202,9 +192,7 @@ export const M_DELETE_WORKFLOW = gql`
           targetPort
         }
       }
-      structuredOutputSchema {
-        jsonSchema
-      }
+      jsonSchemaId
       parentId
       ui {
         elements {

@@ -305,6 +305,12 @@ export type CreateBillingInvoiceInput = {
   tenantId: Scalars['ID']['input'];
 };
 
+export type CreateDashboardLayoutInput = {
+  parentId: Scalars['ID']['input'];
+  state: Scalars['AWSJSON']['input'];
+  version: Scalars['String']['input'];
+};
+
 export type CreateDealRoomMemberInput = {
   parentId: Scalars['ID']['input'];
   permissionSetIds?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -504,6 +510,32 @@ export type CreateWorkflowNodeExecutionInput = {
   parentId: Scalars['ID']['input'];
 };
 
+/**
+ * Persisted dashboard layout for a project. Stores the full multi-tab widget
+ * layout as a JSON blob (MultiTabDashboardState).
+ */
+export type DashboardLayout = Metadata & Node & {
+  __typename?: 'DashboardLayout';
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  ownerId: Scalars['ID']['output'];
+  parentId: Scalars['ID']['output'];
+  /** Full MultiTabDashboardState (tabs, widgets, config, widgetData). */
+  state: Scalars['AWSJSON']['output'];
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+  /** Storage format version (e.g. '5.0.0'). */
+  version: Scalars['String']['output'];
+};
+
+export type DashboardLayoutConnection = {
+  __typename?: 'DashboardLayoutConnection';
+  items: Array<DashboardLayout>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
 export type DealRole =
   | 'BROKER_ADMIN'
   | 'BUYER_ENVIRONMENTAL'
@@ -669,6 +701,7 @@ export type EntityType =
   | 'ANNOUNCEMENT'
   | 'AUDIT_LOG_ENTRY'
   | 'BILLING_INVOICE'
+  | 'DASHBOARD_LAYOUT'
   | 'DEAL_ROOM_MEMBER'
   | 'DEAL_TEMPLATE'
   | 'DOCLINK'
@@ -935,6 +968,7 @@ export type Mutation = {
   createAnnouncement?: Maybe<Announcement>;
   createAuditLogEntry?: Maybe<AuditLogEntry>;
   createBillingInvoice?: Maybe<BillingInvoice>;
+  createDashboardLayout?: Maybe<DashboardLayout>;
   createDealRoomMember?: Maybe<DealRoomMember>;
   createDealTemplate?: Maybe<DealTemplate>;
   createDoclink?: Maybe<Doclink>;
@@ -991,6 +1025,7 @@ export type Mutation = {
   updateAIQueryExecution?: Maybe<AiQueryExecution>;
   updateAccountCredits?: Maybe<AccountCredits>;
   updateAnnouncement?: Maybe<Announcement>;
+  updateDashboardLayout?: Maybe<DashboardLayout>;
   updateDealRoomMember?: Maybe<DealRoomMember>;
   updateDealTemplate?: Maybe<DealTemplate>;
   updateDoclink?: Maybe<Doclink>;
@@ -1048,6 +1083,11 @@ export type MutationCreateAuditLogEntryArgs = {
 
 export type MutationCreateBillingInvoiceArgs = {
   input: CreateBillingInvoiceInput;
+};
+
+
+export type MutationCreateDashboardLayoutArgs = {
+  input: CreateDashboardLayoutInput;
 };
 
 
@@ -1328,6 +1368,12 @@ export type MutationUpdateAnnouncementArgs = {
 };
 
 
+export type MutationUpdateDashboardLayoutArgs = {
+  input: UpdateDashboardLayoutInput;
+  key: CompositeKeyInput;
+};
+
+
 export type MutationUpdateDealRoomMemberArgs = {
   input: UpdateDealRoomMemberInput;
   key: CompositeKeyInput;
@@ -1517,6 +1563,7 @@ export type Project = Metadata & Node & Shareable & {
   brokerContactName?: Maybe<Scalars['String']['output']>;
   brokerContactPhone?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['AWSDateTime']['output'];
+  dashboardlayouts?: Maybe<DashboardLayoutConnection>;
   dealTags?: Maybe<Scalars['AWSJSON']['output']>;
   dealroommembers?: Maybe<DealRoomMemberConnection>;
   deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
@@ -1566,6 +1613,12 @@ export type ProjectAnnouncementsArgs = {
 
 
 export type ProjectAuditlogentriesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type ProjectDashboardlayoutsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
 };
@@ -1719,6 +1772,7 @@ export type Query = {
   /** Get a single AuditLogEntry. Requires composite key (ID + ParentID) for access. */
   getAuditLogEntry?: Maybe<AuditLogEntry>;
   getBillingInvoice?: Maybe<BillingInvoice>;
+  getDashboardLayout?: Maybe<DashboardLayout>;
   /** Get a single DealRoomMember. Requires composite key (ID + ParentID) for access. */
   getDealRoomMember?: Maybe<DealRoomMember>;
   getDealTemplate?: Maybe<DealTemplate>;
@@ -1764,6 +1818,7 @@ export type Query = {
   listBillingInvoices: BillingInvoiceConnection;
   /** List buyer engagement scores for a deal (aggregated from AuditLogEntry). For broker heatmap/shortlist. */
   listBuyerEngagements: Array<BuyerEngagement>;
+  listDashboardLayouts: DashboardLayoutConnection;
   /** List DealRoomMembers for a specific Deal (Project). */
   listDealRoomMembers: DealRoomMemberConnection;
   listDealTemplates: DealTemplateConnection;
@@ -1829,6 +1884,11 @@ export type QueryGetAuditLogEntryArgs = {
 
 export type QueryGetBillingInvoiceArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryGetDashboardLayoutArgs = {
+  key: CompositeKeyInput;
 };
 
 
@@ -1974,6 +2034,13 @@ export type QueryListBillingInvoicesArgs = {
 
 export type QueryListBuyerEngagementsArgs = {
   dealId: Scalars['ID']['input'];
+};
+
+
+export type QueryListDashboardLayoutsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+  parentId: Scalars['ID']['input'];
 };
 
 
@@ -2228,6 +2295,8 @@ export type Subscription = {
   onCreateAIQueryExecution?: Maybe<AiQueryExecution>;
   /** AI STUDIO: AIQueryExecution subscriptions filtered by client executionId (same underlying mutations as above). */
   onCreateAIQueryExecutionByExecutionId?: Maybe<AiQueryExecution>;
+  /** DASHBOARD LAYOUT subscriptions */
+  onCreateDashboardLayout?: Maybe<DashboardLayout>;
   /** DOCLINK SUBSCRIPTIONS */
   onCreateDoclink?: Maybe<Doclink>;
   /** DOCUMENT SUBSCRIPTIONS */
@@ -2270,6 +2339,7 @@ export type Subscription = {
   onRestoreProject?: Maybe<Project>;
   onUpdateAIQueryExecution?: Maybe<AiQueryExecution>;
   onUpdateAIQueryExecutionByExecutionId?: Maybe<AiQueryExecution>;
+  onUpdateDashboardLayout?: Maybe<DashboardLayout>;
   onUpdateDoclink?: Maybe<Doclink>;
   onUpdateDocument?: Maybe<Document>;
   onUpdateImage?: Maybe<Image>;
@@ -2295,6 +2365,11 @@ export type SubscriptionOnCreateAiQueryExecutionArgs = {
 
 export type SubscriptionOnCreateAiQueryExecutionByExecutionIdArgs = {
   executionId: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnCreateDashboardLayoutArgs = {
+  parentId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -2432,6 +2507,11 @@ export type SubscriptionOnUpdateAiQueryExecutionArgs = {
 
 export type SubscriptionOnUpdateAiQueryExecutionByExecutionIdArgs = {
   executionId: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnUpdateDashboardLayoutArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -2604,6 +2684,11 @@ export type UpdateAccountCreditsInput = {
 
 export type UpdateAnnouncementInput = {
   body?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateDashboardLayoutInput = {
+  state?: InputMaybe<Scalars['AWSJSON']['input']>;
+  version?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateDealRoomMemberInput = {
@@ -3032,6 +3117,21 @@ export type WorkflowUiInput = {
   elements: Array<WorkflowUiElementInput>;
 };
 
+export type CreateDashboardLayoutMutationVariables = Exact<{
+  input: CreateDashboardLayoutInput;
+}>;
+
+
+export type CreateDashboardLayoutMutation = { __typename?: 'Mutation', createDashboardLayout?: { __typename?: 'DashboardLayout', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, state: any, version: string } | null | undefined };
+
+export type UpdateDashboardLayoutMutationVariables = Exact<{
+  key: CompositeKeyInput;
+  input: UpdateDashboardLayoutInput;
+}>;
+
+
+export type UpdateDashboardLayoutMutation = { __typename?: 'Mutation', updateDashboardLayout?: { __typename?: 'DashboardLayout', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, state: any, version: string } | null | undefined };
+
 export type CreateDoclinkMutationVariables = Exact<{
   input: CreateDoclinkInput;
 }>;
@@ -3390,6 +3490,22 @@ export type DeleteWorkflowNodeExecutionMutationVariables = Exact<{
 
 export type DeleteWorkflowNodeExecutionMutation = { __typename?: 'Mutation', deleteWorkflowNodeExecution?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined } | null | undefined };
 
+export type GetDashboardLayoutQueryVariables = Exact<{
+  key: CompositeKeyInput;
+}>;
+
+
+export type GetDashboardLayoutQuery = { __typename?: 'Query', getDashboardLayout?: { __typename?: 'DashboardLayout', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, state: any, version: string } | null | undefined };
+
+export type ListDashboardLayoutsQueryVariables = Exact<{
+  parentId: Scalars['ID']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ListDashboardLayoutsQuery = { __typename?: 'Query', listDashboardLayouts: { __typename?: 'DashboardLayoutConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'DashboardLayout', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, state: any, version: string }> } };
+
 export type GetDoclinkQueryVariables = Exact<{
   key: CompositeKeyInput;
 }>;
@@ -3633,6 +3749,20 @@ export type ListWorkflowNodeExecutionsQueryVariables = Exact<{
 
 
 export type ListWorkflowNodeExecutionsQuery = { __typename?: 'Query', listWorkflowNodeExecutions: { __typename?: 'WorkflowNodeExecutionConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined }> } };
+
+export type OnCreateDashboardLayoutSubscriptionVariables = Exact<{
+  parentId?: InputMaybe<Scalars['ID']['input']>;
+}>;
+
+
+export type OnCreateDashboardLayoutSubscription = { __typename?: 'Subscription', onCreateDashboardLayout?: { __typename?: 'DashboardLayout', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, state: any, version: string } | null | undefined };
+
+export type OnUpdateDashboardLayoutSubscriptionVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnUpdateDashboardLayoutSubscription = { __typename?: 'Subscription', onUpdateDashboardLayout?: { __typename?: 'DashboardLayout', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, state: any, version: string } | null | undefined };
 
 export type OnCreateDoclinkSubscriptionVariables = Exact<{
   parentId?: InputMaybe<Scalars['ID']['input']>;
@@ -3931,6 +4061,8 @@ export type OnWorkflowNodeExecutionStatusChangeSubscriptionVariables = Exact<{
 
 export type OnWorkflowNodeExecutionStatusChangeSubscription = { __typename?: 'Subscription', onWorkflowNodeExecutionStatusChange?: { __typename?: 'WorkflowNodeExecution', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, nodeId: string, nodeCategory?: string | null | undefined, nodeName?: string | null | undefined, nodeType?: string | null | undefined, status: WorkflowNodeExecutionStatus, startedAt?: string | null | undefined, completedAt?: string | null | undefined, inputData?: any | null | undefined, outputData?: any | null | undefined, errorMessage?: string | null | undefined, errorDetails?: any | null | undefined } | null | undefined };
 
+export declare const CreateDashboardLayout: import("graphql").DocumentNode;
+export declare const UpdateDashboardLayout: import("graphql").DocumentNode;
 export declare const CreateDoclink: import("graphql").DocumentNode;
 export declare const UpdateDoclink: import("graphql").DocumentNode;
 export declare const DeleteDoclink: import("graphql").DocumentNode;
@@ -3977,6 +4109,8 @@ export declare const CompleteWorkflowNodeExecution: import("graphql").DocumentNo
 export declare const FailWorkflowNodeExecution: import("graphql").DocumentNode;
 export declare const RetryWorkflowNodeExecution: import("graphql").DocumentNode;
 export declare const DeleteWorkflowNodeExecution: import("graphql").DocumentNode;
+export declare const GetDashboardLayout: import("graphql").DocumentNode;
+export declare const ListDashboardLayouts: import("graphql").DocumentNode;
 export declare const GetDoclink: import("graphql").DocumentNode;
 export declare const ListDoclinks: import("graphql").DocumentNode;
 export declare const GetDocument: import("graphql").DocumentNode;
@@ -4006,6 +4140,8 @@ export declare const GetWorkflowExecution: import("graphql").DocumentNode;
 export declare const ListWorkflowExecutions: import("graphql").DocumentNode;
 export declare const GetWorkflowNodeExecution: import("graphql").DocumentNode;
 export declare const ListWorkflowNodeExecutions: import("graphql").DocumentNode;
+export declare const OnCreateDashboardLayout: import("graphql").DocumentNode;
+export declare const OnUpdateDashboardLayout: import("graphql").DocumentNode;
 export declare const OnCreateDoclink: import("graphql").DocumentNode;
 export declare const OnUpdateDoclink: import("graphql").DocumentNode;
 export declare const OnDeleteDoclink: import("graphql").DocumentNode;

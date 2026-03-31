@@ -59,6 +59,7 @@ enum EntityType {
   INVESTOR_PROFILE
   MICRO_INTERVIEW
   MATCH_SCORE
+  DASHBOARD_LAYOUT
 }
 
 enum AuditLogAction {
@@ -411,6 +412,39 @@ type JsonSchemaConnection
     cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
   ) {
   items: [JsonSchema!]!
+  nextToken: String
+}
+
+"""
+Persisted dashboard layout for a project. Stores the full multi-tab widget
+layout as a JSON blob (MultiTabDashboardState).
+"""
+type DashboardLayout implements Node & Metadata
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  parentId: ID!
+  """Full MultiTabDashboardState (tabs, widgets, config, widgetData)."""
+  state: AWSJSON!
+  """Storage format version (e.g. '5.0.0')."""
+  version: String!
+}
+
+type DashboardLayoutConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [DashboardLayout!]!
   nextToken: String
 }
 
@@ -1019,6 +1053,7 @@ type Project implements Node & Metadata & Shareable
   announcements(limit: Int, nextToken: String): AnnouncementConnection
   microinterviews(limit: Int, nextToken: String): MicroInterviewConnection
   matchscores(limit: Int, nextToken: String): MatchScoreConnection
+  dashboardlayouts(limit: Int, nextToken: String): DashboardLayoutConnection
 }
 
 type ProjectConnection
@@ -1599,6 +1634,18 @@ input UpdateJsonSchemaInput {
   """
   schemaDefinition: AWSJSON
   sharingMode: SharingMode
+}
+
+# DASHBOARD LAYOUT inputs (child of Project)
+input CreateDashboardLayoutInput {
+  parentId: ID!
+  state: AWSJSON!
+  version: String!
+}
+
+input UpdateDashboardLayoutInput {
+  state: AWSJSON
+  version: String
 }
 
 # Create an AIQueryExecution record (e.g. before submitAIQuery or for async execution).
@@ -2325,6 +2372,22 @@ type Query {
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
 
+  # DASHBOARD LAYOUT QUERIES (child of Project)
+  getDashboardLayout(key: CompositeKeyInput!): DashboardLayout
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  listDashboardLayouts(
+    parentId: ID!
+    limit: Int
+    nextToken: String
+  ): DashboardLayoutConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
   """
   Get a single AIQueryExecution by id.
   """
@@ -2788,6 +2851,21 @@ type Mutation {
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
 
+  # DASHBOARD LAYOUT operations (child of Project)
+  createDashboardLayout(input: CreateDashboardLayoutInput!): DashboardLayout
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+  updateDashboardLayout(
+    key: CompositeKeyInput!
+    input: UpdateDashboardLayoutInput!
+  ): DashboardLayout
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
   """
   Submits the prompt for execution (creates AIQueryExecution PENDING, enqueues SQS). Worker runs Gemini and updates execution; subscribe to onUpdateAIQueryExecution(id) for result.
   """
@@ -3118,6 +3196,14 @@ type Subscription {
     @aws_subscribe(mutations: ["updateJsonSchema"])
   onDeleteJsonSchema(id: ID!): JsonSchema
     @aws_subscribe(mutations: ["deleteJsonSchema"])
+
+  """
+  DASHBOARD LAYOUT subscriptions
+  """
+  onCreateDashboardLayout(parentId: ID): DashboardLayout
+    @aws_subscribe(mutations: ["createDashboardLayout"])
+  onUpdateDashboardLayout(id: ID!): DashboardLayout
+    @aws_subscribe(mutations: ["updateDashboardLayout"])
 
   """
   AI STUDIO: AIQueryExecution subscriptions (standard Node pattern).

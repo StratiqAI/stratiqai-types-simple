@@ -36,7 +36,10 @@ enum EntityType {
   TEXT
   SCAN
   PROMPT
-  STRUCTURED_OUTPUT_SCHEMA @deprecated(reason: "Use JSON_SCHEMA. Retained for backward compatibility with existing DynamoDB rows.")
+  STRUCTURED_OUTPUT_SCHEMA
+    @deprecated(
+      reason: "Use JSON_SCHEMA. Retained for backward compatibility with existing DynamoDB rows."
+    )
   JSON_SCHEMA
   AI_QUERY_EXECUTION
   WORKFLOW
@@ -3111,8 +3114,10 @@ type Subscription {
   AI STUDIO: JsonSchema subscriptions
   """
   onCreateJsonSchema: JsonSchema @aws_subscribe(mutations: ["createJsonSchema"])
-  onUpdateJsonSchema(id: ID!): JsonSchema @aws_subscribe(mutations: ["updateJsonSchema"])
-  onDeleteJsonSchema(id: ID!): JsonSchema @aws_subscribe(mutations: ["deleteJsonSchema"])
+  onUpdateJsonSchema(id: ID!): JsonSchema
+    @aws_subscribe(mutations: ["updateJsonSchema"])
+  onDeleteJsonSchema(id: ID!): JsonSchema
+    @aws_subscribe(mutations: ["deleteJsonSchema"])
 
   """
   AI STUDIO: AIQueryExecution subscriptions (standard Node pattern).

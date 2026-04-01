@@ -76,8 +76,8 @@ export type AiQueryExecution = Metadata & Node & {
   documentIds?: Maybe<Array<Maybe<Scalars['ID']['output']>>>;
   durationMs?: Maybe<Scalars['Int']['output']>;
   entityType: EntityType;
+  errorCode?: Maybe<Scalars['String']['output']>;
   errorMessage?: Maybe<Scalars['String']['output']>;
-  /** AI Auditing Fields */
   executedAt?: Maybe<Scalars['AWSDateTime']['output']>;
   /** AI Query fields */
   executionId: Scalars['ID']['output'];
@@ -85,13 +85,22 @@ export type AiQueryExecution = Metadata & Node & {
   id: Scalars['ID']['output'];
   /** Prompt input fields */
   inputValues: Scalars['AWSJSON']['output'];
+  model?: Maybe<Scalars['String']['output']>;
   ownerId: Scalars['ID']['output'];
+  priority?: Maybe<Scalars['String']['output']>;
   /** Project fields */
   projectId: Scalars['ID']['output'];
   promptId: Scalars['ID']['output'];
   promptTokenCount?: Maybe<Scalars['Int']['output']>;
+  /** Timing fields */
+  queuedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  /** AI output and token auditing */
   rawOutput?: Maybe<Scalars['String']['output']>;
+  retryCount?: Maybe<Scalars['Int']['output']>;
+  startedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  /** Execution lifecycle fields */
   status: ExecutionStatus;
+  statusMessage?: Maybe<Scalars['String']['output']>;
   tenantId: Scalars['ID']['output'];
   topK?: Maybe<Scalars['Int']['output']>;
   topKPerNs?: Maybe<Scalars['Int']['output']>;
@@ -265,6 +274,8 @@ export type CreateAiQueryExecutionInput = {
   /** Visual RAG fields */
   inputValues: Scalars['AWSJSON']['input'];
   ownerId?: InputMaybe<Scalars['ID']['input']>;
+  /** Queue priority: HIGH, MEDIUM, or LOW. Defaults to MEDIUM when omitted. */
+  priority?: InputMaybe<Scalars['String']['input']>;
   /** Project fields */
   projectId: Scalars['ID']['input'];
   promptId: Scalars['ID']['input'];
@@ -728,11 +739,15 @@ export type EntityType =
   | 'WORKFLOW_EXECUTION'
   | 'WORKFLOW_NODE_EXECUTION';
 
-/** Execution outcome for AIQueryExecution (distinct from AIQueryStatus). */
+/**
+ * Execution lifecycle for AIQueryExecution.
+ * PENDING -> QUEUED -> PROCESSING -> SUCCESS | ERROR
+ */
 export type ExecutionStatus =
   | 'ERROR'
   | 'PENDING'
   | 'PROCESSING'
+  | 'QUEUED'
   | 'SUCCESS';
 
 /** Configuration for Google Gemini generation. */
@@ -2669,11 +2684,18 @@ export type TopicConnection = {
 export type UpdateAiQueryExecutionInput = {
   candidatesTokenCount?: InputMaybe<Scalars['Int']['input']>;
   durationMs?: InputMaybe<Scalars['Int']['input']>;
+  errorCode?: InputMaybe<Scalars['String']['input']>;
   errorMessage?: InputMaybe<Scalars['String']['input']>;
   executedAt?: InputMaybe<Scalars['AWSDateTime']['input']>;
+  model?: InputMaybe<Scalars['String']['input']>;
+  priority?: InputMaybe<Scalars['String']['input']>;
   promptTokenCount?: InputMaybe<Scalars['Int']['input']>;
+  queuedAt?: InputMaybe<Scalars['AWSDateTime']['input']>;
   rawOutput?: InputMaybe<Scalars['String']['input']>;
+  retryCount?: InputMaybe<Scalars['Int']['input']>;
+  startedAt?: InputMaybe<Scalars['AWSDateTime']['input']>;
   status?: InputMaybe<ExecutionStatus>;
+  statusMessage?: InputMaybe<Scalars['String']['input']>;
   totalTokenCount?: InputMaybe<Scalars['Int']['input']>;
 };
 

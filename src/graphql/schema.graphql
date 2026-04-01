@@ -84,7 +84,10 @@ enum NDAStatus {
   SIGNED
 }
 
-enum AIQueryStatus {
+enum AIQueryStatus
+  @deprecated(
+    reason: "Use ExecutionStatus on AIQueryExecution.status. Retained for backward compatibility."
+  ) {
   PENDING
   PROCESSING
   COMPLETED
@@ -210,10 +213,12 @@ enum AIModel {
 }
 
 """
-Execution outcome for AIQueryExecution (distinct from AIQueryStatus).
+Execution lifecycle for AIQueryExecution.
+PENDING -> QUEUED -> PROCESSING -> SUCCESS | ERROR
 """
 enum ExecutionStatus {
   PENDING
+  QUEUED
   PROCESSING
   SUCCESS
   ERROR
@@ -433,9 +438,13 @@ type DashboardLayout implements Node & Metadata
   deletedAt: AWSDateTime
 
   parentId: ID!
-  """Full MultiTabDashboardState (tabs, widgets, config, widgetData)."""
+  """
+  Full MultiTabDashboardState (tabs, widgets, config, widgetData).
+  """
   state: AWSJSON!
-  """Storage format version (e.g. '5.0.0')."""
+  """
+  Storage format version (e.g. '5.0.0').
+  """
   version: String!
 }
 
@@ -484,16 +493,29 @@ type AIQueryExecution implements Node & Metadata
   topK: Int # Number of documents to return from the visual RAG.
   topKPerNs: Int # Number of documents to return from each namespace in the visual RAG.
   """
-  AI Auditing Fields
+  Execution lifecycle fields
   """
+  status: ExecutionStatus! # PENDING -> QUEUED -> PROCESSING -> SUCCESS | ERROR
+  statusMessage: String # Human-readable progress text (e.g. "Retrying (2/5)...").
+  errorMessage: String # Error message if the execution failed.
+  errorCode: String # Machine-readable error classification (e.g. RATE_LIMITED, PROMPT_NOT_FOUND).
+  priority: String # SQS queue priority used: HIGH, MEDIUM, or LOW.
+  retryCount: Int # Number of retries attempted for transient errors (429/5xx).
+  model: String # Actual AI model ID used (e.g. "gemini-2.5-flash").
+  """
+  Timing fields
+  """
+  queuedAt: AWSDateTime # When the execution was placed on the SQS queue.
+  startedAt: AWSDateTime # When the worker began processing (distinct from executedAt).
   executedAt: AWSDateTime # Set when execution completes (null while PENDING/PROCESSING).
-  durationMs: Int # Duration in ms when execution completes (null while PENDING/PROCESSING).
+  durationMs: Int # Wall-clock ms from startedAt to executedAt.
+  """
+  AI output and token auditing
+  """
   rawOutput: String # Raw output from the AI.
   promptTokenCount: Int # Number of tokens used by the prompt.
   candidatesTokenCount: Int # Number of tokens used by the candidates.
   totalTokenCount: Int # Total number of tokens used by the execution.
-  status: ExecutionStatus! # Status of the execution.
-  errorMessage: String # Error message if the execution failed.
 }
 
 type AIQueryExecutionConnection
@@ -1667,6 +1689,10 @@ input CreateAIQueryExecutionInput {
   topK: Int # Number of documents to return from the visual RAG.
   topKPerNs: Int # Number of documents to return from each namespace in the visual RAG.
   """
+  Queue priority: HIGH, MEDIUM, or LOW. Defaults to MEDIUM when omitted.
+  """
+  priority: String
+  """
   Optional: when provided (e.g. by submitAIQuery Lambda using IAM), used as tenant/owner; otherwise from identity.
   """
   tenantId: ID
@@ -1676,13 +1702,20 @@ input CreateAIQueryExecutionInput {
 # AI STUDIO: Worker updates execution result (status, output, tokens, etc.)
 input UpdateAIQueryExecutionInput {
   status: ExecutionStatus
+  statusMessage: String
+  errorMessage: String
+  errorCode: String
+  priority: String
+  retryCount: Int
+  model: String
+  queuedAt: AWSDateTime
+  startedAt: AWSDateTime
+  executedAt: AWSDateTime
+  durationMs: Int
   rawOutput: String
   promptTokenCount: Int
   candidatesTokenCount: Int
   totalTokenCount: Int
-  errorMessage: String
-  executedAt: AWSDateTime
-  durationMs: Int
 }
 
 # IMAGE INPUTS

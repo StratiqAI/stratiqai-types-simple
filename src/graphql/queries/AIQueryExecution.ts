@@ -20,14 +20,21 @@ export const AI_QUERY_EXECUTION_FIELDS = `
   documentIds
   topK
   topKPerNs
+  status
+  statusMessage
+  errorMessage
+  errorCode
+  priority
+  retryCount
+  model
+  queuedAt
+  startedAt
   executedAt
   durationMs
   rawOutput
   promptTokenCount
   candidatesTokenCount
   totalTokenCount
-  status
-  errorMessage
 `;
 
 export const Q_GET_AI_QUERY_EXECUTION = gql`

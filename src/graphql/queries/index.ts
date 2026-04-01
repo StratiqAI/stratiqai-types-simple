@@ -18,3 +18,4 @@ export * from './WorkflowExecution.js';
 export * from './WorkflowNodeExecution.js';
 export * from './JsonSchema.js';
 export * from './DashboardLayout.js';
+export * from './UsageRecord.js';

@@ -20,6 +20,7 @@ export type Scalars = {
 /**
  * LLM provider model keys. Backend maps each enum value to the provider API model id:
  * - Gemini (Google Generative AI): e.g. GEMINI_2_5_FLASH -> "gemini-2.5-flash"
+ * - GEMINI_3_1_FLASH_PREVIEW -> "gemini-3.1-flash-lite-preview"
  * - Anthropic (Claude API, Vercel AI SDK @ai-sdk/anthropic): e.g. CLAUDE_SONNET_4_6 -> "claude-sonnet-4-6"
  *
  * Use snapshot ids where listed for stable behavior across environments.
@@ -279,6 +280,8 @@ export type CreateAiQueryExecutionInput = {
   /** Project fields */
   projectId: Scalars['ID']['input'];
   promptId: Scalars['ID']['input'];
+  queuedAt?: InputMaybe<Scalars['AWSDateTime']['input']>;
+  statusMessage?: InputMaybe<Scalars['String']['input']>;
   /** Optional: when provided (e.g. by submitAIQuery Lambda using IAM), used as tenant/owner; otherwise from identity. */
   tenantId?: InputMaybe<Scalars['ID']['input']>;
   topK?: InputMaybe<Scalars['Int']['input']>;

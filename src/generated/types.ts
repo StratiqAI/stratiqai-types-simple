@@ -771,6 +771,20 @@ export type GeminiConfigInput = {
   topP?: InputMaybe<Scalars['Float']['input']>;
 };
 
+export type GeneratePromptDraftInput = {
+  /** Plain-English description of what the user wants the prompt to do. */
+  description: Scalars['String']['input'];
+};
+
+export type GeneratePromptDraftOutput = {
+  __typename?: 'GeneratePromptDraftOutput';
+  /** Suggested JSON Schema definition (draft-07). Returned as AWSJSON so the client can parse and load into the schema builder. */
+  jsonSchema?: Maybe<Scalars['AWSJSON']['output']>;
+  prompt: Scalars['String']['output'];
+  suggestedName?: Maybe<Scalars['String']['output']>;
+  systemInstruction?: Maybe<Scalars['String']['output']>;
+};
+
 export type Image = Metadata & Node & Storable & {
   __typename?: 'Image';
   bottomRightX: Scalars['Int']['output'];
@@ -1032,6 +1046,8 @@ export type Mutation = {
   deleteWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
   failWorkflowExecution?: Maybe<WorkflowExecution>;
   failWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
+  /** Uses AI to generate a production-quality prompt and JSON schema from a plain-English description. Returns synchronously. */
+  generatePromptDraft?: Maybe<GeneratePromptDraftOutput>;
   restoreProject?: Maybe<Project>;
   retryWorkflowExecution?: Maybe<WorkflowExecution>;
   retryWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
@@ -1335,6 +1351,11 @@ export type MutationFailWorkflowNodeExecutionArgs = {
   errorDetails?: InputMaybe<Scalars['AWSJSON']['input']>;
   errorMessage: Scalars['String']['input'];
   key: CompositeKeyInput;
+};
+
+
+export type MutationGeneratePromptDraftArgs = {
+  input: GeneratePromptDraftInput;
 };
 
 
@@ -3201,6 +3222,13 @@ export type DeleteDocumentMutationVariables = Exact<{
 
 export type DeleteDocumentMutation = { __typename?: 'Mutation', deleteDocument?: { __typename?: 'Document', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, s3Bucket: string, s3Key: string, mimeType: string, sizeBytes?: number | null | undefined } | null | undefined };
 
+export type GeneratePromptDraftMutationVariables = Exact<{
+  input: GeneratePromptDraftInput;
+}>;
+
+
+export type GeneratePromptDraftMutation = { __typename?: 'Mutation', generatePromptDraft?: { __typename?: 'GeneratePromptDraftOutput', prompt: string, systemInstruction?: string | null | undefined, jsonSchema?: any | null | undefined, suggestedName?: string | null | undefined } | null | undefined };
+
 export type CreateImageMutationVariables = Exact<{
   input: CreateImageInput;
 }>;
@@ -4094,6 +4122,7 @@ export declare const DeleteDoclink: import("graphql").DocumentNode;
 export declare const CreateDocument: import("graphql").DocumentNode;
 export declare const UpdateDocument: import("graphql").DocumentNode;
 export declare const DeleteDocument: import("graphql").DocumentNode;
+export declare const GeneratePromptDraft: import("graphql").DocumentNode;
 export declare const CreateImage: import("graphql").DocumentNode;
 export declare const UpdateImage: import("graphql").DocumentNode;
 export declare const DeleteImage: import("graphql").DocumentNode;

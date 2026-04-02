@@ -18,4 +18,5 @@ export * from './Workflow.js';
 export * from './WorkflowExecution.js';
 export * from './WorkflowNodeExecution.js';
 export * from './JsonSchema.js';
+export * from './GeneratePromptDraft.js';
 export * from './DashboardLayout.js';

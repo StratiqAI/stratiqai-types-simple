@@ -1659,6 +1659,24 @@ input UpdateJsonSchemaInput {
   sharingMode: SharingMode
 }
 
+# AI STUDIO: Generate prompt draft from a plain-English description.
+input GeneratePromptDraftInput {
+  """
+  Plain-English description of what the user wants the prompt to do.
+  """
+  description: String!
+}
+
+type GeneratePromptDraftOutput {
+  prompt: String!
+  systemInstruction: String
+  """
+  Suggested JSON Schema definition (draft-07). Returned as AWSJSON so the client can parse and load into the schema builder.
+  """
+  jsonSchema: AWSJSON
+  suggestedName: String
+}
+
 # DASHBOARD LAYOUT inputs (child of Project)
 input CreateDashboardLayoutInput {
   parentId: ID!
@@ -2882,6 +2900,17 @@ type Mutation {
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
   deleteJsonSchema(id: ID!): JsonSchema
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
+  Uses AI to generate a production-quality prompt and JSON schema from a plain-English description. Returns synchronously.
+  """
+  generatePromptDraft(
+    input: GeneratePromptDraftInput!
+  ): GeneratePromptDraftOutput
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]

@@ -397,6 +397,8 @@ export type CreateJsonSchemaInput = {
   name: Scalars['String']['input'];
   /** JSON Schema definition (OpenAPI 3.0 / JSON Schema draft-07 compatible). Stored as AWSJSON. */
   schemaDefinition: Scalars['AWSJSON']['input'];
+  /** Structural hash; usually computed client-side from schemaDefinition. */
+  schemaHash?: InputMaybe<Scalars['String']['input']>;
   sharingMode?: InputMaybe<SharingMode>;
   /** Set when copying a shared schema: ID of the schema this copy was created from. */
   sourceJsonSchemaId?: InputMaybe<Scalars['ID']['input']>;
@@ -905,6 +907,8 @@ export type JsonSchema = Metadata & Node & Shareable & {
   ownerId: Scalars['ID']['output'];
   /** JSON Schema definition (OpenAPI 3.0 / JSON Schema draft-07 compatible). Stored as AWSJSON. */
   schemaDefinition: Scalars['AWSJSON']['output'];
+  /** Structural hash of schemaDefinition (e.g. sch_ + hex); optional, for discovery without loading full JSON. */
+  schemaHash?: Maybe<Scalars['String']['output']>;
   sharingMode: SharingMode;
   /** When set, this schema is a user-owned copy forked from another (the original remains shared). */
   sourceJsonSchemaId?: Maybe<Scalars['ID']['output']>;
@@ -2799,6 +2803,7 @@ export type UpdateJsonSchemaInput = {
   name?: InputMaybe<Scalars['String']['input']>;
   /** JSON Schema definition (OpenAPI 3.0 / JSON Schema draft-07 compatible). Stored as AWSJSON. */
   schemaDefinition?: InputMaybe<Scalars['AWSJSON']['input']>;
+  schemaHash?: InputMaybe<Scalars['String']['input']>;
   sharingMode?: InputMaybe<SharingMode>;
 };
 

@@ -410,6 +410,10 @@ type JsonSchema implements Node & Metadata & Shareable
   JSON Schema definition (OpenAPI 3.0 / JSON Schema draft-07 compatible). Stored as AWSJSON.
   """
   schemaDefinition: AWSJSON!
+  """
+  Structural hash of schemaDefinition (e.g. sch_ + hex); optional, for discovery without loading full JSON.
+  """
+  schemaHash: String
 }
 
 type JsonSchemaConnection
@@ -1647,6 +1651,10 @@ input CreateJsonSchemaInput {
   Set when copying a shared schema: ID of the schema this copy was created from.
   """
   sourceJsonSchemaId: ID
+  """
+  Structural hash; usually computed client-side from schemaDefinition.
+  """
+  schemaHash: String
 }
 
 input UpdateJsonSchemaInput {
@@ -1657,6 +1665,7 @@ input UpdateJsonSchemaInput {
   """
   schemaDefinition: AWSJSON
   sharingMode: SharingMode
+  schemaHash: String
 }
 
 # AI STUDIO: Generate prompt draft from a plain-English description.

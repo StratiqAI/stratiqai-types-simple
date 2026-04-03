@@ -25,3 +25,5 @@ export type { PdfImagesCompletePayload, EmbeddingResultPayload } from "./events/
 
 // Event sources and detail-types for EventBridge (naming-schema-proposal)
 export { EVENT_SOURCES, EVENT_DETAIL_TYPES } from "./events/constants.js";
+
+export * from "./schema-hash/index.js";

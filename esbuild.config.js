@@ -8,6 +8,7 @@ const __dirname = dirname(__filename);
 
 // Recursively find all .ts files in a directory
 function findTsFiles(dir, fileList = []) {
+  if (!existsSync(dir)) return fileList;
   const files = readdirSync(dir);
   files.forEach(file => {
     const filePath = join(dir, file);
@@ -26,13 +27,15 @@ async function buildProject() {
     const graphqlFiles = findTsFiles(join(__dirname, 'src', 'graphql'));
     const eventsFiles = findTsFiles(join(__dirname, 'src', 'events'));
     const aiQueryFiles = findTsFiles(join(__dirname, 'src', 'ai-query-execution'));
+    const schemaHashFiles = findTsFiles(join(__dirname, 'src', 'schema-hash'));
     const allTsFiles = [
       join(__dirname, 'src', 'index.ts'),
       join(__dirname, 'src', 'schema.ts'),
       join(__dirname, 'src', 'operations.ts'),
       ...graphqlFiles,
       ...eventsFiles,
-      ...aiQueryFiles
+      ...aiQueryFiles,
+      ...schemaHashFiles
     ];
     
     console.log(`Building ${allTsFiles.length} TypeScript files (${graphqlFiles.length} graphql files)...`);

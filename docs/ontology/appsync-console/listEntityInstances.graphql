@@ -1,0 +1,23 @@
+query ListEntityInstances($projectId: ID!) {
+  listEntityInstances(projectId: $projectId) {
+    projectId
+    id
+    definitionId
+    label
+    updatedAt
+    values {
+      propertyName
+      stringValue
+      numberValue
+      booleanValue
+      dateValue
+      extractedByAI
+      confidenceScore
+      sourceEvidence
+    }
+    children {
+      relationName
+      targetInstanceId
+    }
+  }
+}

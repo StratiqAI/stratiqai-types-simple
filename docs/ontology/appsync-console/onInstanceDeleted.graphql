@@ -1,0 +1,7 @@
+subscription OnInstanceDeleted($projectId: ID!) {
+  onInstanceDeleted(projectId: $projectId) {
+    projectId
+    id
+    definitionId
+  }
+}

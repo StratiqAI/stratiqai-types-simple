@@ -1,0 +1,7 @@
+subscription OnDefinitionDeleted($projectId: ID!) {
+  onDefinitionDeleted(projectId: $projectId) {
+    projectId
+    id
+    name
+  }
+}

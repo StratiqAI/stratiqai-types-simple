@@ -2688,7 +2688,10 @@ type Query {
 
   # ONTOLOGY GRAPH QUERIES
   listEntityDefinitions(projectId: ID!): [EntityDefinition]
+  getEntityDefinition(projectId: ID!, id: ID!): EntityDefinition
   getEntityInstance(projectId: ID!, id: ID!): EntityInstance
+  listEntityInstances(projectId: ID!): [EntityInstance]
+  listEntityInstancesByDefinition(projectId: ID!, definitionId: ID!): [EntityInstance]
 }
 
 # ----------------------------------------------------------------------
@@ -3236,7 +3239,10 @@ type Mutation {
     )
 
   # ONTOLOGY GRAPH MUTATIONS
+  saveEntityDefinition(input: SaveEntityDefinitionInput!): EntityDefinition
+  deleteEntityDefinition(projectId: ID!, id: ID!): EntityDefinition
   saveEntityInstance(input: SaveInstanceInput!): EntityInstance
+  deleteEntityInstance(projectId: ID!, id: ID!): EntityInstance
 }
 
 # ----------------------------------------------------------------------
@@ -3470,6 +3476,14 @@ type Subscription {
     )
 
   # ONTOLOGY GRAPH SUBSCRIPTIONS
+  onDefinitionSaved(projectId: ID!): EntityDefinition
+    @aws_subscribe(mutations: ["saveEntityDefinition"])
+  onDefinitionDeleted(projectId: ID!): EntityDefinition
+    @aws_subscribe(mutations: ["deleteEntityDefinition"])
   onInstanceUpdated(projectId: ID!, id: ID!): EntityInstance
     @aws_subscribe(mutations: ["saveEntityInstance"])
+  onProjectInstancesChanged(projectId: ID!): EntityInstance
+    @aws_subscribe(mutations: ["saveEntityInstance"])
+  onInstanceDeleted(projectId: ID!): EntityInstance
+    @aws_subscribe(mutations: ["deleteEntityInstance"])
 }

@@ -1,0 +1,20 @@
+mutation SaveEntityInstance($input: SaveInstanceInput!) {
+  saveEntityInstance(input: $input) {
+    projectId
+    id
+    definitionId
+    label
+    updatedAt
+    values {
+      propertyName
+      stringValue
+      numberValue
+      booleanValue
+      dateValue
+    }
+    children {
+      relationName
+      targetInstanceId
+    }
+  }
+}

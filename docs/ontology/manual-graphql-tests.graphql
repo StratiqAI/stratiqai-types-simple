@@ -1,0 +1,8 @@
+# AppSync console: paste ONE operation at a time.
+# Use the ready-made pairs in: docs/ontology/appsync-console/
+#   See appsync-console/README.md
+#
+# Typed operations in code: @stratiqai/types-simple
+#   src/graphql/queries/Ontology.ts
+#   src/graphql/mutations/Ontology.ts
+#   src/graphql/subscriptions/Ontology.ts

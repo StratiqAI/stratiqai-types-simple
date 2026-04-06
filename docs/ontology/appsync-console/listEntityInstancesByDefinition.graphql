@@ -1,0 +1,23 @@
+query ListEntityInstancesByDefinition($projectId: ID!, $definitionId: ID!) {
+  listEntityInstancesByDefinition(projectId: $projectId, definitionId: $definitionId) {
+    projectId
+    id
+    definitionId
+    label
+    updatedAt
+    values {
+      propertyName
+      stringValue
+      numberValue
+      booleanValue
+      dateValue
+      extractedByAI
+      confidenceScore
+      sourceEvidence
+    }
+    children {
+      relationName
+      targetInstanceId
+    }
+  }
+}

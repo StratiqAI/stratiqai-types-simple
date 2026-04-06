@@ -1,0 +1,14 @@
+subscription OnInstanceUpdated($projectId: ID!, $id: ID!) {
+  onInstanceUpdated(projectId: $projectId, id: $id) {
+    projectId
+    id
+    definitionId
+    label
+    updatedAt
+    values {
+      propertyName
+      stringValue
+      numberValue
+    }
+  }
+}

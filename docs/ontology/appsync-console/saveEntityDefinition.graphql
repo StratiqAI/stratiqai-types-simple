@@ -1,0 +1,19 @@
+mutation SaveEntityDefinition($input: SaveEntityDefinitionInput!) {
+  saveEntityDefinition(input: $input) {
+    projectId
+    id
+    name
+    description
+    jsonSchema
+    structuralHash
+    properties {
+      name
+      description
+      dataType
+      path
+      isList
+      formula
+      dependencies
+    }
+  }
+}

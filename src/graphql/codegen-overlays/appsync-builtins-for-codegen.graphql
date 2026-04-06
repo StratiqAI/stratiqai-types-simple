@@ -1,0 +1,5 @@
+# ------------------------------------------------------------------------------
+# Codegen only — NOT merged into AppSync by Terraform.
+# AppSync provides AWSDate at runtime; graphql-js needs a declaration to parse SDL.
+# ------------------------------------------------------------------------------
+scalar AWSDate

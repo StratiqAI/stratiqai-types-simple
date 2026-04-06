@@ -1,5 +1,9 @@
 overwrite: true
-schema: './src/graphql/schema.graphql'
+# Ontology types live in ontology-schema.graphql (merged with schema at AppSync deploy).
+schema:
+  - './src/graphql/schema.graphql'
+  - './src/graphql/ontology-schema.graphql'
+  - './src/graphql/codegen-overlays/appsync-builtins-for-codegen.graphql'
 documents: 
   - './src/operations.ts'
   - './src/graphql/**/*.ts'
@@ -20,6 +24,7 @@ generates:
       skipTypename: false
       enumsAsTypes: true
       scalars:
+        AWSDate: string
         AWSDateTime: string
         AWSJSON: any
       useTypeImports: true

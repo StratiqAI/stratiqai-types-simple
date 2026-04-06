@@ -1,0 +1,15 @@
+{
+  "input": {
+    "projectId": "YOUR_PROJECT_ID",
+    "id": "instance-1",
+    "definitionId": "my-def-1",
+    "label": "Test instance",
+    "senderId": "appsync-console-test",
+    "values": [
+      { "propertyName": "Title", "stringValue": "Hello from console" },
+      { "propertyName": "Amount", "numberValue": 42.5 }
+    ],
+    "children": [],
+    "emitCompletionEvent": false
+  }
+}

@@ -1,0 +1,23 @@
+query GetEntityInstance($projectId: ID!, $id: ID!) {
+  getEntityInstance(projectId: $projectId, id: $id) {
+    projectId
+    id
+    definitionId
+    label
+    updatedAt
+    values {
+      propertyName
+      stringValue
+      numberValue
+      booleanValue
+      dateValue
+      extractedByAI
+      confidenceScore
+      sourceEvidence
+    }
+    children {
+      relationName
+      targetInstanceId
+    }
+  }
+}

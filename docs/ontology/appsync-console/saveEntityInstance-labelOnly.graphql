@@ -1,0 +1,9 @@
+mutation SaveEntityInstanceLabelOnly($input: SaveInstanceInput!) {
+  saveEntityInstance(input: $input) {
+    projectId
+    id
+    definitionId
+    label
+    updatedAt
+  }
+}

@@ -1,0 +1,19 @@
+subscription OnDefinitionSaved($projectId: ID!) {
+  onDefinitionSaved(projectId: $projectId) {
+    projectId
+    id
+    name
+    description
+    jsonSchema
+    structuralHash
+    properties {
+      name
+      description
+      dataType
+      path
+      isList
+      formula
+      dependencies
+    }
+  }
+}

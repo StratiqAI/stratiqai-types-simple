@@ -1,0 +1,26 @@
+{
+  "input": {
+    "projectId": "YOUR_PROJECT_ID",
+    "id": "policy-def-001",
+    "name": "InsurancePolicy",
+    "description": "An insurance policy entity",
+    "jsonSchema": "{\"type\":\"object\",\"properties\":{\"policyNumber\":{\"type\":\"string\"},\"premium\":{\"type\":\"number\"}}}",
+    "structuralHash": "abc123hash",
+    "properties": [
+      {
+        "name": "policyNumber",
+        "description": "The unique policy number",
+        "dataType": "STRING",
+        "path": "$.policyNumber",
+        "isList": false
+      },
+      {
+        "name": "premium",
+        "description": "Annual premium amount",
+        "dataType": "NUMBER",
+        "path": "$.premium",
+        "isList": false
+      }
+    ]
+  }
+}

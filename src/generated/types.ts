@@ -12,6 +12,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  AWSDate: { input: string; output: string; }
   AWSDateTime: { input: string; output: string; }
   AWSJSON: { input: any; output: any; }
   AWSTimestamp: { input: any; output: any; }
@@ -708,6 +709,28 @@ export type EmptyNodeConfig = {
   _empty?: Maybe<Scalars['Boolean']['output']>;
 };
 
+export type EntityDefinition = {
+  __typename?: 'EntityDefinition';
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  jsonSchema: Scalars['AWSJSON']['output'];
+  name: Scalars['String']['output'];
+  projectId: Scalars['ID']['output'];
+  properties?: Maybe<Array<Maybe<PropertyDefinition>>>;
+  structuralHash: Scalars['String']['output'];
+};
+
+export type EntityInstance = {
+  __typename?: 'EntityInstance';
+  children?: Maybe<Array<Maybe<Relationship>>>;
+  definitionId: Scalars['ID']['output'];
+  id: Scalars['ID']['output'];
+  label?: Maybe<Scalars['String']['output']>;
+  projectId: Scalars['ID']['output'];
+  updatedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  values?: Maybe<Array<Maybe<PropertyValue>>>;
+};
+
 export type EntityType =
   | 'ACCOUNT_CREDITS'
   | 'AI_QUERY'
@@ -1032,6 +1055,8 @@ export type Mutation = {
   deleteDealTemplate?: Maybe<DealTemplate>;
   deleteDoclink?: Maybe<Doclink>;
   deleteDocument?: Maybe<Document>;
+  deleteEntityDefinition?: Maybe<EntityDefinition>;
+  deleteEntityInstance?: Maybe<EntityInstance>;
   deleteImage?: Maybe<Image>;
   deleteInvitation?: Maybe<Invitation>;
   deleteJsonSchema?: Maybe<JsonSchema>;
@@ -1053,6 +1078,8 @@ export type Mutation = {
   restoreProject?: Maybe<Project>;
   retryWorkflowExecution?: Maybe<WorkflowExecution>;
   retryWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
+  saveEntityDefinition?: Maybe<EntityDefinition>;
+  saveEntityInstance?: Maybe<EntityInstance>;
   startWorkflowExecution?: Maybe<WorkflowExecution>;
   startWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
   /** Submits the prompt for execution (creates AIQueryExecution PENDING, enqueues SQS). Worker runs Gemini and updates execution; subscribe to onUpdateAIQueryExecution(id) for result. */
@@ -1273,6 +1300,18 @@ export type MutationDeleteDocumentArgs = {
 };
 
 
+export type MutationDeleteEntityDefinitionArgs = {
+  id: Scalars['ID']['input'];
+  projectId: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteEntityInstanceArgs = {
+  id: Scalars['ID']['input'];
+  projectId: Scalars['ID']['input'];
+};
+
+
 export type MutationDeleteImageArgs = {
   key: CompositeKeyInput;
 };
@@ -1374,6 +1413,16 @@ export type MutationRetryWorkflowExecutionArgs = {
 
 export type MutationRetryWorkflowNodeExecutionArgs = {
   key: CompositeKeyInput;
+};
+
+
+export type MutationSaveEntityDefinitionArgs = {
+  input: SaveEntityDefinitionInput;
+};
+
+
+export type MutationSaveEntityInstanceArgs = {
+  input: SaveInstanceInput;
 };
 
 
@@ -1811,6 +1860,57 @@ export type PromptContent = {
   systemInstruction?: Maybe<Scalars['String']['output']>;
 };
 
+export type PropertyDataType =
+  | 'BOOLEAN'
+  | 'CALCULATION'
+  | 'DATE'
+  | 'NUMBER'
+  | 'STRING';
+
+export type PropertyDefinition = {
+  __typename?: 'PropertyDefinition';
+  dataType: PropertyDataType;
+  dependencies?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  description?: Maybe<Scalars['String']['output']>;
+  formula?: Maybe<Scalars['String']['output']>;
+  isList?: Maybe<Scalars['Boolean']['output']>;
+  name: Scalars['String']['output'];
+  path: Scalars['String']['output'];
+};
+
+export type PropertyDefinitionInput = {
+  dataType: PropertyDataType;
+  dependencies?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  formula?: InputMaybe<Scalars['String']['input']>;
+  isList?: InputMaybe<Scalars['Boolean']['input']>;
+  name: Scalars['String']['input'];
+  path: Scalars['String']['input'];
+};
+
+export type PropertyValue = {
+  __typename?: 'PropertyValue';
+  booleanValue?: Maybe<Scalars['Boolean']['output']>;
+  confidenceScore?: Maybe<Scalars['Float']['output']>;
+  dateValue?: Maybe<Scalars['AWSDate']['output']>;
+  extractedByAI?: Maybe<Scalars['Boolean']['output']>;
+  numberValue?: Maybe<Scalars['Float']['output']>;
+  propertyName: Scalars['String']['output'];
+  sourceEvidence?: Maybe<Scalars['String']['output']>;
+  stringValue?: Maybe<Scalars['String']['output']>;
+};
+
+export type PropertyValueInput = {
+  booleanValue?: InputMaybe<Scalars['Boolean']['input']>;
+  confidenceScore?: InputMaybe<Scalars['Float']['input']>;
+  dateValue?: InputMaybe<Scalars['AWSDate']['input']>;
+  extractedByAI?: InputMaybe<Scalars['Boolean']['input']>;
+  numberValue?: InputMaybe<Scalars['Float']['input']>;
+  propertyName: Scalars['String']['input'];
+  sourceEvidence?: InputMaybe<Scalars['String']['input']>;
+  stringValue?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type Query = {
   __typename?: 'Query';
   /** Get a single AIQueryExecution by id. */
@@ -1829,6 +1929,8 @@ export type Query = {
   getDocument?: Maybe<Document>;
   /** Per-document view/download analytics for a deal. */
   getDocumentAnalytics?: Maybe<DocumentAnalytics>;
+  getEntityDefinition?: Maybe<EntityDefinition>;
+  getEntityInstance?: Maybe<EntityInstance>;
   /** Get a single Image. Requires composite key (ID + ParentID) for access. */
   getImage?: Maybe<Image>;
   getInvestorProfile?: Maybe<InvestorProfile>;
@@ -1874,6 +1976,9 @@ export type Query = {
   /** List Doclinks for a specific Project. Uses GSI1 (The View). */
   listDoclinks: DoclinkConnection;
   listDocuments: DocumentConnection;
+  listEntityDefinitions?: Maybe<Array<Maybe<EntityDefinition>>>;
+  listEntityInstances?: Maybe<Array<Maybe<EntityInstance>>>;
+  listEntityInstancesByDefinition?: Maybe<Array<Maybe<EntityInstance>>>;
   /** List Images for a specific Document. Uses GSI1 (The View). */
   listImages: ImageConnection;
   /** List Invitations for a specific Deal (Project). */
@@ -1964,6 +2069,18 @@ export type QueryGetDocumentArgs = {
 export type QueryGetDocumentAnalyticsArgs = {
   dealId: Scalars['ID']['input'];
   documentId: Scalars['ID']['input'];
+};
+
+
+export type QueryGetEntityDefinitionArgs = {
+  id: Scalars['ID']['input'];
+  projectId: Scalars['ID']['input'];
+};
+
+
+export type QueryGetEntityInstanceArgs = {
+  id: Scalars['ID']['input'];
+  projectId: Scalars['ID']['input'];
 };
 
 
@@ -2124,6 +2241,22 @@ export type QueryListDocumentsArgs = {
 };
 
 
+export type QueryListEntityDefinitionsArgs = {
+  projectId: Scalars['ID']['input'];
+};
+
+
+export type QueryListEntityInstancesArgs = {
+  projectId: Scalars['ID']['input'];
+};
+
+
+export type QueryListEntityInstancesByDefinitionArgs = {
+  definitionId: Scalars['ID']['input'];
+  projectId: Scalars['ID']['input'];
+};
+
+
 export type QueryListImagesArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   nextToken?: InputMaybe<Scalars['String']['input']>;
@@ -2280,6 +2413,17 @@ export type QuotaEnforcementPolicy =
   | 'SOFT_LIMIT'
   | 'WARN_ONLY';
 
+export type Relationship = {
+  __typename?: 'Relationship';
+  relationName: Scalars['String']['output'];
+  targetInstanceId: Scalars['ID']['output'];
+};
+
+export type RelationshipInput = {
+  relationName: Scalars['String']['input'];
+  targetInstanceId: Scalars['ID']['input'];
+};
+
 export type ResourceShare = Metadata & Node & {
   __typename?: 'ResourceShare';
   createdAt: Scalars['AWSDateTime']['output'];
@@ -2299,6 +2443,27 @@ export type ResourceShareConnection = {
   __typename?: 'ResourceShareConnection';
   items: Array<ResourceShare>;
   nextToken?: Maybe<Scalars['String']['output']>;
+};
+
+export type SaveEntityDefinitionInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
+  jsonSchema: Scalars['AWSJSON']['input'];
+  name: Scalars['String']['input'];
+  projectId: Scalars['ID']['input'];
+  properties?: InputMaybe<Array<InputMaybe<PropertyDefinitionInput>>>;
+  structuralHash: Scalars['String']['input'];
+};
+
+export type SaveInstanceInput = {
+  children?: InputMaybe<Array<InputMaybe<RelationshipInput>>>;
+  definitionId: Scalars['ID']['input'];
+  emitCompletionEvent?: InputMaybe<Scalars['Boolean']['input']>;
+  id: Scalars['ID']['input'];
+  label?: InputMaybe<Scalars['String']['input']>;
+  projectId: Scalars['ID']['input'];
+  senderId: Scalars['String']['input'];
+  values?: InputMaybe<Array<InputMaybe<PropertyValueInput>>>;
 };
 
 export type Scan = Metadata & Node & Storable & {
@@ -2382,6 +2547,8 @@ export type Subscription = {
   onCreateWorkflowExecution?: Maybe<WorkflowExecution>;
   /** WORKFLOW NODE EXECUTION SUBSCRIPTIONS */
   onCreateWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
+  onDefinitionDeleted?: Maybe<EntityDefinition>;
+  onDefinitionSaved?: Maybe<EntityDefinition>;
   onDeleteAIQueryExecution?: Maybe<AiQueryExecution>;
   onDeleteAIQueryExecutionByExecutionId?: Maybe<AiQueryExecution>;
   onDeleteDoclink?: Maybe<Doclink>;
@@ -2395,6 +2562,9 @@ export type Subscription = {
   onDeleteTable?: Maybe<Table>;
   onDeleteText?: Maybe<Text>;
   onDeleteWorkflow?: Maybe<Workflow>;
+  onInstanceDeleted?: Maybe<EntityInstance>;
+  onInstanceUpdated?: Maybe<EntityInstance>;
+  onProjectInstancesChanged?: Maybe<EntityInstance>;
   onRestoreProject?: Maybe<Project>;
   onUpdateAIQueryExecution?: Maybe<AiQueryExecution>;
   onUpdateAIQueryExecutionByExecutionId?: Maybe<AiQueryExecution>;
@@ -2489,6 +2659,16 @@ export type SubscriptionOnCreateWorkflowNodeExecutionArgs = {
 };
 
 
+export type SubscriptionOnDefinitionDeletedArgs = {
+  projectId: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnDefinitionSavedArgs = {
+  projectId: Scalars['ID']['input'];
+};
+
+
 export type SubscriptionOnDeleteAiQueryExecutionArgs = {
   id: Scalars['ID']['input'];
 };
@@ -2551,6 +2731,22 @@ export type SubscriptionOnDeleteTextArgs = {
 
 export type SubscriptionOnDeleteWorkflowArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnInstanceDeletedArgs = {
+  projectId: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnInstanceUpdatedArgs = {
+  id: Scalars['ID']['input'];
+  projectId: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnProjectInstancesChangedArgs = {
+  projectId: Scalars['ID']['input'];
 };
 
 
@@ -3336,6 +3532,43 @@ export type DeleteNotificationMutationVariables = Exact<{
 
 export type DeleteNotificationMutation = { __typename?: 'Mutation', deleteNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined } | null | undefined };
 
+export type SaveEntityDefinitionMutationVariables = Exact<{
+  input: SaveEntityDefinitionInput;
+}>;
+
+
+export type SaveEntityDefinitionMutation = { __typename?: 'Mutation', saveEntityDefinition?: { __typename?: 'EntityDefinition', projectId: string, id: string, name: string, description?: string | null | undefined, jsonSchema: any, structuralHash: string, properties?: Array<{ __typename?: 'PropertyDefinition', name: string, description?: string | null | undefined, dataType: PropertyDataType, path: string, isList?: boolean | null | undefined, formula?: string | null | undefined, dependencies?: Array<string | null | undefined> | null | undefined } | null | undefined> | null | undefined } | null | undefined };
+
+export type DeleteEntityDefinitionMutationVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeleteEntityDefinitionMutation = { __typename?: 'Mutation', deleteEntityDefinition?: { __typename?: 'EntityDefinition', projectId: string, id: string, name: string } | null | undefined };
+
+export type SaveEntityInstanceMutationVariables = Exact<{
+  input: SaveInstanceInput;
+}>;
+
+
+export type SaveEntityInstanceMutation = { __typename?: 'Mutation', saveEntityInstance?: { __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined } | null | undefined };
+
+export type SaveEntityInstanceMinimalMutationVariables = Exact<{
+  input: SaveInstanceInput;
+}>;
+
+
+export type SaveEntityInstanceMinimalMutation = { __typename?: 'Mutation', saveEntityInstance?: { __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, updatedAt?: string | null | undefined } | null | undefined };
+
+export type DeleteEntityInstanceMutationVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeleteEntityInstanceMutation = { __typename?: 'Mutation', deleteEntityInstance?: { __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string } | null | undefined };
+
 export type CreateProjectMutationVariables = Exact<{
   input: CreateProjectInput;
 }>;
@@ -3681,6 +3914,48 @@ export type ListNotificationsQueryVariables = Exact<{
 
 export type ListNotificationsQuery = { __typename?: 'Query', listNotifications: { __typename?: 'NotificationConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined }> } };
 
+export type OntologyEntityDefinitionFieldsFragment = { __typename?: 'EntityDefinition', projectId: string, id: string, name: string, description?: string | null | undefined, jsonSchema: any, structuralHash: string, properties?: Array<{ __typename?: 'PropertyDefinition', name: string, description?: string | null | undefined, dataType: PropertyDataType, path: string, isList?: boolean | null | undefined, formula?: string | null | undefined, dependencies?: Array<string | null | undefined> | null | undefined } | null | undefined> | null | undefined };
+
+export type OntologyEntityInstanceFieldsFragment = { __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined };
+
+export type ListEntityDefinitionsQueryVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+}>;
+
+
+export type ListEntityDefinitionsQuery = { __typename?: 'Query', listEntityDefinitions?: Array<{ __typename?: 'EntityDefinition', projectId: string, id: string, name: string, description?: string | null | undefined, jsonSchema: any, structuralHash: string, properties?: Array<{ __typename?: 'PropertyDefinition', name: string, description?: string | null | undefined, dataType: PropertyDataType, path: string, isList?: boolean | null | undefined, formula?: string | null | undefined, dependencies?: Array<string | null | undefined> | null | undefined } | null | undefined> | null | undefined } | null | undefined> | null | undefined };
+
+export type GetEntityDefinitionQueryVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetEntityDefinitionQuery = { __typename?: 'Query', getEntityDefinition?: { __typename?: 'EntityDefinition', projectId: string, id: string, name: string, description?: string | null | undefined, jsonSchema: any, structuralHash: string, properties?: Array<{ __typename?: 'PropertyDefinition', name: string, description?: string | null | undefined, dataType: PropertyDataType, path: string, isList?: boolean | null | undefined, formula?: string | null | undefined, dependencies?: Array<string | null | undefined> | null | undefined } | null | undefined> | null | undefined } | null | undefined };
+
+export type GetEntityInstanceQueryVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetEntityInstanceQuery = { __typename?: 'Query', getEntityInstance?: { __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined } | null | undefined };
+
+export type ListEntityInstancesQueryVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+}>;
+
+
+export type ListEntityInstancesQuery = { __typename?: 'Query', listEntityInstances?: Array<{ __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined } | null | undefined> | null | undefined };
+
+export type ListEntityInstancesByDefinitionQueryVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+  definitionId: Scalars['ID']['input'];
+}>;
+
+
+export type ListEntityInstancesByDefinitionQuery = { __typename?: 'Query', listEntityInstancesByDefinition?: Array<{ __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined } | null | undefined> | null | undefined };
+
 export type GetProjectQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
@@ -3962,6 +4237,50 @@ export type OnDeleteNotificationSubscriptionVariables = Exact<{
 
 export type OnDeleteNotificationSubscription = { __typename?: 'Subscription', onDeleteNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined } | null | undefined };
 
+export type OnDefinitionSavedSubscriptionVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+}>;
+
+
+export type OnDefinitionSavedSubscription = { __typename?: 'Subscription', onDefinitionSaved?: { __typename?: 'EntityDefinition', projectId: string, id: string, name: string, description?: string | null | undefined, jsonSchema: any, structuralHash: string, properties?: Array<{ __typename?: 'PropertyDefinition', name: string, description?: string | null | undefined, dataType: PropertyDataType, path: string, isList?: boolean | null | undefined, formula?: string | null | undefined, dependencies?: Array<string | null | undefined> | null | undefined } | null | undefined> | null | undefined } | null | undefined };
+
+export type OnDefinitionDeletedSubscriptionVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+}>;
+
+
+export type OnDefinitionDeletedSubscription = { __typename?: 'Subscription', onDefinitionDeleted?: { __typename?: 'EntityDefinition', projectId: string, id: string, name: string } | null | undefined };
+
+export type OnInstanceUpdatedSubscriptionVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnInstanceUpdatedSubscription = { __typename?: 'Subscription', onInstanceUpdated?: { __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined } | null | undefined };
+
+export type OnInstanceUpdatedMinimalSubscriptionVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type OnInstanceUpdatedMinimalSubscription = { __typename?: 'Subscription', onInstanceUpdated?: { __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined } | null | undefined };
+
+export type OnProjectInstancesChangedSubscriptionVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+}>;
+
+
+export type OnProjectInstancesChangedSubscription = { __typename?: 'Subscription', onProjectInstancesChanged?: { __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined } | null | undefined };
+
+export type OnInstanceDeletedSubscriptionVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+}>;
+
+
+export type OnInstanceDeletedSubscription = { __typename?: 'Subscription', onInstanceDeleted?: { __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string } | null | undefined };
+
 export type OnCreateProjectSubscriptionVariables = Exact<{
   ownerId?: InputMaybe<Scalars['ID']['input']>;
   tenantId?: InputMaybe<Scalars['ID']['input']>;
@@ -4173,6 +4492,11 @@ export declare const DeleteJsonSchema: import("graphql").DocumentNode;
 export declare const CreateNotification: import("graphql").DocumentNode;
 export declare const UpdateNotification: import("graphql").DocumentNode;
 export declare const DeleteNotification: import("graphql").DocumentNode;
+export declare const SaveEntityDefinition: import("graphql").DocumentNode;
+export declare const DeleteEntityDefinition: import("graphql").DocumentNode;
+export declare const SaveEntityInstance: import("graphql").DocumentNode;
+export declare const SaveEntityInstanceMinimal: import("graphql").DocumentNode;
+export declare const DeleteEntityInstance: import("graphql").DocumentNode;
 export declare const CreateProject: import("graphql").DocumentNode;
 export declare const UpdateProject: import("graphql").DocumentNode;
 export declare const DeleteProject: import("graphql").DocumentNode;
@@ -4217,6 +4541,13 @@ export declare const GetJsonSchema: import("graphql").DocumentNode;
 export declare const ListJsonSchemas: import("graphql").DocumentNode;
 export declare const GetNotification: import("graphql").DocumentNode;
 export declare const ListNotifications: import("graphql").DocumentNode;
+export declare const OntologyEntityDefinitionFields: import("graphql").DocumentNode;
+export declare const OntologyEntityInstanceFields: import("graphql").DocumentNode;
+export declare const ListEntityDefinitions: import("graphql").DocumentNode;
+export declare const GetEntityDefinition: import("graphql").DocumentNode;
+export declare const GetEntityInstance: import("graphql").DocumentNode;
+export declare const ListEntityInstances: import("graphql").DocumentNode;
+export declare const ListEntityInstancesByDefinition: import("graphql").DocumentNode;
 export declare const GetProject: import("graphql").DocumentNode;
 export declare const ListProjects: import("graphql").DocumentNode;
 export declare const GetProjectWithPrompts: import("graphql").DocumentNode;
@@ -4252,6 +4583,12 @@ export declare const OnDeleteJsonSchema: import("graphql").DocumentNode;
 export declare const OnCreateNotification: import("graphql").DocumentNode;
 export declare const OnUpdateNotification: import("graphql").DocumentNode;
 export declare const OnDeleteNotification: import("graphql").DocumentNode;
+export declare const OnDefinitionSaved: import("graphql").DocumentNode;
+export declare const OnDefinitionDeleted: import("graphql").DocumentNode;
+export declare const OnInstanceUpdated: import("graphql").DocumentNode;
+export declare const OnInstanceUpdatedMinimal: import("graphql").DocumentNode;
+export declare const OnProjectInstancesChanged: import("graphql").DocumentNode;
+export declare const OnInstanceDeleted: import("graphql").DocumentNode;
 export declare const OnCreateProject: import("graphql").DocumentNode;
 export declare const OnUpdateProject: import("graphql").DocumentNode;
 export declare const OnDeleteProject: import("graphql").DocumentNode;

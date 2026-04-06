@@ -74,6 +74,8 @@ The **APPSYNC_JS** runtime is a restricted JavaScript environment. The `saveEnti
 
 ## Operational notes
 
+- **AppSync console (copy/paste):** One operation + variables per run — use [`appsync-console/`](./appsync-console/README.md) (paired `.graphql` + `.variables.json` files). [`manual-graphql-tests.graphql`](./manual-graphql-tests.graphql) only points to that folder.
+- **Typed operations (package exports):** `Q_LIST_ENTITY_DEFINITIONS`, `Q_GET_ENTITY_INSTANCE`, `M_SAVE_ENTITY_INSTANCE`, `M_SAVE_ENTITY_INSTANCE_MINIMAL`, `S_ON_INSTANCE_UPDATED`, `S_ON_INSTANCE_UPDATED_MINIMAL` in `src/graphql/queries/Ontology.ts`, `mutations/Ontology.ts`, `subscriptions/Ontology.ts` (re-exported via `@stratiqai/types-simple` operations entry).
 - After changing SDL in **stratiqai-types-simple**, run the types package build/codegen workflow your team uses (`npm run build:types` / publish to Verdaccio per project conventions) before relying on generated client types.
 - Terraform applies that add new fields and resolvers require the **merged** schema to succeed first; resolver creation validates that each field exists on `Query` / `Mutation`.
 

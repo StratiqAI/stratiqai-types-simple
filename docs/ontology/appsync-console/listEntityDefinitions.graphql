@@ -1,0 +1,19 @@
+query ListEntityDefinitions($projectId: ID!) {
+  listEntityDefinitions(projectId: $projectId) {
+    projectId
+    id
+    name
+    description
+    jsonSchema
+    structuralHash
+    properties {
+      name
+      description
+      dataType
+      path
+      isList
+      formula
+      dependencies
+    }
+  }
+}

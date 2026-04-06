@@ -84,5 +84,25 @@ input RelationshipInput {
   targetInstanceId: ID!
 }
 
+input SaveEntityDefinitionInput {
+  projectId: ID!
+  id: ID!
+  name: String!
+  description: String
+  jsonSchema: AWSJSON!
+  structuralHash: String!
+  properties: [PropertyDefinitionInput]
+}
+
+input PropertyDefinitionInput {
+  name: String!
+  description: String
+  dataType: PropertyDataType!
+  path: String!
+  isList: Boolean
+  formula: String
+  dependencies: [String]
+}
+
 # Query, Mutation, and Subscription fields are defined in schema.graphql
 # (AppSync does not support `extend type` syntax).

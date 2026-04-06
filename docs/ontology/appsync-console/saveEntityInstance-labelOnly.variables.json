@@ -1,0 +1,9 @@
+{
+  "input": {
+    "projectId": "YOUR_PROJECT_ID",
+    "id": "instance-1",
+    "definitionId": "my-def-1",
+    "label": "Updated label only",
+    "senderId": "appsync-console-test"
+  }
+}

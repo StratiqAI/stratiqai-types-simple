@@ -1,0 +1,7 @@
+mutation DeleteEntityInstance($projectId: ID!, $id: ID!) {
+  deleteEntityInstance(projectId: $projectId, id: $id) {
+    projectId
+    id
+    definitionId
+  }
+}

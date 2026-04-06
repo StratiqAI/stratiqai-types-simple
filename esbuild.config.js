@@ -1,5 +1,5 @@
 import { build } from 'esbuild';
-import { copyFileSync, mkdirSync, existsSync, readdirSync, statSync } from 'fs';
+import { existsSync, readdirSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -25,14 +25,12 @@ async function buildProject() {
     // Find all TypeScript files to build
     const graphqlFiles = findTsFiles(join(__dirname, 'src', 'graphql'));
     const eventsFiles = findTsFiles(join(__dirname, 'src', 'events'));
-    const aiQueryFiles = findTsFiles(join(__dirname, 'src', 'ai-query-execution'));
     const allTsFiles = [
       join(__dirname, 'src', 'index.ts'),
       join(__dirname, 'src', 'schema.ts'),
       join(__dirname, 'src', 'operations.ts'),
       ...graphqlFiles,
       ...eventsFiles,
-      ...aiQueryFiles
     ];
     
     console.log(`Building ${allTsFiles.length} TypeScript files (${graphqlFiles.length} graphql files)...`);

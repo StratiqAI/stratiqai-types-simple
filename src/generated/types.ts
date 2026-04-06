@@ -735,6 +735,7 @@ export type EntityType =
   | 'SCAN'
   | 'STRUCTURED_OUTPUT_SCHEMA'
   | 'TABLE'
+  | 'TENANT_QUOTA'
   | 'TEXT'
   | 'TOPIC'
   | 'USAGE_RECORD'
@@ -747,6 +748,7 @@ export type EntityType =
  * PENDING -> QUEUED -> PROCESSING -> SUCCESS | ERROR
  */
 export type ExecutionStatus =
+  | 'CANCELLED'
   | 'ERROR'
   | 'PENDING'
   | 'PROCESSING'
@@ -1076,6 +1078,7 @@ export type Mutation = {
   updateQuestion?: Maybe<Question>;
   updateScan?: Maybe<Scan>;
   updateTable?: Maybe<Table>;
+  updateTenantQuota?: Maybe<TenantQuota>;
   updateText?: Maybe<Text>;
   updateWorkflow?: Maybe<Workflow>;
   updateWorkflowExecution?: Maybe<WorkflowExecution>;
@@ -1509,6 +1512,12 @@ export type MutationUpdateTableArgs = {
 };
 
 
+export type MutationUpdateTenantQuotaArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateTenantQuotaInput;
+};
+
+
 export type MutationUpdateTextArgs = {
   input: UpdateTextInput;
   key: CompositeKeyInput;
@@ -1841,6 +1850,7 @@ export type Query = {
   getScan?: Maybe<Scan>;
   /** Get a single Table. Requires composite key (ID + ParentID) for access. */
   getTable?: Maybe<Table>;
+  getTenantQuota?: Maybe<TenantQuota>;
   /** Get a single Text. Requires composite key (ID + ParentID) for access. */
   getText?: Maybe<Text>;
   /** Get a single Workflow. Requires composite key (ID + ParentID) for access. */
@@ -2019,6 +2029,11 @@ export type QueryGetScanArgs = {
 
 export type QueryGetTableArgs = {
   key: CompositeKeyInput;
+};
+
+
+export type QueryGetTenantQuotaArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -2259,6 +2274,11 @@ export type QuestionConnection = {
   items: Array<Question>;
   nextToken?: Maybe<Scalars['String']['output']>;
 };
+
+export type QuotaEnforcementPolicy =
+  | 'HARD_LIMIT'
+  | 'SOFT_LIMIT'
+  | 'WARN_ONLY';
 
 export type ResourceShare = Metadata & Node & {
   __typename?: 'ResourceShare';
@@ -2649,6 +2669,21 @@ export type TableConnection = {
   nextToken?: Maybe<Scalars['String']['output']>;
 };
 
+export type TenantQuota = Metadata & Node & {
+  __typename?: 'TenantQuota';
+  createdAt: Scalars['AWSDateTime']['output'];
+  currentMonthTokens: Scalars['Int']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  enforcementPolicy: QuotaEnforcementPolicy;
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  monthlyTokenLimit?: Maybe<Scalars['Int']['output']>;
+  ownerId: Scalars['ID']['output'];
+  resetDay: Scalars['Int']['output'];
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['AWSDateTime']['output'];
+};
+
 export type Text = Metadata & Node & {
   __typename?: 'Text';
   createdAt: Scalars['AWSDateTime']['output'];
@@ -2865,6 +2900,12 @@ export type UpdateScanInput = {
 export type UpdateTableInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   pageNum?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type UpdateTenantQuotaInput = {
+  enforcementPolicy?: InputMaybe<QuotaEnforcementPolicy>;
+  monthlyTokenLimit?: InputMaybe<Scalars['Int']['input']>;
+  resetDay?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type UpdateTextInput = {

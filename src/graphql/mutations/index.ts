@@ -20,3 +20,4 @@ export * from './WorkflowNodeExecution.js';
 export * from './JsonSchema.js';
 export * from './GeneratePromptDraft.js';
 export * from './DashboardLayout.js';
+export * from './TenantQuota.js';

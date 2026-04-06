@@ -60,6 +60,7 @@ enum EntityType {
   MICRO_INTERVIEW
   MATCH_SCORE
   DASHBOARD_LAYOUT
+  TENANT_QUOTA
 }
 
 enum AuditLogAction {
@@ -223,6 +224,7 @@ enum ExecutionStatus {
   PROCESSING
   SUCCESS
   ERROR
+  CANCELLED
 }
 
 # ----------------------------------------------------------------------
@@ -1988,6 +1990,32 @@ type UsageRecord implements Node & Metadata @aws_iam @aws_cognito_user_pools {
   stripeMeterEventId: String
 }
 
+enum QuotaEnforcementPolicy {
+  WARN_ONLY
+  SOFT_LIMIT
+  HARD_LIMIT
+}
+
+type TenantQuota implements Node & Metadata @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+  monthlyTokenLimit: Int
+  currentMonthTokens: Int!
+  enforcementPolicy: QuotaEnforcementPolicy!
+  resetDay: Int!
+}
+
+input UpdateTenantQuotaInput {
+  monthlyTokenLimit: Int
+  enforcementPolicy: QuotaEnforcementPolicy
+  resetDay: Int
+}
+
 type UsageRecordConnection
   @aws_iam
   @aws_cognito_user_pools(
@@ -2623,6 +2651,13 @@ type Query {
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
 
+  # TENANT QUOTA (id = tenantId, same as AccountCredits)
+  getTenantQuota(id: ID!): TenantQuota
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
   # USAGE RECORDS (by tenant for billing)
   listUsageRecords(
     tenantId: ID!
@@ -3174,6 +3209,16 @@ type Mutation {
     @aws_iam
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  # TENANT QUOTA (admin only; id = tenantId, same as AccountCredits)
+  updateTenantQuota(
+    id: ID!
+    input: UpdateTenantQuotaInput!
+  ): TenantQuota
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins"]
     )
 
   # ACCOUNT CREDITS (id = tenantId for get; update for deduct/add)

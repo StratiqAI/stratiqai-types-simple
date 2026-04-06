@@ -36,3 +36,10 @@ export const M_DELETE_AI_QUERY_EXECUTION = gql`
     }
   }
 `;
+
+/**
+ * Convenience alias: cancel an execution by setting status to CANCELLED.
+ * Same underlying mutation as M_UPDATE_AI_QUERY_EXECUTION.
+ * Variables: { id: ID!, input: { status: "CANCELLED", statusMessage?: String } }
+ */
+export const M_CANCEL_AI_QUERY_EXECUTION = M_UPDATE_AI_QUERY_EXECUTION;

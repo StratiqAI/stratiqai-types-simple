@@ -35,3 +35,10 @@ export { zodToRawJsonSchema } from "./utils/ZodSchemaAdapter.js";
 
 // Schema fingerprinting (hashing)
 export { SchemaFingerprint } from "./utils/SchemaFingerprint.js";
+
+// Client-side ontology helpers (preview hash, cache keys)
+export {
+  computeSchemaHash,
+  computeSchemaHashFromString,
+  computeSchemaFingerprint,
+} from "./utils/ontologyHelpers.js";

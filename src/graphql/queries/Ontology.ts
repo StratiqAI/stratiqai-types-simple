@@ -12,6 +12,7 @@ export const ONTOLOGY_ENTITY_DEFINITION_FIELDS = gql`
 		description
 		jsonSchema
 		structuralHash
+		normalizedJsonSchema
 		properties {
 			name
 			description
@@ -91,4 +92,13 @@ export const Q_LIST_ENTITY_INSTANCES_BY_DEFINITION = gql`
 		}
 	}
 	${ONTOLOGY_ENTITY_INSTANCE_FIELDS}
+`;
+
+export const Q_GET_ENTITY_DEFINITION_BY_HASH = gql`
+	query GetEntityDefinitionByHash($projectId: ID!, $structuralHash: String!) {
+		getEntityDefinitionByHash(projectId: $projectId, structuralHash: $structuralHash) {
+			...OntologyEntityDefinitionFields
+		}
+	}
+	${ONTOLOGY_ENTITY_DEFINITION_FIELDS}
 `;

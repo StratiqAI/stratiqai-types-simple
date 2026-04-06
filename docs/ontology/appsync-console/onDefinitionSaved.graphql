@@ -6,6 +6,7 @@ subscription OnDefinitionSaved($projectId: ID!) {
     description
     jsonSchema
     structuralHash
+    normalizedJsonSchema
     properties {
       name
       description

@@ -18,6 +18,7 @@ type EntityDefinition {
   description: String
   jsonSchema: AWSJSON!
   structuralHash: String!
+  normalizedJsonSchema: AWSJSON
   properties: [PropertyDefinition]
 }
 
@@ -90,7 +91,6 @@ input SaveEntityDefinitionInput {
   name: String!
   description: String
   jsonSchema: AWSJSON!
-  structuralHash: String!
   properties: [PropertyDefinitionInput]
 }
 

@@ -5,7 +5,6 @@
     "name": "InsurancePolicy",
     "description": "An insurance policy entity",
     "jsonSchema": "{\"type\":\"object\",\"properties\":{\"policyNumber\":{\"type\":\"string\"},\"premium\":{\"type\":\"number\"}}}",
-    "structuralHash": "abc123hash",
     "properties": [
       {
         "name": "policyNumber",

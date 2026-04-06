@@ -6,11 +6,17 @@ Each step has **two code blocks**: paste the first into the **query editor** and
 > **Before you start:** replace `test-project-1` with a real project ID if needed.
 > All other IDs are self-contained — the walkthrough creates the data it needs.
 
+> **Schema Fingerprinting:** `structuralHash` and `normalizedJsonSchema` are now
+> computed **server-side** by a Lambda pipeline function. You do **not** supply
+> `structuralHash` in the input — it is returned in the response.
+
 ---
 
 ## Step 1 — Create the first Entity Definition (InsurancePolicy)
 
 This creates a definition that describes insurance policies with two properties.
+The server computes `structuralHash` (SHA-256 of the normalized schema) and
+`normalizedJsonSchema` automatically.
 
 **Query editor:**
 
@@ -23,6 +29,7 @@ mutation SaveEntityDefinition($input: SaveEntityDefinitionInput!) {
     description
     jsonSchema
     structuralHash
+    normalizedJsonSchema
     properties {
       name
       description
@@ -44,7 +51,6 @@ mutation SaveEntityDefinition($input: SaveEntityDefinitionInput!) {
     "name": "InsurancePolicy",
     "description": "An insurance policy with a policy number and premium amount",
     "jsonSchema": "{\"type\":\"object\",\"properties\":{\"policyNumber\":{\"type\":\"string\"},\"premium\":{\"type\":\"number\"}}}",
-    "structuralHash": "sha256-policy-v1",
     "properties": [
       {
         "name": "policyNumber",
@@ -65,7 +71,7 @@ mutation SaveEntityDefinition($input: SaveEntityDefinitionInput!) {
 }
 ```
 
-**Expected:** returns the full definition with both properties.
+**Expected:** returns the full definition with both properties. `structuralHash` is a 64-char hex SHA-256 digest. `normalizedJsonSchema` is the canonicalized form of the schema. **Copy the `structuralHash` value — you will use it in Step 3b.**
 
 ---
 
@@ -84,6 +90,7 @@ mutation SaveEntityDefinition($input: SaveEntityDefinitionInput!) {
     description
     jsonSchema
     structuralHash
+    normalizedJsonSchema
     properties {
       name
       description
@@ -105,7 +112,6 @@ mutation SaveEntityDefinition($input: SaveEntityDefinitionInput!) {
     "name": "Policyholder",
     "description": "A person or entity that holds one or more insurance policies",
     "jsonSchema": "{\"type\":\"object\",\"properties\":{\"fullName\":{\"type\":\"string\"},\"dateOfBirth\":{\"type\":\"string\",\"format\":\"date\"},\"isActive\":{\"type\":\"boolean\"}}}",
-    "structuralHash": "sha256-holder-v1",
     "properties": [
       {
         "name": "fullName",
@@ -150,6 +156,7 @@ query GetEntityDefinition($projectId: ID!, $id: ID!) {
     description
     jsonSchema
     structuralHash
+    normalizedJsonSchema
     properties {
       name
       dataType
@@ -170,6 +177,44 @@ query GetEntityDefinition($projectId: ID!, $id: ID!) {
 
 ---
 
+## Step 3b — Look up a definition by structural hash (GSI2)
+
+Use the `structuralHash` value from Step 1's response to look up the definition via GSI2. This is the primary use case for schema fingerprinting — deduplication and routing by schema shape.
+
+**Query editor:**
+
+```graphql
+query GetEntityDefinitionByHash($projectId: ID!, $structuralHash: String!) {
+  getEntityDefinitionByHash(projectId: $projectId, structuralHash: $structuralHash) {
+    projectId
+    id
+    name
+    description
+    jsonSchema
+    structuralHash
+    normalizedJsonSchema
+    properties {
+      name
+      dataType
+      path
+    }
+  }
+}
+```
+
+**Variables:** *(replace the hash with the actual value from Step 1)*
+
+```json
+{
+  "projectId": "test-project-1",
+  "structuralHash": "PASTE_HASH_FROM_STEP_1_HERE"
+}
+```
+
+**Expected:** returns the InsurancePolicy definition — same result as Step 3 but looked up by hash instead of by id.
+
+---
+
 ## Step 4 — List all definitions in the project
 
 Should return both InsurancePolicy and Policyholder.
@@ -184,6 +229,7 @@ query ListEntityDefinitions($projectId: ID!) {
     name
     description
     structuralHash
+    normalizedJsonSchema
     properties {
       name
       dataType
@@ -200,7 +246,7 @@ query ListEntityDefinitions($projectId: ID!) {
 }
 ```
 
-**Expected:** array with 2 definitions.
+**Expected:** array with 2 definitions, each with a unique `structuralHash`.
 
 ---
 
@@ -471,7 +517,7 @@ mutation SaveEntityInstance($input: SaveInstanceInput!) {
 
 ## Step 11 — Update a definition (full replace)
 
-Update the InsurancePolicy definition to add a third property. Unlike instances, definitions use PutItem (full replace), so you must include all fields.
+Update the InsurancePolicy definition to add a third property. Unlike instances, definitions use PutItem (full replace), so you must include all fields. The `structuralHash` will be **recomputed** because the `jsonSchema` changed.
 
 **Query editor:**
 
@@ -482,6 +528,7 @@ mutation SaveEntityDefinition($input: SaveEntityDefinitionInput!) {
     id
     name
     structuralHash
+    normalizedJsonSchema
     properties {
       name
       dataType
@@ -501,7 +548,6 @@ mutation SaveEntityDefinition($input: SaveEntityDefinitionInput!) {
     "name": "InsurancePolicy",
     "description": "An insurance policy — now with coverage type",
     "jsonSchema": "{\"type\":\"object\",\"properties\":{\"policyNumber\":{\"type\":\"string\"},\"premium\":{\"type\":\"number\"},\"coverageType\":{\"type\":\"string\"}}}",
-    "structuralHash": "sha256-policy-v2",
     "properties": [
       {
         "name": "policyNumber",
@@ -529,7 +575,7 @@ mutation SaveEntityDefinition($input: SaveEntityDefinitionInput!) {
 }
 ```
 
-**Expected:** `structuralHash` is now `sha256-policy-v2`, properties array has 3 items.
+**Expected:** `structuralHash` is now a **different** 64-char hex value (the schema shape changed), properties array has 3 items. You can verify the old hash from Step 1 no longer matches by running Step 3b with the old hash — it should return `null`.
 
 ---
 
@@ -569,19 +615,27 @@ subscription OnInstanceUpdated($projectId: ID!, $id: ID!) {
 
 ---
 
-## Step 13 — Subscribe to definition changes (open in Tab 1)
+## Step 13 — Subscribe to ALL instance changes in a project (open in Tab 1)
 
-Monitors all definition saves in the project.
+Unlike Step 12 which watches a single instance by `id`, this subscription fires for **every** instance create or update in the project — any definition, any instance.
 
 **Query editor:**
 
 ```graphql
-subscription OnDefinitionSaved($projectId: ID!) {
-  onDefinitionSaved(projectId: $projectId) {
+subscription OnProjectInstancesChanged($projectId: ID!) {
+  onProjectInstancesChanged(projectId: $projectId) {
     projectId
     id
-    name
-    structuralHash
+    definitionId
+    label
+    updatedAt
+    values {
+      propertyName
+      stringValue
+      numberValue
+      booleanValue
+      dateValue
+    }
   }
 }
 ```
@@ -594,11 +648,46 @@ subscription OnDefinitionSaved($projectId: ID!) {
 }
 ```
 
-**Then:** in a second tab, re-run Step 11 to see the subscription fire.
+**Then:** in a second tab, run any of these and watch the subscription fire each time:
+- Step 5 (save a policy instance)
+- Step 6 (save a policyholder instance)
+- Step 10 (partial update the policy's premium)
+
+Each mutation triggers a notification with the full saved instance. This is useful for a UI that displays a live list of all instances in a project.
 
 ---
 
-## Step 14 — Delete an instance
+## Step 14 — Subscribe to definition changes (open in Tab 1)
+
+Monitors all definition saves in the project. The subscription response now includes the server-computed `structuralHash`.
+
+**Query editor:**
+
+```graphql
+subscription OnDefinitionSaved($projectId: ID!) {
+  onDefinitionSaved(projectId: $projectId) {
+    projectId
+    id
+    name
+    structuralHash
+    normalizedJsonSchema
+  }
+}
+```
+
+**Variables:**
+
+```json
+{
+  "projectId": "test-project-1"
+}
+```
+
+**Then:** in a second tab, re-run Step 11 to see the subscription fire with the new hash.
+
+---
+
+## Step 15 — Delete an instance
 
 Deletes the policy instance. Returns the old item.
 
@@ -628,9 +717,9 @@ mutation DeleteEntityInstance($projectId: ID!, $id: ID!) {
 
 ---
 
-## Step 15 — Delete the policyholder instance
+## Step 16 — Delete the policyholder instance
 
-**Query editor:** *(same mutation as Step 14)*
+**Query editor:** *(same mutation as Step 15)*
 
 ```graphql
 mutation DeleteEntityInstance($projectId: ID!, $id: ID!) {
@@ -654,7 +743,7 @@ mutation DeleteEntityInstance($projectId: ID!, $id: ID!) {
 
 ---
 
-## Step 16 — Verify instances are gone
+## Step 17 — Verify instances are gone
 
 **Query editor:**
 
@@ -679,7 +768,7 @@ query ListEntityInstances($projectId: ID!) {
 
 ---
 
-## Step 17 — Delete a definition
+## Step 18 — Delete a definition
 
 **Query editor:**
 
@@ -704,9 +793,9 @@ mutation DeleteEntityDefinition($projectId: ID!, $id: ID!) {
 
 ---
 
-## Step 18 — Delete the second definition and verify clean state
+## Step 19 — Delete the second definition and verify clean state
 
-**Query editor:** *(same mutation as Step 17)*
+**Query editor:** *(same mutation as Step 18)*
 
 ```graphql
 mutation DeleteEntityDefinition($projectId: ID!, $id: ID!) {

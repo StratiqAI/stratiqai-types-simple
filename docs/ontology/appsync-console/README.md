@@ -26,6 +26,7 @@ Use these files in the **AWS AppSync** console for your API (**Queries** in the 
 |-----------|------|-------|
 | Save definition | Mutation | `saveEntityDefinition.graphql` + `.variables.json` |
 | Get definition | Query | `getEntityDefinition.graphql` + `.variables.json` |
+| Get definition by hash | Query | `getEntityDefinitionByHash.graphql` + `.variables.json` |
 | List definitions | Query | `listEntityDefinitions.graphql` + `.variables.json` |
 | Delete definition | Mutation | `deleteEntityDefinition.graphql` + `.variables.json` |
 
@@ -51,19 +52,22 @@ Use these files in the **AWS AppSync** console for your API (**Queries** in the 
 
 ## Suggested test order
 
-1. **Save a definition** — `saveEntityDefinition` — creates the definition row.
-2. **Get the definition** — `getEntityDefinition` — verify it was stored.
-3. **List definitions** — `listEntityDefinitions` — should include the new one.
-4. **Save an instance** — `saveEntityInstance` — creates an instance linked to the definition.
-5. **Get the instance** — `getEntityInstance` — verify the instance with translated values.
-6. **List instances** — `listEntityInstances` or `listEntityInstancesByDefinition`.
-7. **Subscribe** — Open `onInstanceUpdated` in one tab, then run `saveEntityInstance` in another tab to see the subscription fire.
-8. **Delete instance** — `deleteEntityInstance` — returns the deleted item.
-9. **Delete definition** — `deleteEntityDefinition` — returns the deleted item.
+1. **Save a definition** — `saveEntityDefinition` — creates the definition; `structuralHash` and `normalizedJsonSchema` are computed server-side.
+2. **Get the definition** — `getEntityDefinition` — verify it was stored with the computed hash.
+3. **Get definition by hash** — `getEntityDefinitionByHash` — copy the `structuralHash` from step 1 and look up the definition by hash via GSI2.
+4. **List definitions** — `listEntityDefinitions` — should include the new one.
+5. **Save an instance** — `saveEntityInstance` — creates an instance linked to the definition.
+6. **Get the instance** — `getEntityInstance` — verify the instance with translated values.
+7. **List instances** — `listEntityInstances` or `listEntityInstancesByDefinition`.
+8. **Subscribe** — Open `onInstanceUpdated` in one tab, then run `saveEntityInstance` in another tab to see the subscription fire.
+9. **Delete instance** — `deleteEntityInstance` — returns the deleted item.
+10. **Delete definition** — `deleteEntityDefinition` — returns the deleted item.
 
 ## Notes
 
-- `saveEntityDefinition` uses **PutItem** (full replace). Saving again overwrites the entire definition.
+- `saveEntityDefinition` is a **pipeline resolver**: a Lambda computes the `structuralHash` (SHA-256 of the normalized `jsonSchema`) server-side, then a DynamoDB PutItem stores the full definition. The caller does **not** supply `structuralHash` — it is computed and returned.
+- `normalizedJsonSchema` is also computed server-side and stored alongside the definition.
+- `getEntityDefinitionByHash` uses **GSI2** to look up a definition by its computed hash within a project.
 - `saveEntityInstance` uses **UpdateItem** with partial merge on `valuesMap`. It can create the instance row on first call.
 - Delete operations return the deleted item's old values. If the item does not exist, the result is `null`.
 - Definition subscriptions (`onDefinitionSaved`, `onDefinitionDeleted`) filter by **`projectId`** only — they fire for any definition change in the project.

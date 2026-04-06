@@ -2692,6 +2692,7 @@ type Query {
   getEntityInstance(projectId: ID!, id: ID!): EntityInstance
   listEntityInstances(projectId: ID!): [EntityInstance]
   listEntityInstancesByDefinition(projectId: ID!, definitionId: ID!): [EntityInstance]
+  getEntityDefinitionByHash(projectId: ID!, structuralHash: String!): EntityDefinition
 }
 
 # ----------------------------------------------------------------------

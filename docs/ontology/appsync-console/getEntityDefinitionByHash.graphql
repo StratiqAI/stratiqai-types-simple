@@ -1,5 +1,5 @@
-query GetEntityDefinition($projectId: ID!, $id: ID!) {
-  getEntityDefinition(projectId: $projectId, id: $id) {
+query GetEntityDefinitionByHash($projectId: ID!, $structuralHash: String!) {
+  getEntityDefinitionByHash(projectId: $projectId, structuralHash: $structuralHash) {
     projectId
     id
     name

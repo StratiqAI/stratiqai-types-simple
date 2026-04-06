@@ -13,7 +13,7 @@ function findTsFiles(dir, fileList = []) {
     const filePath = join(dir, file);
     if (statSync(filePath).isDirectory()) {
       findTsFiles(filePath, fileList);
-    } else if (file.endsWith('.ts')) {
+    } else if (file.endsWith('.ts') && !file.endsWith('.test.ts') && !file.endsWith('.spec.ts')) {
       fileList.push(filePath);
     }
   });
@@ -25,12 +25,14 @@ async function buildProject() {
     // Find all TypeScript files to build
     const graphqlFiles = findTsFiles(join(__dirname, 'src', 'graphql'));
     const eventsFiles = findTsFiles(join(__dirname, 'src', 'events'));
+    const utilsFiles = findTsFiles(join(__dirname, 'src', 'utils'));
     const allTsFiles = [
       join(__dirname, 'src', 'index.ts'),
       join(__dirname, 'src', 'schema.ts'),
       join(__dirname, 'src', 'operations.ts'),
       ...graphqlFiles,
       ...eventsFiles,
+      ...utilsFiles,
     ];
     
     console.log(`Building ${allTsFiles.length} TypeScript files (${graphqlFiles.length} graphql files)...`);

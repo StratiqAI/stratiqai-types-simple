@@ -25,3 +25,13 @@ export type { PdfImagesCompletePayload, EmbeddingResultPayload } from "./events/
 
 // Event sources and detail-types for EventBridge (naming-schema-proposal)
 export { EVENT_SOURCES, EVENT_DETAIL_TYPES } from "./events/constants.js";
+
+// Schema normalization (zero external dependencies)
+export { normalizeStructure, stableStringify, SEMANTIC_KEYS } from "./utils/SchemaNormalizer.js";
+export type { RawJsonSchema } from "./utils/SchemaNormalizer.js";
+
+// Zod-to-JSON-Schema conversion
+export { zodToRawJsonSchema } from "./utils/ZodSchemaAdapter.js";
+
+// Schema fingerprinting (hashing)
+export { SchemaFingerprint } from "./utils/SchemaFingerprint.js";

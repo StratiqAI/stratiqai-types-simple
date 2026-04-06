@@ -24,6 +24,18 @@
       "types": "./src/generated/types.ts",
       "import": "./src/generated/types.ts"
     },
+    "./utils/SchemaNormalizer": {
+      "types": "./dist/utils/SchemaNormalizer.d.ts",
+      "import": "./dist/utils/SchemaNormalizer.js"
+    },
+    "./utils/ZodSchemaAdapter": {
+      "types": "./dist/utils/ZodSchemaAdapter.d.ts",
+      "import": "./dist/utils/ZodSchemaAdapter.js"
+    },
+    "./utils/SchemaFingerprint": {
+      "types": "./dist/utils/SchemaFingerprint.d.ts",
+      "import": "./dist/utils/SchemaFingerprint.js"
+    },
     "./schema": "./src/graphql/schema.graphql"
   },
   "files": [
@@ -37,6 +49,9 @@
     "build:js": "node esbuild.config.js",
     "build:types": "tsc --emitDeclarationOnly --project tsconfig.json",
     "generate:types": "graphql-codegen --config codegen.yml",
+    "fingerprint:demo": "npx --yes tsx scripts/print-schema-fingerprint.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "validate": "npm run generate:types",
     "prepublishOnly": "npm run build",
     "publish:local": "npm run build && npm version patch && npm publish --registry http://localhost:4873"
@@ -50,9 +65,12 @@
     "esbuild": "^0.27.0",
     "graphql": "^16.8.1",
     "rimraf": "^6.0.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.2"
   },
   "dependencies": {
-    "graphql-tag": "^2.12.6"
+    "graphql-tag": "^2.12.6",
+    "zod": "^3.25.76",
+    "zod-to-json-schema": "^3.25.2"
   }
 }

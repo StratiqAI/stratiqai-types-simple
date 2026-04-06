@@ -2685,6 +2685,10 @@ type Query {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
+
+  # ONTOLOGY GRAPH QUERIES
+  listEntityDefinitions(projectId: ID!): [EntityDefinition]
+  getEntityInstance(projectId: ID!, id: ID!): EntityInstance
 }
 
 # ----------------------------------------------------------------------
@@ -3230,6 +3234,9 @@ type Mutation {
     @aws_cognito_user_pools(
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
+
+  # ONTOLOGY GRAPH MUTATIONS
+  saveEntityInstance(input: SaveInstanceInput!): EntityInstance
 }
 
 # ----------------------------------------------------------------------
@@ -3461,4 +3468,8 @@ type Subscription {
         "retryWorkflowNodeExecution"
       ]
     )
+
+  # ONTOLOGY GRAPH SUBSCRIPTIONS
+  onInstanceUpdated(projectId: ID!, id: ID!): EntityInstance
+    @aws_subscribe(mutations: ["saveEntityInstance"])
 }

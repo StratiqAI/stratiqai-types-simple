@@ -1,0 +1,88 @@
+# ==============================================================================
+# ONTOLOGY GRAPH SCHEMA
+# Separate schema file, merged with schema.graphql at deploy time.
+# ==============================================================================
+
+enum PropertyDataType {
+  STRING
+  NUMBER
+  BOOLEAN
+  DATE
+  CALCULATION
+}
+
+type EntityDefinition {
+  projectId: ID!
+  id: ID!
+  name: String!
+  description: String
+  jsonSchema: AWSJSON!
+  structuralHash: String!
+  properties: [PropertyDefinition]
+}
+
+type PropertyDefinition {
+  name: String!
+  description: String
+  dataType: PropertyDataType!
+  path: String!
+  isList: Boolean
+  formula: String
+  dependencies: [String]
+}
+
+type EntityInstance {
+  projectId: ID!
+  id: ID!
+  definitionId: ID!
+  label: String
+  values: [PropertyValue]
+  children: [Relationship]
+  updatedAt: AWSDateTime
+}
+
+type PropertyValue {
+  propertyName: String!
+  stringValue: String
+  numberValue: Float
+  booleanValue: Boolean
+  dateValue: AWSDate
+  extractedByAI: Boolean
+  confidenceScore: Float
+  sourceEvidence: String
+}
+
+type Relationship {
+  relationName: String!
+  targetInstanceId: ID!
+}
+
+input SaveInstanceInput {
+  projectId: ID!
+  id: ID!
+  definitionId: ID!
+  label: String
+  values: [PropertyValueInput]
+  children: [RelationshipInput]
+  senderId: String!
+  emitCompletionEvent: Boolean
+}
+
+input PropertyValueInput {
+  propertyName: String!
+  stringValue: String
+  numberValue: Float
+  booleanValue: Boolean
+  dateValue: AWSDate
+  extractedByAI: Boolean
+  confidenceScore: Float
+  sourceEvidence: String
+}
+
+input RelationshipInput {
+  relationName: String!
+  targetInstanceId: ID!
+}
+
+# Query, Mutation, and Subscription fields are defined in schema.graphql
+# (AppSync does not support `extend type` syntax).

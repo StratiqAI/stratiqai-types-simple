@@ -161,11 +161,13 @@ Terraform registers these in `modules/api/resolvers.tf` (ontology section). The 
 
 **Approach:**
 
-1. **Function `computeStructuralHash`** (Lambda) — receives `jsonSchema` (AWSJSON string) from the mutation input. The Lambda imports `SchemaFingerprint` from `@stratiqai/types-simple`, computes the SHA-256 hash of the normalized schema, and returns `{ structuralHash, normalizedJsonSchema }`. The APPSYNC_JS wrapper (`computeStructuralHashFn.js`) stashes both values into `ctx.stash`.
+1. **Function `computeStructuralHash`** (Lambda) — the APPSYNC_JS wrapper (`computeStructuralHashFn.js`) forwards `ctx.args.input.jsonSchema` in the Lambda payload. Because `AWSJSON` scalars are **auto-deserialized** by AppSync, the value arrives at the Lambda as a JavaScript object, not a string. The Lambda normalises the input (`typeof` check → `JSON.stringify` if needed), then imports `SchemaFingerprint` from `@stratiqai/types-simple` to compute the SHA-256 hash. It returns `{ structuralHash, normalizedJsonSchema }` where `normalizedJsonSchema` is a **parsed object** (not a string) so that DynamoDB stores it as a Map and the `AWSJSON` scalar serialises it correctly without double-encoding. The wrapper stashes both values into `ctx.stash`.
 2. **Function `putEntityDefinition`** (DynamoDB) — reads `ctx.stash.structuralHash` and `ctx.stash.normalizedJsonSchema`, builds a `PutItem` with all definition attributes including `GSI2PK = PROJ#<projectId>` and `GSI2SK = HASH#<structuralHash>`.
 3. **Pipeline handler `saveEntityDefinition.js`** — `request` is a no-op; `response` reads `ctx.prev.result`, strips key prefixes, returns the definition.
 
 **Input change:** `structuralHash` was **removed** from `SaveEntityDefinitionInput`. The field is output-only — always computed by the pipeline.
+
+**AWSJSON round-trip:** Fields typed as `AWSJSON` (e.g. `jsonSchema`, `normalizedJsonSchema`) must be stored in DynamoDB as **Maps** (not Strings). If stored as a String, AppSync's AWSJSON serialiser wraps it in another layer of JSON encoding, producing double-escaped output. The Lambda returns `normalizedJsonSchema` as an object for this reason.
 
 **GSI2 keys:** Every definition PutItem writes `GSI2PK` and `GSI2SK` so `getEntityDefinitionByHash` can look it up. When a definition's `jsonSchema` changes, the hash changes and the old GSI2 entry is replaced (PutItem overwrites the row).
 
@@ -193,7 +195,7 @@ The JS runtime is restricted. Resolver code avoids:
 - `++` / `--` (use `idx = idx + 1`).
 - Object spread/rest where validation fails; prefer `Object.assign({}, a, b)` and explicit field copies.
 
-If deploy validation fails with "The code contains one or more errors," simplify syntax along these lines. The `computeStructuralHash` Lambda is **not** subject to these constraints — it runs full Node.js 22.
+If deploy validation fails with "The code contains one or more errors," simplify syntax along these lines. Additionally, calling `util.toJson()` inside a Lambda-invoke payload object can trigger validation failures — handle type coercion in the Lambda itself instead. The `computeStructuralHash` Lambda is **not** subject to these constraints — it runs full Node.js 22.
 
 ---
 
@@ -213,7 +215,7 @@ Re-exported via the package's index. After SDL changes, run the package build/co
 ## 11. Deployment wiring (summary)
 
 - **Storage:** `modules/storage/main.tf` — table + GSI1 + GSI2 + streams/PITR.
-- **Compute:** `environments/dev/lambda.tf` — `module "lambda_compute_structural_hash"` (Node.js 22 Lambda, imports `@stratiqai/types-simple`).
+- **Compute:** `environments/dev/lambda.tf` — `module "lambda_compute_structural_hash"` (Node.js 22 Lambda, `layer_arns = []`). **Must be built with `BUNDLE_MODE=bundle`** so esbuild inlines `@stratiqai/types-simple` into a single file — no Lambda layer provides the dependency at runtime.
 - **API module:**
   - Ontology table ARN + Lambda ARN on AppSync IAM policies.
   - `ontology_table` datasource (DynamoDB) + `compute_structural_hash_lambda` datasource (Lambda).

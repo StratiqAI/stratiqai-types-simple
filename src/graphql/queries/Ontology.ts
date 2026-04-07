@@ -32,7 +32,6 @@ export const ONTOLOGY_ENTITY_INSTANCE_FIELDS = gql`
 		definitionId
 		label
 		updatedAt
-		senderId
 		values {
 			propertyName
 			stringValue

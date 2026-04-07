@@ -3553,7 +3553,7 @@ export type SaveEntityDefinitionMutationVariables = Exact<{
 }>;
 
 
-export type SaveEntityDefinitionMutation = { __typename?: 'Mutation', saveEntityDefinition?: { __typename?: 'EntityDefinition', projectId: string, id: string, name: string, description?: string | null | undefined, jsonSchema: any, structuralHash: string, normalizedJsonSchema?: any | null | undefined, properties?: Array<{ __typename?: 'PropertyDefinition', name: string, description?: string | null | undefined, dataType: PropertyDataType, path: string, isList?: boolean | null | undefined, formula?: string | null | undefined, dependencies?: Array<string | null | undefined> | null | undefined } | null | undefined> | null | undefined } | null | undefined };
+export type SaveEntityDefinitionMutation = { __typename?: 'Mutation', saveEntityDefinition?: { __typename?: 'EntityDefinition', projectId: string, id: string, jsonSchemaId?: string | null | undefined, name: string, description?: string | null | undefined, jsonSchema: any, structuralHash: string, normalizedJsonSchema?: any | null | undefined, properties?: Array<{ __typename?: 'PropertyDefinition', name: string, description?: string | null | undefined, dataType: PropertyDataType, path: string, isList?: boolean | null | undefined, formula?: string | null | undefined, dependencies?: Array<string | null | undefined> | null | undefined } | null | undefined> | null | undefined } | null | undefined };
 
 export type DeleteEntityDefinitionMutationVariables = Exact<{
   projectId: Scalars['ID']['input'];
@@ -3930,7 +3930,7 @@ export type ListNotificationsQueryVariables = Exact<{
 
 export type ListNotificationsQuery = { __typename?: 'Query', listNotifications: { __typename?: 'NotificationConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined }> } };
 
-export type OntologyEntityDefinitionFieldsFragment = { __typename?: 'EntityDefinition', projectId: string, id: string, name: string, description?: string | null | undefined, jsonSchema: any, structuralHash: string, normalizedJsonSchema?: any | null | undefined, properties?: Array<{ __typename?: 'PropertyDefinition', name: string, description?: string | null | undefined, dataType: PropertyDataType, path: string, isList?: boolean | null | undefined, formula?: string | null | undefined, dependencies?: Array<string | null | undefined> | null | undefined } | null | undefined> | null | undefined };
+export type OntologyEntityDefinitionFieldsFragment = { __typename?: 'EntityDefinition', projectId: string, id: string, jsonSchemaId?: string | null | undefined, name: string, description?: string | null | undefined, jsonSchema: any, structuralHash: string, normalizedJsonSchema?: any | null | undefined, properties?: Array<{ __typename?: 'PropertyDefinition', name: string, description?: string | null | undefined, dataType: PropertyDataType, path: string, isList?: boolean | null | undefined, formula?: string | null | undefined, dependencies?: Array<string | null | undefined> | null | undefined } | null | undefined> | null | undefined };
 
 export type OntologyEntityInstanceFieldsFragment = { __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined };
 
@@ -3939,7 +3939,7 @@ export type ListEntityDefinitionsQueryVariables = Exact<{
 }>;
 
 
-export type ListEntityDefinitionsQuery = { __typename?: 'Query', listEntityDefinitions?: Array<{ __typename?: 'EntityDefinition', projectId: string, id: string, name: string, description?: string | null | undefined, jsonSchema: any, structuralHash: string, normalizedJsonSchema?: any | null | undefined, properties?: Array<{ __typename?: 'PropertyDefinition', name: string, description?: string | null | undefined, dataType: PropertyDataType, path: string, isList?: boolean | null | undefined, formula?: string | null | undefined, dependencies?: Array<string | null | undefined> | null | undefined } | null | undefined> | null | undefined } | null | undefined> | null | undefined };
+export type ListEntityDefinitionsQuery = { __typename?: 'Query', listEntityDefinitions?: Array<{ __typename?: 'EntityDefinition', projectId: string, id: string, jsonSchemaId?: string | null | undefined, name: string, description?: string | null | undefined, jsonSchema: any, structuralHash: string, normalizedJsonSchema?: any | null | undefined, properties?: Array<{ __typename?: 'PropertyDefinition', name: string, description?: string | null | undefined, dataType: PropertyDataType, path: string, isList?: boolean | null | undefined, formula?: string | null | undefined, dependencies?: Array<string | null | undefined> | null | undefined } | null | undefined> | null | undefined } | null | undefined> | null | undefined };
 
 export type GetEntityDefinitionQueryVariables = Exact<{
   projectId: Scalars['ID']['input'];
@@ -3947,7 +3947,7 @@ export type GetEntityDefinitionQueryVariables = Exact<{
 }>;
 
 
-export type GetEntityDefinitionQuery = { __typename?: 'Query', getEntityDefinition?: { __typename?: 'EntityDefinition', projectId: string, id: string, name: string, description?: string | null | undefined, jsonSchema: any, structuralHash: string, normalizedJsonSchema?: any | null | undefined, properties?: Array<{ __typename?: 'PropertyDefinition', name: string, description?: string | null | undefined, dataType: PropertyDataType, path: string, isList?: boolean | null | undefined, formula?: string | null | undefined, dependencies?: Array<string | null | undefined> | null | undefined } | null | undefined> | null | undefined } | null | undefined };
+export type GetEntityDefinitionQuery = { __typename?: 'Query', getEntityDefinition?: { __typename?: 'EntityDefinition', projectId: string, id: string, jsonSchemaId?: string | null | undefined, name: string, description?: string | null | undefined, jsonSchema: any, structuralHash: string, normalizedJsonSchema?: any | null | undefined, properties?: Array<{ __typename?: 'PropertyDefinition', name: string, description?: string | null | undefined, dataType: PropertyDataType, path: string, isList?: boolean | null | undefined, formula?: string | null | undefined, dependencies?: Array<string | null | undefined> | null | undefined } | null | undefined> | null | undefined } | null | undefined };
 
 export type GetEntityInstanceQueryVariables = Exact<{
   projectId: Scalars['ID']['input'];
@@ -3978,7 +3978,7 @@ export type GetEntityDefinitionByHashQueryVariables = Exact<{
 }>;
 
 
-export type GetEntityDefinitionByHashQuery = { __typename?: 'Query', getEntityDefinitionByHash?: { __typename?: 'EntityDefinition', projectId: string, id: string, name: string, description?: string | null | undefined, jsonSchema: any, structuralHash: string, normalizedJsonSchema?: any | null | undefined, properties?: Array<{ __typename?: 'PropertyDefinition', name: string, description?: string | null | undefined, dataType: PropertyDataType, path: string, isList?: boolean | null | undefined, formula?: string | null | undefined, dependencies?: Array<string | null | undefined> | null | undefined } | null | undefined> | null | undefined } | null | undefined };
+export type GetEntityDefinitionByHashQuery = { __typename?: 'Query', getEntityDefinitionByHash?: { __typename?: 'EntityDefinition', projectId: string, id: string, jsonSchemaId?: string | null | undefined, name: string, description?: string | null | undefined, jsonSchema: any, structuralHash: string, normalizedJsonSchema?: any | null | undefined, properties?: Array<{ __typename?: 'PropertyDefinition', name: string, description?: string | null | undefined, dataType: PropertyDataType, path: string, isList?: boolean | null | undefined, formula?: string | null | undefined, dependencies?: Array<string | null | undefined> | null | undefined } | null | undefined> | null | undefined } | null | undefined };
 
 export type GetProjectQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -4266,7 +4266,7 @@ export type OnDefinitionSavedSubscriptionVariables = Exact<{
 }>;
 
 
-export type OnDefinitionSavedSubscription = { __typename?: 'Subscription', onDefinitionSaved?: { __typename?: 'EntityDefinition', projectId: string, id: string, name: string, description?: string | null | undefined, jsonSchema: any, structuralHash: string, normalizedJsonSchema?: any | null | undefined, properties?: Array<{ __typename?: 'PropertyDefinition', name: string, description?: string | null | undefined, dataType: PropertyDataType, path: string, isList?: boolean | null | undefined, formula?: string | null | undefined, dependencies?: Array<string | null | undefined> | null | undefined } | null | undefined> | null | undefined } | null | undefined };
+export type OnDefinitionSavedSubscription = { __typename?: 'Subscription', onDefinitionSaved?: { __typename?: 'EntityDefinition', projectId: string, id: string, jsonSchemaId?: string | null | undefined, name: string, description?: string | null | undefined, jsonSchema: any, structuralHash: string, normalizedJsonSchema?: any | null | undefined, properties?: Array<{ __typename?: 'PropertyDefinition', name: string, description?: string | null | undefined, dataType: PropertyDataType, path: string, isList?: boolean | null | undefined, formula?: string | null | undefined, dependencies?: Array<string | null | undefined> | null | undefined } | null | undefined> | null | undefined } | null | undefined };
 
 export type OnDefinitionDeletedSubscriptionVariables = Exact<{
   projectId: Scalars['ID']['input'];

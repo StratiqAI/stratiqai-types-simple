@@ -8,6 +8,7 @@ export const ONTOLOGY_ENTITY_DEFINITION_FIELDS = gql`
 	fragment OntologyEntityDefinitionFields on EntityDefinition {
 		projectId
 		id
+		jsonSchemaId
 		name
 		description
 		jsonSchema

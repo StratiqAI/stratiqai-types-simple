@@ -728,6 +728,7 @@ export type EntityInstance = {
   id: Scalars['ID']['output'];
   label?: Maybe<Scalars['String']['output']>;
   projectId: Scalars['ID']['output'];
+  senderId?: Maybe<Scalars['String']['output']>;
   updatedAt?: Maybe<Scalars['AWSDateTime']['output']>;
   values?: Maybe<Array<Maybe<PropertyValue>>>;
 };
@@ -3559,7 +3560,7 @@ export type SaveEntityInstanceMutationVariables = Exact<{
 }>;
 
 
-export type SaveEntityInstanceMutation = { __typename?: 'Mutation', saveEntityInstance?: { __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined } | null | undefined };
+export type SaveEntityInstanceMutation = { __typename?: 'Mutation', saveEntityInstance?: { __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, senderId?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined } | null | undefined };
 
 export type SaveEntityInstanceMinimalMutationVariables = Exact<{
   input: SaveInstanceInput;
@@ -3923,7 +3924,7 @@ export type ListNotificationsQuery = { __typename?: 'Query', listNotifications: 
 
 export type OntologyEntityDefinitionFieldsFragment = { __typename?: 'EntityDefinition', projectId: string, id: string, name: string, description?: string | null | undefined, jsonSchema: any, structuralHash: string, normalizedJsonSchema?: any | null | undefined, properties?: Array<{ __typename?: 'PropertyDefinition', name: string, description?: string | null | undefined, dataType: PropertyDataType, path: string, isList?: boolean | null | undefined, formula?: string | null | undefined, dependencies?: Array<string | null | undefined> | null | undefined } | null | undefined> | null | undefined };
 
-export type OntologyEntityInstanceFieldsFragment = { __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined };
+export type OntologyEntityInstanceFieldsFragment = { __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, senderId?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined };
 
 export type ListEntityDefinitionsQueryVariables = Exact<{
   projectId: Scalars['ID']['input'];
@@ -3946,14 +3947,14 @@ export type GetEntityInstanceQueryVariables = Exact<{
 }>;
 
 
-export type GetEntityInstanceQuery = { __typename?: 'Query', getEntityInstance?: { __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined } | null | undefined };
+export type GetEntityInstanceQuery = { __typename?: 'Query', getEntityInstance?: { __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, senderId?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined } | null | undefined };
 
 export type ListEntityInstancesQueryVariables = Exact<{
   projectId: Scalars['ID']['input'];
 }>;
 
 
-export type ListEntityInstancesQuery = { __typename?: 'Query', listEntityInstances?: Array<{ __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined } | null | undefined> | null | undefined };
+export type ListEntityInstancesQuery = { __typename?: 'Query', listEntityInstances?: Array<{ __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, senderId?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined } | null | undefined> | null | undefined };
 
 export type ListEntityInstancesByDefinitionQueryVariables = Exact<{
   projectId: Scalars['ID']['input'];
@@ -3961,7 +3962,7 @@ export type ListEntityInstancesByDefinitionQueryVariables = Exact<{
 }>;
 
 
-export type ListEntityInstancesByDefinitionQuery = { __typename?: 'Query', listEntityInstancesByDefinition?: Array<{ __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined } | null | undefined> | null | undefined };
+export type ListEntityInstancesByDefinitionQuery = { __typename?: 'Query', listEntityInstancesByDefinition?: Array<{ __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, senderId?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined } | null | undefined> | null | undefined };
 
 export type GetEntityDefinitionByHashQueryVariables = Exact<{
   projectId: Scalars['ID']['input'];
@@ -4272,7 +4273,7 @@ export type OnInstanceUpdatedSubscriptionVariables = Exact<{
 }>;
 
 
-export type OnInstanceUpdatedSubscription = { __typename?: 'Subscription', onInstanceUpdated?: { __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined } | null | undefined };
+export type OnInstanceUpdatedSubscription = { __typename?: 'Subscription', onInstanceUpdated?: { __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, senderId?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined } | null | undefined };
 
 export type OnInstanceUpdatedMinimalSubscriptionVariables = Exact<{
   projectId: Scalars['ID']['input'];
@@ -4287,7 +4288,7 @@ export type OnProjectInstancesChangedSubscriptionVariables = Exact<{
 }>;
 
 
-export type OnProjectInstancesChangedSubscription = { __typename?: 'Subscription', onProjectInstancesChanged?: { __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined } | null | undefined };
+export type OnProjectInstancesChangedSubscription = { __typename?: 'Subscription', onProjectInstancesChanged?: { __typename?: 'EntityInstance', projectId: string, id: string, definitionId: string, label?: string | null | undefined, updatedAt?: string | null | undefined, senderId?: string | null | undefined, values?: Array<{ __typename?: 'PropertyValue', propertyName: string, stringValue?: string | null | undefined, numberValue?: number | null | undefined, booleanValue?: boolean | null | undefined, dateValue?: string | null | undefined, extractedByAI?: boolean | null | undefined, confidenceScore?: number | null | undefined, sourceEvidence?: string | null | undefined } | null | undefined> | null | undefined, children?: Array<{ __typename?: 'Relationship', relationName: string, targetInstanceId: string } | null | undefined> | null | undefined } | null | undefined };
 
 export type OnInstanceDeletedSubscriptionVariables = Exact<{
   projectId: Scalars['ID']['input'];

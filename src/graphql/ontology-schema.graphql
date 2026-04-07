@@ -40,6 +40,7 @@ type EntityInstance {
   values: [PropertyValue]
   children: [Relationship]
   updatedAt: AWSDateTime
+  senderId: String
 }
 
 type PropertyValue {

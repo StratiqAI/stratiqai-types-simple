@@ -412,6 +412,11 @@ type JsonSchema implements Node & Metadata & Shareable
   JSON Schema definition (OpenAPI 3.0 / JSON Schema draft-07 compatible). Stored as AWSJSON.
   """
   schemaDefinition: AWSJSON!
+  """
+  SHA-256 hash of the normalized schema structure. Set automatically by the
+  saveEntityDefinition auto-sync pipeline; null for manually created schemas.
+  """
+  structuralHash: String
 }
 
 type JsonSchemaConnection
@@ -1649,6 +1654,10 @@ input CreateJsonSchemaInput {
   Set when copying a shared schema: ID of the schema this copy was created from.
   """
   sourceJsonSchemaId: ID
+  """
+  SHA-256 structural hash. Optional; set by auto-sync when creating from an EntityDefinition.
+  """
+  structuralHash: String
 }
 
 input UpdateJsonSchemaInput {

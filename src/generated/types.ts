@@ -401,6 +401,8 @@ export type CreateJsonSchemaInput = {
   sharingMode?: InputMaybe<SharingMode>;
   /** Set when copying a shared schema: ID of the schema this copy was created from. */
   sourceJsonSchemaId?: InputMaybe<Scalars['ID']['input']>;
+  /** SHA-256 structural hash. Optional; set by auto-sync when creating from an EntityDefinition. */
+  structuralHash?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateMatchScoreInput = {
@@ -714,6 +716,7 @@ export type EntityDefinition = {
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   jsonSchema: Scalars['AWSJSON']['output'];
+  jsonSchemaId?: Maybe<Scalars['ID']['output']>;
   name: Scalars['String']['output'];
   normalizedJsonSchema?: Maybe<Scalars['AWSJSON']['output']>;
   projectId: Scalars['ID']['output'];
@@ -935,6 +938,11 @@ export type JsonSchema = Metadata & Node & Shareable & {
   sharingMode: SharingMode;
   /** When set, this schema is a user-owned copy forked from another (the original remains shared). */
   sourceJsonSchemaId?: Maybe<Scalars['ID']['output']>;
+  /**
+   * SHA-256 hash of the normalized schema structure. Set automatically by the
+   * saveEntityDefinition auto-sync pipeline; null for manually created schemas.
+   */
+  structuralHash?: Maybe<Scalars['String']['output']>;
   tenantId: Scalars['ID']['output'];
   updatedAt: Scalars['AWSDateTime']['output'];
 };

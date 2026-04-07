@@ -14,6 +14,7 @@ enum PropertyDataType {
 type EntityDefinition {
   projectId: ID!
   id: ID!
+  jsonSchemaId: ID
   name: String!
   description: String
   jsonSchema: AWSJSON!

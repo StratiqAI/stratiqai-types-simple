@@ -10,6 +10,18 @@ Each step has **two code blocks**: paste the first into the **query editor** and
 > computed **server-side** by a Lambda pipeline function. You do **not** supply
 > `structuralHash` in the input — it is returned in the response.
 
+> **JsonSchema Auto-Sync:** When you save an EntityDefinition, the pipeline
+> automatically creates a matching `JsonSchema` record in the app table (if one
+> doesn't already exist for that structural hash). The `jsonSchemaId` returned
+> in the response is the ID of that linked JsonSchema. This lets Prompts and
+> EntityDefinitions share the same underlying schema.
+>
+> **`jsonSchemaId` is not an input field.** `SaveEntityDefinitionInput` only
+> accepts `projectId`, `id`, `name`, `description`, `jsonSchema`, and
+> `properties`. Do **not** add `jsonSchemaId` (or `structuralHash`) to the JSON
+> variables — AppSync will reject unknown fields, and the resolver overwrites
+> the link from the computed hash anyway.
+
 ---
 
 ## Step 1 — Create the first Entity Definition (InsurancePolicy)
@@ -25,6 +37,7 @@ mutation SaveEntityDefinition($input: SaveEntityDefinitionInput!) {
   saveEntityDefinition(input: $input) {
     projectId
     id
+    jsonSchemaId
     name
     description
     jsonSchema
@@ -71,7 +84,7 @@ mutation SaveEntityDefinition($input: SaveEntityDefinitionInput!) {
 }
 ```
 
-**Expected:** returns the full definition with both properties. `structuralHash` is a 64-char hex SHA-256 digest. `normalizedJsonSchema` is the canonicalized form of the schema. **Copy the `structuralHash` value — you will use it in Step 3b.**
+**Expected:** returns the full definition with both properties. `structuralHash` is a 64-char hex SHA-256 digest. `normalizedJsonSchema` is the canonicalized form of the schema. `jsonSchemaId` is the ID of the auto-synced JsonSchema in the app table (equal to the `structuralHash` value). **Copy the `structuralHash` value — you will use it in Step 3b.**
 
 ---
 
@@ -86,6 +99,7 @@ mutation SaveEntityDefinition($input: SaveEntityDefinitionInput!) {
   saveEntityDefinition(input: $input) {
     projectId
     id
+    jsonSchemaId
     name
     description
     jsonSchema
@@ -152,6 +166,7 @@ query GetEntityDefinition($projectId: ID!, $id: ID!) {
   getEntityDefinition(projectId: $projectId, id: $id) {
     projectId
     id
+    jsonSchemaId
     name
     description
     jsonSchema
@@ -188,6 +203,7 @@ query GetEntityDefinitionByHash($projectId: ID!, $structuralHash: String!) {
   getEntityDefinitionByHash(projectId: $projectId, structuralHash: $structuralHash) {
     projectId
     id
+    jsonSchemaId
     name
     description
     jsonSchema
@@ -226,6 +242,7 @@ query ListEntityDefinitions($projectId: ID!) {
   listEntityDefinitions(projectId: $projectId) {
     projectId
     id
+    jsonSchemaId
     name
     description
     structuralHash
@@ -246,7 +263,7 @@ query ListEntityDefinitions($projectId: ID!) {
 }
 ```
 
-**Expected:** array with 2 definitions, each with a unique `structuralHash`.
+**Expected:** array with 2 definitions, each with a unique `structuralHash` and `jsonSchemaId`.
 
 ---
 
@@ -526,6 +543,7 @@ mutation SaveEntityDefinition($input: SaveEntityDefinitionInput!) {
   saveEntityDefinition(input: $input) {
     projectId
     id
+    jsonSchemaId
     name
     structuralHash
     normalizedJsonSchema
@@ -575,7 +593,7 @@ mutation SaveEntityDefinition($input: SaveEntityDefinitionInput!) {
 }
 ```
 
-**Expected:** `structuralHash` is now a **different** 64-char hex value (the schema shape changed), properties array has 3 items. You can verify the old hash from Step 1 no longer matches by running Step 3b with the old hash — it should return `null`.
+**Expected:** `structuralHash` is now a **different** 64-char hex value (the schema shape changed), `jsonSchemaId` also changes (it equals the new hash), and properties array has 3 items. A new JsonSchema record was auto-created in the app table for the updated schema. You can verify the old hash from Step 1 no longer matches by running Step 3b with the old hash — it should return `null`.
 
 ---
 
@@ -668,6 +686,7 @@ subscription OnDefinitionSaved($projectId: ID!) {
   onDefinitionSaved(projectId: $projectId) {
     projectId
     id
+    jsonSchemaId
     name
     structuralHash
     normalizedJsonSchema

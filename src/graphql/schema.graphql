@@ -549,6 +549,8 @@ type Doclink implements Node & Metadata @aws_iam @aws_cognito_user_pools {
   status: DoclinkStatus!
   linkType: DoclinkLinkType!
   documentId: ID!
+  textEmbeddingStatus: DoclinkStatus
+  imageEmbeddingStatus: DoclinkStatus
   # Deal room: optional permission set tags (e.g. FINANCIALS, LEGAL). Empty = visible to all in deal.
   permissionSetIds: [String!]
   folderPath: String
@@ -1445,6 +1447,8 @@ input UpdateDoclinkInput {
   filename: String
   status: DoclinkStatus
   linkType: DoclinkLinkType
+  textEmbeddingStatus: DoclinkStatus
+  imageEmbeddingStatus: DoclinkStatus
   permissionSetIds: [String!]
   folderPath: String
   displayOrder: String

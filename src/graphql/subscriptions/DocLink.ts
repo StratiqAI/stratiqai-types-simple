@@ -19,6 +19,8 @@ export const S_ON_CREATE_DOCLINK = gql`
       status
       linkType
       documentId
+      textEmbeddingStatus
+      imageEmbeddingStatus
     }
   }
 `;
@@ -38,6 +40,8 @@ export const S_ON_UPDATE_DOCLINK = gql`
       status
       linkType
       documentId
+      textEmbeddingStatus
+      imageEmbeddingStatus
     }
   }
 `;
@@ -57,6 +61,8 @@ export const S_ON_DELETE_DOCLINK = gql`
       status
       linkType
       documentId
+      textEmbeddingStatus
+      imageEmbeddingStatus
     }
   }
 `;

@@ -19,6 +19,8 @@ export const Q_GET_DOCLINK = gql`
       status
       linkType
       documentId
+      textEmbeddingStatus
+      imageEmbeddingStatus
     }
   }
 `;
@@ -43,6 +45,8 @@ export const Q_LIST_DOCLINKS = gql`
         status
         linkType
         documentId
+        textEmbeddingStatus
+        imageEmbeddingStatus
       }
       nextToken
     }

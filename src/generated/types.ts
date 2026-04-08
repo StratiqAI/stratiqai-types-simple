@@ -614,12 +614,14 @@ export type Doclink = Metadata & Node & {
   filename: Scalars['String']['output'];
   folderPath?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
+  imageEmbeddingStatus?: Maybe<DoclinkStatus>;
   linkType: DoclinkLinkType;
   ownerId: Scalars['ID']['output'];
   parentId: Scalars['ID']['output'];
   permissionSetIds?: Maybe<Array<Scalars['String']['output']>>;
   status: DoclinkStatus;
   tenantId: Scalars['ID']['output'];
+  textEmbeddingStatus?: Maybe<DoclinkStatus>;
   updatedAt: Scalars['AWSDateTime']['output'];
 };
 
@@ -2999,9 +3001,11 @@ export type UpdateDoclinkInput = {
   displayOrder?: InputMaybe<Scalars['String']['input']>;
   filename?: InputMaybe<Scalars['String']['input']>;
   folderPath?: InputMaybe<Scalars['String']['input']>;
+  imageEmbeddingStatus?: InputMaybe<DoclinkStatus>;
   linkType?: InputMaybe<DoclinkLinkType>;
   permissionSetIds?: InputMaybe<Array<Scalars['String']['input']>>;
   status?: InputMaybe<DoclinkStatus>;
+  textEmbeddingStatus?: InputMaybe<DoclinkStatus>;
 };
 
 export type UpdateDocumentInput = {
@@ -3436,7 +3440,7 @@ export type CreateDoclinkMutationVariables = Exact<{
 }>;
 
 
-export type CreateDoclinkMutation = { __typename?: 'Mutation', createDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string } | null | undefined };
+export type CreateDoclinkMutation = { __typename?: 'Mutation', createDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string, textEmbeddingStatus?: DoclinkStatus | null | undefined, imageEmbeddingStatus?: DoclinkStatus | null | undefined } | null | undefined };
 
 export type UpdateDoclinkMutationVariables = Exact<{
   key: CompositeKeyInput;
@@ -3444,14 +3448,14 @@ export type UpdateDoclinkMutationVariables = Exact<{
 }>;
 
 
-export type UpdateDoclinkMutation = { __typename?: 'Mutation', updateDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string } | null | undefined };
+export type UpdateDoclinkMutation = { __typename?: 'Mutation', updateDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string, textEmbeddingStatus?: DoclinkStatus | null | undefined, imageEmbeddingStatus?: DoclinkStatus | null | undefined } | null | undefined };
 
 export type DeleteDoclinkMutationVariables = Exact<{
   key: CompositeKeyInput;
 }>;
 
 
-export type DeleteDoclinkMutation = { __typename?: 'Mutation', deleteDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string } | null | undefined };
+export type DeleteDoclinkMutation = { __typename?: 'Mutation', deleteDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string, textEmbeddingStatus?: DoclinkStatus | null | undefined, imageEmbeddingStatus?: DoclinkStatus | null | undefined } | null | undefined };
 
 export type CreateDocumentMutationVariables = Exact<{
   input: CreateDocumentInput;
@@ -3854,7 +3858,7 @@ export type GetDoclinkQueryVariables = Exact<{
 }>;
 
 
-export type GetDoclinkQuery = { __typename?: 'Query', getDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string } | null | undefined };
+export type GetDoclinkQuery = { __typename?: 'Query', getDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string, textEmbeddingStatus?: DoclinkStatus | null | undefined, imageEmbeddingStatus?: DoclinkStatus | null | undefined } | null | undefined };
 
 export type ListDoclinksQueryVariables = Exact<{
   parentId: Scalars['ID']['input'];
@@ -3863,7 +3867,7 @@ export type ListDoclinksQueryVariables = Exact<{
 }>;
 
 
-export type ListDoclinksQuery = { __typename?: 'Query', listDoclinks: { __typename?: 'DoclinkConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string }> } };
+export type ListDoclinksQuery = { __typename?: 'Query', listDoclinks: { __typename?: 'DoclinkConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string, textEmbeddingStatus?: DoclinkStatus | null | undefined, imageEmbeddingStatus?: DoclinkStatus | null | undefined }> } };
 
 export type GetDocumentQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -3985,7 +3989,7 @@ export type GetProjectQueryVariables = Exact<{
 }>;
 
 
-export type GetProjectQuery = { __typename?: 'Query', getProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus, accessList?: { __typename?: 'ResourceShareConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'ResourceShare', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, recipientUserId: string, permission: SharePermission, resourceTitle: string, resourceType: EntityType }> } | null | undefined, doclinks?: { __typename?: 'DoclinkConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string, deletedAt?: string | null | undefined }> } | null | undefined, topics?: { __typename?: 'TopicConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Topic', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, parentId: string, name: string }> } | null | undefined, workflows?: { __typename?: 'WorkflowConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, jsonSchemaId?: string | null | undefined, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
+export type GetProjectQuery = { __typename?: 'Query', getProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus, accessList?: { __typename?: 'ResourceShareConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'ResourceShare', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, recipientUserId: string, permission: SharePermission, resourceTitle: string, resourceType: EntityType }> } | null | undefined, doclinks?: { __typename?: 'DoclinkConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string, textEmbeddingStatus?: DoclinkStatus | null | undefined, imageEmbeddingStatus?: DoclinkStatus | null | undefined, deletedAt?: string | null | undefined }> } | null | undefined, topics?: { __typename?: 'TopicConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Topic', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, parentId: string, name: string }> } | null | undefined, workflows?: { __typename?: 'WorkflowConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Workflow', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, jsonSchemaId?: string | null | undefined, definition: { __typename?: 'WorkflowDefinition', nodes: Array<{ __typename?: 'WorkflowNode', id: string, kind: WorkflowNodeKind, label?: string | null | undefined, options?: any | null | undefined, configuration?:
               | { __typename?: 'AINodeConfig', prompt?: string | null | undefined, model?: string | null | undefined, topK?: number | null | undefined, systemPrompt?: string | null | undefined, jsonSchemaId?: string | null | undefined }
               | { __typename?: 'EmptyNodeConfig', _empty?: boolean | null | undefined }
               | { __typename?: 'InputNodeConfig' }
@@ -4162,21 +4166,21 @@ export type OnCreateDoclinkSubscriptionVariables = Exact<{
 }>;
 
 
-export type OnCreateDoclinkSubscription = { __typename?: 'Subscription', onCreateDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string } | null | undefined };
+export type OnCreateDoclinkSubscription = { __typename?: 'Subscription', onCreateDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string, textEmbeddingStatus?: DoclinkStatus | null | undefined, imageEmbeddingStatus?: DoclinkStatus | null | undefined } | null | undefined };
 
 export type OnUpdateDoclinkSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnUpdateDoclinkSubscription = { __typename?: 'Subscription', onUpdateDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string } | null | undefined };
+export type OnUpdateDoclinkSubscription = { __typename?: 'Subscription', onUpdateDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string, textEmbeddingStatus?: DoclinkStatus | null | undefined, imageEmbeddingStatus?: DoclinkStatus | null | undefined } | null | undefined };
 
 export type OnDeleteDoclinkSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnDeleteDoclinkSubscription = { __typename?: 'Subscription', onDeleteDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string } | null | undefined };
+export type OnDeleteDoclinkSubscription = { __typename?: 'Subscription', onDeleteDoclink?: { __typename?: 'Doclink', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, filename: string, status: DoclinkStatus, linkType: DoclinkLinkType, documentId: string, textEmbeddingStatus?: DoclinkStatus | null | undefined, imageEmbeddingStatus?: DoclinkStatus | null | undefined } | null | undefined };
 
 export type OnCreateDocumentSubscriptionVariables = Exact<{
   ownerId?: InputMaybe<Scalars['ID']['input']>;

@@ -922,6 +922,8 @@ type Notification implements Node & Metadata @aws_iam @aws_cognito_user_pools {
   parentId: ID!
   message: String!
   properties: AWSJSON
+  agent: String
+  displayInAgentActivityFeed: Boolean
 }
 
 type NotificationConnection
@@ -1655,11 +1657,15 @@ input CreateNotificationInput {
 
   message: String!
   properties: AWSJSON
+  agent: String
+  displayInAgentActivityFeed: Boolean
 }
 
 input UpdateNotificationInput {
   message: String
   properties: AWSJSON
+  agent: String
+  displayInAgentActivityFeed: Boolean
 }
 
 # AUDIT LOG INPUTS (create-only; used by Lambda / pipeline for compliance)

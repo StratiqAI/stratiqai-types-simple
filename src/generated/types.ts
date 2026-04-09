@@ -445,6 +445,8 @@ export type CreateNdaAgreementInput = {
 };
 
 export type CreateNotificationInput = {
+  agent?: InputMaybe<Scalars['String']['input']>;
+  displayInAgentActivityFeed?: InputMaybe<Scalars['Boolean']['input']>;
   message: Scalars['String']['input'];
   parentId: Scalars['ID']['input'];
   properties?: InputMaybe<Scalars['AWSJSON']['input']>;
@@ -1744,8 +1746,10 @@ export type Node = {
 
 export type Notification = Metadata & Node & {
   __typename?: 'Notification';
+  agent?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['AWSDateTime']['output'];
   deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  displayInAgentActivityFeed?: Maybe<Scalars['Boolean']['output']>;
   entityType: EntityType;
   id: Scalars['ID']['output'];
   message: Scalars['String']['output'];
@@ -3238,6 +3242,8 @@ export type UpdateNdaAgreementInput = {
 };
 
 export type UpdateNotificationInput = {
+  agent?: InputMaybe<Scalars['String']['input']>;
+  displayInAgentActivityFeed?: InputMaybe<Scalars['Boolean']['input']>;
   message?: InputMaybe<Scalars['String']['input']>;
   properties?: InputMaybe<Scalars['AWSJSON']['input']>;
 };
@@ -3710,7 +3716,7 @@ export type CreateNotificationMutationVariables = Exact<{
 }>;
 
 
-export type CreateNotificationMutation = { __typename?: 'Mutation', createNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined } | null | undefined };
+export type CreateNotificationMutation = { __typename?: 'Mutation', createNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined, agent?: string | null | undefined, displayInAgentActivityFeed?: boolean | null | undefined } | null | undefined };
 
 export type UpdateNotificationMutationVariables = Exact<{
   key: CompositeKeyInput;
@@ -3718,14 +3724,14 @@ export type UpdateNotificationMutationVariables = Exact<{
 }>;
 
 
-export type UpdateNotificationMutation = { __typename?: 'Mutation', updateNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined } | null | undefined };
+export type UpdateNotificationMutation = { __typename?: 'Mutation', updateNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined, agent?: string | null | undefined, displayInAgentActivityFeed?: boolean | null | undefined } | null | undefined };
 
 export type DeleteNotificationMutationVariables = Exact<{
   key: CompositeKeyInput;
 }>;
 
 
-export type DeleteNotificationMutation = { __typename?: 'Mutation', deleteNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined } | null | undefined };
+export type DeleteNotificationMutation = { __typename?: 'Mutation', deleteNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined, agent?: string | null | undefined, displayInAgentActivityFeed?: boolean | null | undefined } | null | undefined };
 
 export type SaveEntityDefinitionMutationVariables = Exact<{
   input: SaveEntityDefinitionInput;
@@ -4098,7 +4104,7 @@ export type GetNotificationQueryVariables = Exact<{
 }>;
 
 
-export type GetNotificationQuery = { __typename?: 'Query', getNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined } | null | undefined };
+export type GetNotificationQuery = { __typename?: 'Query', getNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined, agent?: string | null | undefined, displayInAgentActivityFeed?: boolean | null | undefined } | null | undefined };
 
 export type ListNotificationsQueryVariables = Exact<{
   parentId: Scalars['ID']['input'];
@@ -4107,7 +4113,7 @@ export type ListNotificationsQueryVariables = Exact<{
 }>;
 
 
-export type ListNotificationsQuery = { __typename?: 'Query', listNotifications: { __typename?: 'NotificationConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined }> } };
+export type ListNotificationsQuery = { __typename?: 'Query', listNotifications: { __typename?: 'NotificationConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined, agent?: string | null | undefined, displayInAgentActivityFeed?: boolean | null | undefined }> } };
 
 export type OntologyEntityDefinitionFieldsFragment = { __typename?: 'EntityDefinition', projectId: string, id: string, jsonSchemaId?: string | null | undefined, name: string, description?: string | null | undefined, jsonSchema: any, structuralHash: string, normalizedJsonSchema?: any | null | undefined, properties?: Array<{ __typename?: 'PropertyDefinition', name: string, description?: string | null | undefined, dataType: PropertyDataType, path: string, isList?: boolean | null | undefined, formula?: string | null | undefined, dependencies?: Array<string | null | undefined> | null | undefined } | null | undefined> | null | undefined };
 
@@ -4424,21 +4430,21 @@ export type OnCreateNotificationSubscriptionVariables = Exact<{
 }>;
 
 
-export type OnCreateNotificationSubscription = { __typename?: 'Subscription', onCreateNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined } | null | undefined };
+export type OnCreateNotificationSubscription = { __typename?: 'Subscription', onCreateNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined, agent?: string | null | undefined, displayInAgentActivityFeed?: boolean | null | undefined } | null | undefined };
 
 export type OnUpdateNotificationSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnUpdateNotificationSubscription = { __typename?: 'Subscription', onUpdateNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined } | null | undefined };
+export type OnUpdateNotificationSubscription = { __typename?: 'Subscription', onUpdateNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined, agent?: string | null | undefined, displayInAgentActivityFeed?: boolean | null | undefined } | null | undefined };
 
 export type OnDeleteNotificationSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnDeleteNotificationSubscription = { __typename?: 'Subscription', onDeleteNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined } | null | undefined };
+export type OnDeleteNotificationSubscription = { __typename?: 'Subscription', onDeleteNotification?: { __typename?: 'Notification', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, parentId: string, message: string, properties?: any | null | undefined, agent?: string | null | undefined, displayInAgentActivityFeed?: boolean | null | undefined } | null | undefined };
 
 export type OnDefinitionSavedSubscriptionVariables = Exact<{
   projectId: Scalars['ID']['input'];

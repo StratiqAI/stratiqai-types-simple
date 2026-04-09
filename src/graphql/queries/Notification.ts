@@ -17,6 +17,8 @@ export const Q_GET_NOTIFICATION = gql`
       parentId
       message
       properties
+      agent
+      displayInAgentActivityFeed
     }
   }
 `;
@@ -39,6 +41,8 @@ export const Q_LIST_NOTIFICATIONS = gql`
         parentId
         message
         properties
+        agent
+        displayInAgentActivityFeed
       }
       nextToken
     }

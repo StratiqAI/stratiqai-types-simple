@@ -17,6 +17,8 @@ export const S_ON_CREATE_NOTIFICATION = gql`
       parentId
       message
       properties
+      agent
+      displayInAgentActivityFeed
     }
   }
 `;
@@ -34,6 +36,8 @@ export const S_ON_UPDATE_NOTIFICATION = gql`
       parentId
       message
       properties
+      agent
+      displayInAgentActivityFeed
     }
   }
 `;
@@ -51,6 +55,8 @@ export const S_ON_DELETE_NOTIFICATION = gql`
       parentId
       message
       properties
+      agent
+      displayInAgentActivityFeed
     }
   }
 `;

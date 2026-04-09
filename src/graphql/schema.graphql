@@ -61,6 +61,7 @@ enum EntityType {
   MATCH_SCORE
   DASHBOARD_LAYOUT
   TENANT_QUOTA
+  EXTRACTION
 }
 
 enum AuditLogAction {
@@ -227,6 +228,17 @@ enum ExecutionStatus {
   CANCELLED
 }
 
+"""
+Extraction lifecycle: DRAFT (not yet run) -> QUEUED -> RUNNING -> SUCCESS | ERROR.
+"""
+enum ExtractionStatus {
+  DRAFT
+  QUEUED
+  RUNNING
+  SUCCESS
+  ERROR
+}
+
 # ----------------------------------------------------------------------
 # 3. INTERFACES
 # ----------------------------------------------------------------------
@@ -370,8 +382,13 @@ type Prompt implements Node & Metadata & Shareable
   isActive: Boolean
   """
   Reference to a persisted JsonSchema entity defining the structured output schema for this prompt.
+  @deprecated Use `schema` field instead. Retained for backward compatibility.
   """
   jsonSchemaId: ID
+  """
+  Embedded JSON Schema for structured output. Replaces the separate JsonSchema entity reference.
+  """
+  schema: AWSJSON
 }
 
 type PromptConnection
@@ -462,6 +479,78 @@ type DashboardLayoutConnection
     cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
   ) {
   items: [DashboardLayout!]!
+  nextToken: String
+}
+
+"""
+Unified document data extraction. Combines what to extract (prompt + schema),
+where to look (documentIds), and the result (plain JSON). Widgets bind to
+an Extraction by ID; multiple widgets can share one Extraction.
+Replaces the EntityDefinition + EntityInstance + AIQueryExecution pipeline.
+"""
+type Extraction implements Node & Metadata
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  id: ID!
+  entityType: EntityType!
+  tenantId: ID!
+  ownerId: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  deletedAt: AWSDateTime
+
+  projectId: ID!
+  name: String
+
+  """
+  Extraction configuration (frozen at execution time).
+  """
+  prompt: String!
+  systemInstruction: String
+  schema: AWSJSON
+  model: AIModel!
+  documentIds: [ID!]
+  topK: Int
+  topKPerNs: Int
+
+  """
+  Optional reference to a Prompt template this extraction was created from.
+  """
+  promptId: ID
+
+  """
+  Execution lifecycle.
+  """
+  status: ExtractionStatus!
+  statusMessage: String
+  errorMessage: String
+  errorCode: String
+
+  """
+  Result: plain JSON matching schema. NOT EAV PropertyValue arrays.
+  """
+  result: AWSJSON
+  rawAnswer: String
+
+  """
+  Timing and token auditing.
+  """
+  startedAt: AWSDateTime
+  executedAt: AWSDateTime
+  durationMs: Int
+  promptTokenCount: Int
+  candidatesTokenCount: Int
+  totalTokenCount: Int
+}
+
+type ExtractionConnection
+  @aws_iam
+  @aws_cognito_user_pools(
+    cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+  ) {
+  items: [Extraction!]!
   nextToken: String
 }
 
@@ -1612,9 +1701,13 @@ input CreatePromptInput {
   inputVariables: [String!]
   model: AIModel = GEMINI_2_5_FLASH
   """
-  Reference to a persisted JsonSchema entity defining the structured output schema for this prompt.
+  @deprecated Use `schema` instead.
   """
   jsonSchemaId: ID
+  """
+  Embedded JSON Schema for structured output.
+  """
+  schema: AWSJSON
   sharingMode: SharingMode = PRIVATE
   """
   Set when copying a shared prompt: ID of the prompt this copy was created from.
@@ -1639,9 +1732,13 @@ input UpdatePromptInput {
   inputVariables: [String!]
   model: AIModel
   """
-  Reference to a persisted JsonSchema entity defining the structured output schema for this prompt.
+  @deprecated Use `schema` instead.
   """
   jsonSchemaId: ID
+  """
+  Embedded JSON Schema for structured output.
+  """
+  schema: AWSJSON
   sharingMode: SharingMode
 }
 
@@ -1702,6 +1799,48 @@ input CreateDashboardLayoutInput {
 input UpdateDashboardLayoutInput {
   state: AWSJSON
   version: String
+}
+
+# EXTRACTION inputs (the simplified widget data pipeline)
+input CreateExtractionInput {
+  projectId: ID!
+  name: String
+  prompt: String!
+  systemInstruction: String
+  schema: AWSJSON
+  model: AIModel = GEMINI_2_5_FLASH
+  documentIds: [ID!]
+  topK: Int
+  topKPerNs: Int
+  promptId: ID
+  """
+  When true, immediately queue for execution after creation (status = QUEUED).
+  When false or omitted, create in DRAFT status.
+  """
+  runImmediately: Boolean
+}
+
+input UpdateExtractionInput {
+  name: String
+  prompt: String
+  systemInstruction: String
+  schema: AWSJSON
+  model: AIModel
+  documentIds: [ID!]
+  topK: Int
+  topKPerNs: Int
+  status: ExtractionStatus
+  statusMessage: String
+  errorMessage: String
+  errorCode: String
+  result: AWSJSON
+  rawAnswer: String
+  startedAt: AWSDateTime
+  executedAt: AWSDateTime
+  durationMs: Int
+  promptTokenCount: Int
+  candidatesTokenCount: Int
+  totalTokenCount: Int
 }
 
 # Create an AIQueryExecution record (e.g. before submitAIQuery or for async execution).
@@ -2699,6 +2838,29 @@ type Query {
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
 
+  # EXTRACTION QUERIES
+  """
+  Get a single Extraction by ID.
+  """
+  getExtraction(id: ID!): Extraction
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
+  List Extractions for a project.
+  """
+  listExtractions(
+    projectId: ID!
+    limit: Int
+    nextToken: String
+  ): ExtractionConnection!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
   # ONTOLOGY GRAPH QUERIES
   listEntityDefinitions(projectId: ID!): [EntityDefinition]
   getEntityDefinition(projectId: ID!, id: ID!): EntityDefinition
@@ -3252,6 +3414,41 @@ type Mutation {
       cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
     )
 
+  # EXTRACTION MUTATIONS
+  """
+  Create a new Extraction. When runImmediately=true, status is set to QUEUED
+  and the extraction is submitted for processing.
+  """
+  createExtraction(input: CreateExtractionInput!): Extraction!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
+  Update an Extraction (used by worker after LLM completes, or by user to edit config).
+  """
+  updateExtraction(id: ID!, input: UpdateExtractionInput!): Extraction
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  """
+  Submit an existing DRAFT extraction for processing (sets status to QUEUED, enqueues SQS).
+  """
+  runExtraction(id: ID!): Extraction!
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
+  deleteExtraction(id: ID!): Extraction
+    @aws_iam
+    @aws_cognito_user_pools(
+      cognito_groups: ["SystemAdmins", "TenantAdmins", "Users"]
+    )
+
   # ONTOLOGY GRAPH MUTATIONS
   saveEntityDefinition(input: SaveEntityDefinitionInput!): EntityDefinition
   deleteEntityDefinition(projectId: ID!, id: ID!): EntityDefinition
@@ -3488,6 +3685,16 @@ type Subscription {
         "retryWorkflowNodeExecution"
       ]
     )
+
+  """
+  EXTRACTION SUBSCRIPTIONS
+  """
+  onCreateExtraction(projectId: ID): Extraction
+    @aws_subscribe(mutations: ["createExtraction"])
+  onUpdateExtraction(id: ID!): Extraction
+    @aws_subscribe(mutations: ["updateExtraction", "runExtraction"])
+  onDeleteExtraction(id: ID!): Extraction
+    @aws_subscribe(mutations: ["deleteExtraction"])
 
   # ONTOLOGY GRAPH SUBSCRIPTIONS
   onDefinitionSaved(projectId: ID!): EntityDefinition

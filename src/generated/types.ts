@@ -358,6 +358,24 @@ export type CreateDocumentInput = {
   sizeBytes?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type CreateExtractionInput = {
+  documentIds?: InputMaybe<Array<Scalars['ID']['input']>>;
+  model?: InputMaybe<AiModel>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  projectId: Scalars['ID']['input'];
+  prompt: Scalars['String']['input'];
+  promptId?: InputMaybe<Scalars['ID']['input']>;
+  /**
+   * When true, immediately queue for execution after creation (status = QUEUED).
+   * When false or omitted, create in DRAFT status.
+   */
+  runImmediately?: InputMaybe<Scalars['Boolean']['input']>;
+  schema?: InputMaybe<Scalars['AWSJSON']['input']>;
+  systemInstruction?: InputMaybe<Scalars['String']['input']>;
+  topK?: InputMaybe<Scalars['Int']['input']>;
+  topKPerNs?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type CreateImageInput = {
   bottomRightX: Scalars['Int']['input'];
   bottomRightY: Scalars['Int']['input'];
@@ -454,12 +472,14 @@ export type CreatePromptInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   /** Variable names; optional on create (derived from prompt when not provided). */
   inputVariables?: InputMaybe<Array<Scalars['String']['input']>>;
-  /** Reference to a persisted JsonSchema entity defining the structured output schema for this prompt. */
+  /** @deprecated Use `schema` instead. */
   jsonSchemaId?: InputMaybe<Scalars['ID']['input']>;
   model?: InputMaybe<AiModel>;
   name: Scalars['String']['input'];
   /** Main user prompt text; may contain {{ variableName }} placeholders. */
   prompt: Scalars['String']['input'];
+  /** Embedded JSON Schema for structured output. */
+  schema?: InputMaybe<Scalars['AWSJSON']['input']>;
   sharingMode?: InputMaybe<SharingMode>;
   /** Set when copying a shared prompt: ID of the prompt this copy was created from. */
   sourcePromptId?: InputMaybe<Scalars['ID']['input']>;
@@ -750,6 +770,7 @@ export type EntityType =
   | 'DEAL_TEMPLATE'
   | 'DOCLINK'
   | 'DOCUMENT'
+  | 'EXTRACTION'
   | 'IMAGE'
   | 'INVESTOR_PROFILE'
   | 'INVITATION'
@@ -783,6 +804,64 @@ export type ExecutionStatus =
   | 'PENDING'
   | 'PROCESSING'
   | 'QUEUED'
+  | 'SUCCESS';
+
+/**
+ * Unified document data extraction. Combines what to extract (prompt + schema),
+ * where to look (documentIds), and the result (plain JSON). Widgets bind to
+ * an Extraction by ID; multiple widgets can share one Extraction.
+ * Replaces the EntityDefinition + EntityInstance + AIQueryExecution pipeline.
+ */
+export type Extraction = Metadata & Node & {
+  __typename?: 'Extraction';
+  candidatesTokenCount?: Maybe<Scalars['Int']['output']>;
+  createdAt: Scalars['AWSDateTime']['output'];
+  deletedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  documentIds?: Maybe<Array<Scalars['ID']['output']>>;
+  durationMs?: Maybe<Scalars['Int']['output']>;
+  entityType: EntityType;
+  errorCode?: Maybe<Scalars['String']['output']>;
+  errorMessage?: Maybe<Scalars['String']['output']>;
+  executedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  id: Scalars['ID']['output'];
+  model: AiModel;
+  name?: Maybe<Scalars['String']['output']>;
+  ownerId: Scalars['ID']['output'];
+  projectId: Scalars['ID']['output'];
+  /** Extraction configuration (frozen at execution time). */
+  prompt: Scalars['String']['output'];
+  /** Optional reference to a Prompt template this extraction was created from. */
+  promptId?: Maybe<Scalars['ID']['output']>;
+  promptTokenCount?: Maybe<Scalars['Int']['output']>;
+  rawAnswer?: Maybe<Scalars['String']['output']>;
+  /** Result: plain JSON matching schema. NOT EAV PropertyValue arrays. */
+  result?: Maybe<Scalars['AWSJSON']['output']>;
+  schema?: Maybe<Scalars['AWSJSON']['output']>;
+  /** Timing and token auditing. */
+  startedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  /** Execution lifecycle. */
+  status: ExtractionStatus;
+  statusMessage?: Maybe<Scalars['String']['output']>;
+  systemInstruction?: Maybe<Scalars['String']['output']>;
+  tenantId: Scalars['ID']['output'];
+  topK?: Maybe<Scalars['Int']['output']>;
+  topKPerNs?: Maybe<Scalars['Int']['output']>;
+  totalTokenCount?: Maybe<Scalars['Int']['output']>;
+  updatedAt: Scalars['AWSDateTime']['output'];
+};
+
+export type ExtractionConnection = {
+  __typename?: 'ExtractionConnection';
+  items: Array<Extraction>;
+  nextToken?: Maybe<Scalars['String']['output']>;
+};
+
+/** Extraction lifecycle: DRAFT (not yet run) -> QUEUED -> RUNNING -> SUCCESS | ERROR. */
+export type ExtractionStatus =
+  | 'DRAFT'
+  | 'ERROR'
+  | 'QUEUED'
+  | 'RUNNING'
   | 'SUCCESS';
 
 /** Configuration for Google Gemini generation. */
@@ -1042,6 +1121,11 @@ export type Mutation = {
   createDealTemplate?: Maybe<DealTemplate>;
   createDoclink?: Maybe<Doclink>;
   createDocument?: Maybe<Document>;
+  /**
+   * Create a new Extraction. When runImmediately=true, status is set to QUEUED
+   * and the extraction is submitted for processing.
+   */
+  createExtraction: Extraction;
   createImage?: Maybe<Image>;
   createInvestorProfile?: Maybe<InvestorProfile>;
   createInvitation?: Maybe<Invitation>;
@@ -1069,6 +1153,7 @@ export type Mutation = {
   deleteDocument?: Maybe<Document>;
   deleteEntityDefinition?: Maybe<EntityDefinition>;
   deleteEntityInstance?: Maybe<EntityInstance>;
+  deleteExtraction?: Maybe<Extraction>;
   deleteImage?: Maybe<Image>;
   deleteInvitation?: Maybe<Invitation>;
   deleteJsonSchema?: Maybe<JsonSchema>;
@@ -1090,6 +1175,8 @@ export type Mutation = {
   restoreProject?: Maybe<Project>;
   retryWorkflowExecution?: Maybe<WorkflowExecution>;
   retryWorkflowNodeExecution?: Maybe<WorkflowNodeExecution>;
+  /** Submit an existing DRAFT extraction for processing (sets status to QUEUED, enqueues SQS). */
+  runExtraction: Extraction;
   saveEntityDefinition?: Maybe<EntityDefinition>;
   saveEntityInstance?: Maybe<EntityInstance>;
   startWorkflowExecution?: Maybe<WorkflowExecution>;
@@ -1105,6 +1192,8 @@ export type Mutation = {
   updateDealTemplate?: Maybe<DealTemplate>;
   updateDoclink?: Maybe<Doclink>;
   updateDocument?: Maybe<Document>;
+  /** Update an Extraction (used by worker after LLM completes, or by user to edit config). */
+  updateExtraction?: Maybe<Extraction>;
   updateImage?: Maybe<Image>;
   updateInvestorProfile?: Maybe<InvestorProfile>;
   updateInvitation?: Maybe<Invitation>;
@@ -1184,6 +1273,11 @@ export type MutationCreateDoclinkArgs = {
 
 export type MutationCreateDocumentArgs = {
   input: CreateDocumentInput;
+};
+
+
+export type MutationCreateExtractionArgs = {
+  input: CreateExtractionInput;
 };
 
 
@@ -1324,6 +1418,11 @@ export type MutationDeleteEntityInstanceArgs = {
 };
 
 
+export type MutationDeleteExtractionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationDeleteImageArgs = {
   key: CompositeKeyInput;
 };
@@ -1428,6 +1527,11 @@ export type MutationRetryWorkflowNodeExecutionArgs = {
 };
 
 
+export type MutationRunExtractionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationSaveEntityDefinitionArgs = {
   input: SaveEntityDefinitionInput;
 };
@@ -1498,6 +1602,12 @@ export type MutationUpdateDoclinkArgs = {
 export type MutationUpdateDocumentArgs = {
   id: Scalars['ID']['input'];
   input: UpdateDocumentInput;
+};
+
+
+export type MutationUpdateExtractionArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateExtractionInput;
 };
 
 
@@ -1827,7 +1937,10 @@ export type Prompt = Metadata & Node & Shareable & {
   inputVariables?: Maybe<Array<Scalars['String']['output']>>;
   /** When false, prompt may be excluded from lists or execution; reserved for future use. */
   isActive?: Maybe<Scalars['Boolean']['output']>;
-  /** Reference to a persisted JsonSchema entity defining the structured output schema for this prompt. */
+  /**
+   * Reference to a persisted JsonSchema entity defining the structured output schema for this prompt.
+   * @deprecated Use `schema` field instead. Retained for backward compatibility.
+   */
   jsonSchemaId?: Maybe<Scalars['ID']['output']>;
   /** Read-only; derived from prompt when possible. */
   model: AiModel;
@@ -1836,6 +1949,8 @@ export type Prompt = Metadata & Node & Shareable & {
   ownerId: Scalars['ID']['output'];
   /** Main user prompt text; may contain {{ variableName }} placeholders. */
   prompt: Scalars['String']['output'];
+  /** Embedded JSON Schema for structured output. Replaces the separate JsonSchema entity reference. */
+  schema?: Maybe<Scalars['AWSJSON']['output']>;
   sharingMode: SharingMode;
   /** Optional system instruction for the model. */
   systemInstruction?: Maybe<Scalars['String']['output']>;
@@ -1944,6 +2059,8 @@ export type Query = {
   getEntityDefinition?: Maybe<EntityDefinition>;
   getEntityDefinitionByHash?: Maybe<EntityDefinition>;
   getEntityInstance?: Maybe<EntityInstance>;
+  /** Get a single Extraction by ID. */
+  getExtraction?: Maybe<Extraction>;
   /** Get a single Image. Requires composite key (ID + ParentID) for access. */
   getImage?: Maybe<Image>;
   getInvestorProfile?: Maybe<InvestorProfile>;
@@ -1992,6 +2109,8 @@ export type Query = {
   listEntityDefinitions?: Maybe<Array<Maybe<EntityDefinition>>>;
   listEntityInstances?: Maybe<Array<Maybe<EntityInstance>>>;
   listEntityInstancesByDefinition?: Maybe<Array<Maybe<EntityInstance>>>;
+  /** List Extractions for a project. */
+  listExtractions: ExtractionConnection;
   /** List Images for a specific Document. Uses GSI1 (The View). */
   listImages: ImageConnection;
   /** List Invitations for a specific Deal (Project). */
@@ -2100,6 +2219,11 @@ export type QueryGetEntityDefinitionByHashArgs = {
 export type QueryGetEntityInstanceArgs = {
   id: Scalars['ID']['input'];
   projectId: Scalars['ID']['input'];
+};
+
+
+export type QueryGetExtractionArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -2272,6 +2396,13 @@ export type QueryListEntityInstancesArgs = {
 
 export type QueryListEntityInstancesByDefinitionArgs = {
   definitionId: Scalars['ID']['input'];
+  projectId: Scalars['ID']['input'];
+};
+
+
+export type QueryListExtractionsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nextToken?: InputMaybe<Scalars['String']['input']>;
   projectId: Scalars['ID']['input'];
 };
 
@@ -2543,6 +2674,8 @@ export type Subscription = {
   onCreateDoclink?: Maybe<Doclink>;
   /** DOCUMENT SUBSCRIPTIONS */
   onCreateDocument?: Maybe<Document>;
+  /** EXTRACTION SUBSCRIPTIONS */
+  onCreateExtraction?: Maybe<Extraction>;
   /** IMAGE SUBSCRIPTIONS */
   onCreateImage?: Maybe<Image>;
   /** AI STUDIO: JsonSchema subscriptions */
@@ -2571,6 +2704,7 @@ export type Subscription = {
   onDeleteAIQueryExecutionByExecutionId?: Maybe<AiQueryExecution>;
   onDeleteDoclink?: Maybe<Doclink>;
   onDeleteDocument?: Maybe<Document>;
+  onDeleteExtraction?: Maybe<Extraction>;
   onDeleteImage?: Maybe<Image>;
   onDeleteJsonSchema?: Maybe<JsonSchema>;
   onDeleteNotification?: Maybe<Notification>;
@@ -2589,6 +2723,7 @@ export type Subscription = {
   onUpdateDashboardLayout?: Maybe<DashboardLayout>;
   onUpdateDoclink?: Maybe<Doclink>;
   onUpdateDocument?: Maybe<Document>;
+  onUpdateExtraction?: Maybe<Extraction>;
   onUpdateImage?: Maybe<Image>;
   onUpdateJsonSchema?: Maybe<JsonSchema>;
   onUpdateNotification?: Maybe<Notification>;
@@ -2628,6 +2763,11 @@ export type SubscriptionOnCreateDoclinkArgs = {
 export type SubscriptionOnCreateDocumentArgs = {
   ownerId?: InputMaybe<Scalars['ID']['input']>;
   tenantId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type SubscriptionOnCreateExtractionArgs = {
+  projectId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -2703,6 +2843,11 @@ export type SubscriptionOnDeleteDoclinkArgs = {
 
 
 export type SubscriptionOnDeleteDocumentArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnDeleteExtractionArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -2794,6 +2939,11 @@ export type SubscriptionOnUpdateDoclinkArgs = {
 
 
 export type SubscriptionOnUpdateDocumentArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionOnUpdateExtractionArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -3016,6 +3166,29 @@ export type UpdateDocumentInput = {
   sizeBytes?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type UpdateExtractionInput = {
+  candidatesTokenCount?: InputMaybe<Scalars['Int']['input']>;
+  documentIds?: InputMaybe<Array<Scalars['ID']['input']>>;
+  durationMs?: InputMaybe<Scalars['Int']['input']>;
+  errorCode?: InputMaybe<Scalars['String']['input']>;
+  errorMessage?: InputMaybe<Scalars['String']['input']>;
+  executedAt?: InputMaybe<Scalars['AWSDateTime']['input']>;
+  model?: InputMaybe<AiModel>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  prompt?: InputMaybe<Scalars['String']['input']>;
+  promptTokenCount?: InputMaybe<Scalars['Int']['input']>;
+  rawAnswer?: InputMaybe<Scalars['String']['input']>;
+  result?: InputMaybe<Scalars['AWSJSON']['input']>;
+  schema?: InputMaybe<Scalars['AWSJSON']['input']>;
+  startedAt?: InputMaybe<Scalars['AWSDateTime']['input']>;
+  status?: InputMaybe<ExtractionStatus>;
+  statusMessage?: InputMaybe<Scalars['String']['input']>;
+  systemInstruction?: InputMaybe<Scalars['String']['input']>;
+  topK?: InputMaybe<Scalars['Int']['input']>;
+  topKPerNs?: InputMaybe<Scalars['Int']['input']>;
+  totalTokenCount?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type UpdateImageInput = {
   bottomRightX?: InputMaybe<Scalars['Int']['input']>;
   bottomRightY?: InputMaybe<Scalars['Int']['input']>;
@@ -3091,12 +3264,14 @@ export type UpdatePromptInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   /** Variable names; optional (derived from prompt when not provided). */
   inputVariables?: InputMaybe<Array<Scalars['String']['input']>>;
-  /** Reference to a persisted JsonSchema entity defining the structured output schema for this prompt. */
+  /** @deprecated Use `schema` instead. */
   jsonSchemaId?: InputMaybe<Scalars['ID']['input']>;
   model?: InputMaybe<AiModel>;
   name?: InputMaybe<Scalars['String']['input']>;
   /** Main user prompt text; may contain {{ variableName }} placeholders. */
   prompt?: InputMaybe<Scalars['String']['input']>;
+  /** Embedded JSON Schema for structured output. */
+  schema?: InputMaybe<Scalars['AWSJSON']['input']>;
   sharingMode?: InputMaybe<SharingMode>;
   /** Optional system instruction for the model. */
   systemInstruction?: InputMaybe<Scalars['String']['input']>;
@@ -4013,14 +4188,14 @@ export type GetProjectWithPromptsQueryVariables = Exact<{
 
 export type GetProjectWithPromptsQuery = { __typename?: 'Query', getProject?: { __typename?: 'Project', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, sharingMode: SharingMode, name: string, description?: string | null | undefined, status: ProjectStatus } | null | undefined };
 
-export type PromptFieldsFragment = { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, jsonSchemaId?: string | null | undefined };
+export type PromptFieldsFragment = { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, jsonSchemaId?: string | null | undefined, schema?: any | null | undefined };
 
 export type GetPromptQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type GetPromptQuery = { __typename?: 'Query', getPrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, jsonSchemaId?: string | null | undefined } | null | undefined };
+export type GetPromptQuery = { __typename?: 'Query', getPrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, jsonSchemaId?: string | null | undefined, schema?: any | null | undefined } | null | undefined };
 
 export type ListPromptsQueryVariables = Exact<{
   scope?: InputMaybe<ListScope>;
@@ -4029,7 +4204,7 @@ export type ListPromptsQueryVariables = Exact<{
 }>;
 
 
-export type ListPromptsQuery = { __typename?: 'Query', listPrompts: { __typename?: 'PromptConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, jsonSchemaId?: string | null | undefined }> } };
+export type ListPromptsQuery = { __typename?: 'Query', listPrompts: { __typename?: 'PromptConnection', nextToken?: string | null | undefined, items: Array<{ __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, jsonSchemaId?: string | null | undefined, schema?: any | null | undefined }> } };
 
 export type GetScanQueryVariables = Exact<{
   key: CompositeKeyInput;
@@ -4341,21 +4516,21 @@ export type OnRestoreProjectSubscription = { __typename?: 'Subscription', onRest
 export type OnCreatePromptSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type OnCreatePromptSubscription = { __typename?: 'Subscription', onCreatePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, jsonSchemaId?: string | null | undefined } | null | undefined };
+export type OnCreatePromptSubscription = { __typename?: 'Subscription', onCreatePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, jsonSchemaId?: string | null | undefined, schema?: any | null | undefined } | null | undefined };
 
 export type OnUpdatePromptSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnUpdatePromptSubscription = { __typename?: 'Subscription', onUpdatePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, jsonSchemaId?: string | null | undefined } | null | undefined };
+export type OnUpdatePromptSubscription = { __typename?: 'Subscription', onUpdatePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, jsonSchemaId?: string | null | undefined, schema?: any | null | undefined } | null | undefined };
 
 export type OnDeletePromptSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type OnDeletePromptSubscription = { __typename?: 'Subscription', onDeletePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, jsonSchemaId?: string | null | undefined } | null | undefined };
+export type OnDeletePromptSubscription = { __typename?: 'Subscription', onDeletePrompt?: { __typename?: 'Prompt', id: string, entityType: EntityType, tenantId: string, ownerId: string, createdAt: string, updatedAt: string, deletedAt?: string | null | undefined, sharingMode: SharingMode, name: string, description?: string | null | undefined, prompt: string, systemInstruction?: string | null | undefined, inputVariables?: Array<string> | null | undefined, model: AiModel, version?: number | null | undefined, isActive?: boolean | null | undefined, jsonSchemaId?: string | null | undefined, schema?: any | null | undefined } | null | undefined };
 
 export type OnCreateScanSubscriptionVariables = Exact<{
   parentId?: InputMaybe<Scalars['ID']['input']>;

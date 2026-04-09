@@ -22,3 +22,4 @@ export * from './GeneratePromptDraft.js';
 export * from './DashboardLayout.js';
 export * from './TenantQuota.js';
 export * from './Ontology.js';
+export * from './Extraction.js';

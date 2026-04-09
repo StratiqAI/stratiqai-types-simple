@@ -23,6 +23,7 @@ export const PROMPT_FIELDS = gql`
     version
     isActive
     jsonSchemaId
+    schema
   }
 `;
 

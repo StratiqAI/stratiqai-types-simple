@@ -22,6 +22,7 @@ export const EXTRACTION_FIELDS = `
   documentIds
   topK
   topKPerNs
+  googleSearchEnabled
   promptId
   status
   statusMessage

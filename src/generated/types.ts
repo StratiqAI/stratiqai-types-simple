@@ -360,6 +360,7 @@ export type CreateDocumentInput = {
 
 export type CreateExtractionInput = {
   documentIds?: InputMaybe<Array<Scalars['ID']['input']>>;
+  googleSearchEnabled?: InputMaybe<Scalars['Boolean']['input']>;
   model?: InputMaybe<AiModel>;
   name?: InputMaybe<Scalars['String']['input']>;
   projectId: Scalars['ID']['input'];
@@ -825,6 +826,7 @@ export type Extraction = Metadata & Node & {
   errorCode?: Maybe<Scalars['String']['output']>;
   errorMessage?: Maybe<Scalars['String']['output']>;
   executedAt?: Maybe<Scalars['AWSDateTime']['output']>;
+  googleSearchEnabled?: Maybe<Scalars['Boolean']['output']>;
   id: Scalars['ID']['output'];
   model: AiModel;
   name?: Maybe<Scalars['String']['output']>;
@@ -3177,6 +3179,7 @@ export type UpdateExtractionInput = {
   errorCode?: InputMaybe<Scalars['String']['input']>;
   errorMessage?: InputMaybe<Scalars['String']['input']>;
   executedAt?: InputMaybe<Scalars['AWSDateTime']['input']>;
+  googleSearchEnabled?: InputMaybe<Scalars['Boolean']['input']>;
   model?: InputMaybe<AiModel>;
   name?: InputMaybe<Scalars['String']['input']>;
   prompt?: InputMaybe<Scalars['String']['input']>;

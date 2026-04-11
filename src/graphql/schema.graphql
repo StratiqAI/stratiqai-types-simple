@@ -514,6 +514,11 @@ type Extraction implements Node & Metadata
   documentIds: [ID!]
   topK: Int
   topKPerNs: Int
+  """
+  When true, Google Search grounding is enabled and structured JSON output is
+  disabled (the Gemini API does not support both simultaneously).
+  """
+  googleSearchEnabled: Boolean
 
   """
   Optional reference to a Prompt template this extraction was created from.
@@ -1818,6 +1823,7 @@ input CreateExtractionInput {
   documentIds: [ID!]
   topK: Int
   topKPerNs: Int
+  googleSearchEnabled: Boolean
   promptId: ID
   """
   When true, immediately queue for execution after creation (status = QUEUED).
@@ -1835,6 +1841,7 @@ input UpdateExtractionInput {
   documentIds: [ID!]
   topK: Int
   topKPerNs: Int
+  googleSearchEnabled: Boolean
   status: ExtractionStatus
   statusMessage: String
   errorMessage: String
